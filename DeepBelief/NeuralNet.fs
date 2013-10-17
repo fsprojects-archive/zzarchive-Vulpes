@@ -18,21 +18,10 @@ module NeuralNet =
 
     let prependForBias : Vector<float> -> Vector<float> = prepend 1.0
 
-    let layer f (weights : Matrix<float>) (inputs : Vector<float>) =
-        (weights * inputs) |> Vector.map f |> prependForBias
-
     type NnetProperties = {
         Weights : Matrix<float> list
         Activations : (float -> float) list
     }
-
-    /// build the network by means of function composition
-    let twoLayerNetwork (wmd : Matrix<float>) (wkm : Matrix<float>) : (Vector<float> -> Vector<float>) = 
-        layer sigmoid wmd >> layer sigmoid wkm
-
-    /// shield the user from handling the bias
-    let compute (wmd : Matrix<float>) (wkm : Matrix<float>) (input : Vector<float>) =
-        (twoLayerNetwork wmd wkm <| prependForBias input).[ 1 .. ]
 
     /// compute the derivative of a function, midpoint rule
     let derivative eps f = 
@@ -51,14 +40,6 @@ module NeuralNet =
                 (layerInput |> Vector.map f, 
                  layerInput |> Vector.map (derivative prc f)) :: os) 
           [] (List.zip netProps.Weights netProps.Activations)
-
-    let network (args : (Matrix<float> * (float -> float)) list) = 
-        let rec loop ls accfun =
-            match ls with
-            | [] -> accfun
-            | (weights,func) :: rest 
-                 -> loop rest (accfun >> layer func weights)
-        fun xs -> (loop args id) xs
 
     /// matlab like pointwise multiply
     let (.*) (a : Vector<float>) (b : Vector<float>) = 

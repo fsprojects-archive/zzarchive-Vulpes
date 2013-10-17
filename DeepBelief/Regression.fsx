@@ -13,18 +13,6 @@ open MathNet.Numerics.LinearAlgebra.Double
 open MathNet.Numerics.LinearAlgebra.Generic
 open NeuralNet
 
-/// weight/bias matrix from input -> hidden layer
-let wmd = matrix [ [-1.0; 0.1; 0.3; 0.7];
-                   [-2.0; 0.3; 0.2; 1.0]; 
-                   [-1.0; 0.8; 0.6; 0.6]; 
-                   [-2.0; 0.6; 0.3; 0.5]; ]
-
-/// weight/bias matrix from hidden layer -> output
-let wkm = matrix [ [-1.5; 0.5; 0.5; 0.5; 0.5];
-                   [-2.5; 0.5; 0.5; 0.5; 0.5]; ]
-
-let out = compute wmd wkm (vector [1.0; 2.0; 3.0])
-
 /// returns the output vector from a given list of layer outputs
 let netoutput (layeroutputs : ('a * 'a) list) = 
     fst (layeroutputs.Head)

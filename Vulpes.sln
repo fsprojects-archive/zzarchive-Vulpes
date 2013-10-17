@@ -1,6 +1,8 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio 2013
+VisualStudioVersion = 12.0.21005.1
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepBelief", "DeepBelief\DeepBelief.fsproj", "{50F4EB00-A650-4854-B53B-3C919D36EAB5}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepBelief.Tests", "DeepBelief.Tests\DeepBelief.Tests.fsproj", "{DD787FE8-4BF7-4564-B20D-3AEF8B73F2F1}"
