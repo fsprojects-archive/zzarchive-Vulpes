@@ -2,11 +2,11 @@
 
 module MnistDataLoad =
 
-    open Microsoft.FSharp.Collections
-    open System.IO
-    open System
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
+    open Microsoft.FSharp.Collections
+    open System
+    open System.IO
 
     [<Literal>]
     let MnistTrainingImageData = @"Data\train-images.idx3-ubyte"
