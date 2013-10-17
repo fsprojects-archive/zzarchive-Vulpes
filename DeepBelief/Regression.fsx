@@ -13,6 +13,8 @@ open MathNet.Numerics.LinearAlgebra.Double
 open MathNet.Numerics.LinearAlgebra.Generic
 open NeuralNet
 
+fsi.ShowDeclarationValues <- false
+
 /// returns the output vector from a given list of layer outputs
 let netoutput (layeroutputs : ('a * 'a) list) = 
     fst (layeroutputs.Head)
@@ -84,4 +86,4 @@ let testRun experiment listOfEpochs =
     
     (samples, data)
 
-let samples, data = testRun experimentSetting [75; 500; 2000; 5000; 10000];;
+let samples, data = testRun experimentSetting [75; 500; 2000; 5000; 10000];

@@ -112,22 +112,3 @@ module NeuralNet =
             | _    -> Ws
         let Ws' = loop Ws (initDeltaWeights Ws) 0
         { props with Weights = Ws' }
-
-    type Rbm(nh, nv) =
-        let nHidden = nh
-        let nVisible = nv
-        let mersenne = new MersenneTwister()
-        let hBias = Array.zeroCreate nHidden |> DenseVector.OfEnumerable
-        let vBias = Array.zeroCreate nVisible |> DenseVector.OfEnumerable
-        let bound = 4.0 * Math.Sqrt (6.0 / ((float)nHidden + (float)nVisible))
-        let uniform = new ContinuousUniform(-bound, bound, RandomSource = mersenne)
-        let initialW = Array2D.init nVisible nHidden (fun _ _ -> uniform.Sample()) |> DenseMatrix.OfArray
-        member x.W = initialW
-
-        member x.PropUp (vis:Vector) =
-            let product = x.W.Multiply vis + hBias
-            product |> Vector.map sigmoid
-            
-        member x.PropDown (hid:Vector) =
-            let product = x.W.LeftMultiply hid + vBias
-            product |> Vector.map sigmoid

@@ -5,6 +5,8 @@ module MnistDataLoad =
     open Microsoft.FSharp.Collections
     open System.IO
     open System
+    open MathNet.Numerics.LinearAlgebra.Double
+    open MathNet.Numerics.LinearAlgebra.Generic
 
     [<Literal>]
     let MnistTrainingImageData = @"Data\train-images.idx3-ubyte"
@@ -22,7 +24,7 @@ module MnistDataLoad =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0
 
     let readImage (b : BinaryReader, rowArray, colArray) =
-        rowArray |> Array.collect (fun r -> Array.map (fun c -> (int)(b.ReadByte())) colArray)
+        rowArray |> Array.collect (fun r -> Array.map (fun c -> (b.ReadByte() |> int |> float)/255.0 ) colArray)
 
     // TRAINING SET IMAGE FILE (train-images-idx3-ubyte):
     // [offset] [type]          [value]          [description] 
@@ -57,7 +59,7 @@ module MnistDataLoad =
         let rowArray = [|1..nRows|]
         let colArray = [|1..nCols|]
         let images = [1..nImages] |> List.map (fun i -> readImage(reader, rowArray, colArray))
-        (magicNumber, nImages, nRows, nCols, images.[0])
+        DenseMatrix.ofRows nImages (nRows * nCols) images;
 
     // TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
     // [offset] [type]          [value]          [description] 
