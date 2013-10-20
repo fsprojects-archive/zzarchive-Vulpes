@@ -17,3 +17,4 @@ printfn "trainingImages is a %d by %d matrix." trainingImages.RowCount trainingI
 
 loadMnistLabel MnistTestLabelData
 loadMnistLabel MnistTrainingLabelData
+

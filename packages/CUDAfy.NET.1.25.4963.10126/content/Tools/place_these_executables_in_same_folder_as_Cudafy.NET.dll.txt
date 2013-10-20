@@ -1,0 +1,18 @@
+Place these executables in same folder as Cudafy.NET.
+
+CudafyModuleViewer 
+------------------
+This is a GUI for viewing *.cdfy xml files (serialized Cudafy modules), verifying generated CUDA C code, etc.
+
+cudafycl.exe
+------------
+As an alternative to cudafying within the application code, you can elect to use the standalone cudafy command line tool.  There are two modes of operation:
+•	Generate Cudafy Module
+•	Embed Cudafy Module
+In generate mode all types and members within the specified .NET assembly marked with the Cudafy attribute are cudafied and a *.cdfy module is generated.
+Embedding the Cudafy module involves cudafying all types and members within the specified .NET assembly marked with the Cudafy attribute and then embedding the resultant Cudafy module in the .NET assembly.  The advantage of this is that it is no longer necessary to distribute a separate *.cdfy file.
+The usage is as follows:
+cudafycl.exe assemblyname.dll [-arch=sm_11|sm_12|sm_13|sm_20] [-cdfy]
+The assembly to be cudafied is specified as the first argument.
+The optional -arch specifies the minimum device architecture.
+The optional –cdfy put the tool in generate mode and the module is not embedded in the assembly.  The name of the module is as per the assembly name with a *.cdfy extension.

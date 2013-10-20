@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>CUDAfy.NET</id>
+    <version>1.25.4963.10126</version>
+    <title>CUDAfy.NET</title>
+    <authors>Hybrid DSP Systems</authors>
+    <owners>Hybrid DSP Systems</owners>
+    <licenseUrl>http://www.hybriddsp.com/cudafy/CUDAfy-License.txt</licenseUrl>
+    <projectUrl>http://www.hybriddsp.com/Products/CUDAfyNET.aspx</projectUrl>
+    <iconUrl>http://www.hybriddsp.com/images/CUDAfy-Icon-32x32.png</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>CUDAfy is an SDK that permits general purpose programming of NVIDIA CUDA Graphics Processing Units (GPUs) and OpenCL devices completely from within the Microsoft .NET framework.  Device code and host code can be written in .NET using standard .NET types. There are also wrappers for the CUDA Random, FFT and BLAS libraries.
+
+For CUDA development the NVIDIA CUDA 5.5 Toolkit must be installed.  For OpenCL the relevant SDK from Intel, AMD, NVIDIA or Altera must be installed.
+
+For first time users it is recommended to download the installer / set-up tool from http://www.hybriddsp.com.</description>
+    <summary>CUDA on .NET</summary>
+    <releaseNotes>Fix: Typo in xml comment of GThread.
+ Fix: Use of eCudafyAddressSpace attribute on parameters (needed for OpenCL).
+ Fix: Shared memory arrays of structs not translated correct for OpenCL.
+ Fix: Cudafying reported by some users to appear to freeze when calling nvcc. 
+ Chg: Make HostAllocate for OpenCL 4096 byte aligned.
+ Chg: OpenCL Linux so name
+ Add: LinuxDebug configuration to Cloo.VS2010.csproj
+ Add: More flexible Cudafy method using CompileProperties (testing to be   finalized).
+ Add: Dynamic Parallelism support (alpha).
+ Add: Ability to GetDevice based on architecture
+ Add: Binary (cubin) support.
+ Chg: Cudafy.Host.Unit tests.
+ Chg: Update cudafybyexample
+ Chg: If no arch specified fall back on CudafyModes.Lanaguage prop
+ Add: CUDA 5.5 (required for RT API)
+ Add: New *.cdfy files (not backward compatible)
+ Add: Clone method to CudafyModule to allow easier loading of same module to   multiple GPUs.
+ Add: Support GetDeviceProperties advanced for both current and previous CUDA   release.
+ Add: .NET 3.5 support.
+ Fix: Delete generated code.
+ Add: CUDA 5.5 support.</releaseNotes>
+    <copyright>2011-2013 Hybrid DSP Systems</copyright>
+    <language />
+  </metadata>
+</package>
