@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Alea.cuBase</id>
+    <version>1.1.549</version>
+    <title>Alea.cuBase</title>
+    <authors>QuantAlea GmbH.</authors>
+    <owners>QuantAlea GmbH.</owners>
+    <licenseUrl>http://lic.quantalea.net/license.html</licenseUrl>
+    <projectUrl>http://www.quantalea.net/</projectUrl>
+    <iconUrl>http://lic.quantalea.net/alea.ico</iconUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>Alea.cuBase is a complete solution to develop CUDA accelerated GPU applications on the .NET framework. It relies on Microsoft’s new functional language F# to generate highly optimized CUDA code. For more details, please ref to http://www.quantalea.net</description>
+    <releaseNotes>1.1 Update 1
+*) Fix bug with new NVIDIA driver. (CUDA 5.5)</releaseNotes>
+    <copyright>QuantAlea GmbH. 2010-2013</copyright>
+    <language />
+    <tags>F# FSharp Alea QuantAlea CUDA</tags>
+  </metadata>
+</package>

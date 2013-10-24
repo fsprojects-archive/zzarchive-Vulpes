@@ -71,7 +71,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="NeuralNet.fs" />
+    <Compile Include="DeepBeliefNet.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
   </ItemGroup>
