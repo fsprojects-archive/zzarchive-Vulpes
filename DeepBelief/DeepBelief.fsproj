@@ -56,6 +56,7 @@
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="MnistDataLoad.fs" />
     <None Include="MnistData.fsx" />
+    <None Include="DeepBeliefNet.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
