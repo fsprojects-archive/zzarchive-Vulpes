@@ -25,20 +25,20 @@ module DeepBeliefNet =
     let rand = new MersenneTwister()
 
     let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
-
     let toColumns (M : Matrix<float>) = [0..(M.ColumnCount - 1)] |> List.map(fun i -> M.Column i)
 
     let proportionOfVisibleUnits (v : Vector<float>) =
         v.ToArray() |> Array.filter (fun u -> u > 0.5) |> fun arr -> float arr.Length / float v.Count
-
+        
+    // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
+    // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
+    // of training vectors in which the unit i is on.
     let initVisibleUnit v =
         let p = proportionOfVisibleUnits v
         Math.Max(-100.0, Math.Log(p)) - Math.Max(-100.0, Math.Log(1.0 - p))
         
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.
-    // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
-    // of training vectors in which the unit i is on.
     let gaussianDistribution = new Normal(0.0, 0.01)
     let initRbm nVisible nHidden alpha momentum (xInputs : Matrix<float>) =
         { 
@@ -64,15 +64,12 @@ module DeepBeliefNet =
     let transpose (M : Matrix<float>) = M.Transpose()
 
     let addHiddenBiases rbm = Matrix.mapCols (fun _ col -> col + rbm.HiddenBiases)
-
     let addVisibleBiases rbm = Matrix.mapRows (fun _ row -> row + rbm.VisibleBiases)
 
     let forward rbm v = rbm.Weights * (transpose v) |> addHiddenBiases rbm |> transpose
-
     let backward rbm h = h * rbm.Weights |> addVisibleBiases rbm
 
     let sumOfRows M = M |> Matrix.sumRowsBy (fun _ row -> row)
-
     let sumOfSquares M = M |> Matrix.fold (fun acc element -> acc + element * element) 0.0
 
     let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
@@ -80,12 +77,9 @@ module DeepBeliefNet =
 
     let permutation (rnd : AbstractRandomNumberGenerator) list =
         list |> List.sortBy (fun element -> rnd.NextDouble())
-
     let permute rnd n = permutation rnd [0..(n-1)]
-
     let permuteRows rnd (M : Matrix<float>) = 
-        let rows = permute rnd M.RowCount |> List.map (fun i -> M.Row i)
-        DenseMatrix.ofRowVectors rows
+        permute rnd M.RowCount |> List.map (fun i -> M.Row i) |> DenseMatrix.ofRowVectors
 
     let updateWeights rnd rbm (batch : Matrix<float>) =
         let batchSize = float batch.RowCount
@@ -122,12 +116,9 @@ module DeepBeliefNet =
         )
 
     let batchesOf n =
-        Seq.ofList >>
-        Seq.mapi (fun i v -> i / n, v) >>
-        Seq.groupBy fst >>
-        Seq.map snd >>
-        Seq.map (Seq.map snd >> Seq.toList) >>
-        Seq.toList
+        Seq.ofList >> Seq.mapi (fun i v -> i / n, v) >>
+        Seq.groupBy fst >> Seq.map snd >>
+        Seq.map (Seq.map snd >> Seq.toList) >> Seq.toList
     
     let epoch rnd batchSize rbm xInputs =
         let xRand = permuteRows rnd xInputs
