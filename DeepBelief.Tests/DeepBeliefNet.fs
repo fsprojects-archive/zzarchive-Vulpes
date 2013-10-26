@@ -15,7 +15,7 @@ type ``Given a Deep belief network with two layers`` ()=
     let xInputs = DenseMatrix.init 1000 784 (fun _ _ -> rand.NextDouble())
     let sinInput = [1..784] |> List.map (fun x -> (1.0 + Math.Sin(12.0 * (x |> float)/784.0))/2.0) |> DenseVector.ofList |> fun row -> DenseMatrix.ofRowVectors [row]
     let layeredDbn = dbn sizes alpha momentum xInputs
-    let sinTrainedRbm = rbmTrain rand 10 50 layeredDbn.[0] sinInput
+    let sinTrainedRbm = rbmTrain rand 1 2 layeredDbn.[0] sinInput
 
     let (rows0, Drows0) = (layeredDbn.[0].Weights.RowCount, layeredDbn.[0].DWeights.RowCount)
     let (columns0, Dcolumns0) = (layeredDbn.[0].Weights.ColumnCount, layeredDbn.[0].DWeights.ColumnCount)
