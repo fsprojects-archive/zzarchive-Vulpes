@@ -9,16 +9,16 @@ module MnistDataLoad =
     open System.IO
 
     [<Literal>]
-    let MnistTrainingImageData = @"Data\train-images.idx3-ubyte"
+    let MnistTrainingImageData = @"train-images.idx3-ubyte"
 
     [<Literal>]
-    let MnistTestImageData = @"Data\t10k-images.idx3-ubyte"
+    let MnistTestImageData = @"t10k-images.idx3-ubyte"
 
     [<Literal>]
-    let MnistTrainingLabelData = @"Data\train-labels.idx1-ubyte"
+    let MnistTrainingLabelData = @"train-labels.idx1-ubyte"
 
     [<Literal>]
-    let MnistTestLabelData = @"Data\t10k-labels.idx1-ubyte"
+    let MnistTestLabelData = @"t10k-labels.idx1-ubyte"
 
     let readInt (b : BinaryReader) =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0

@@ -53,10 +53,22 @@
     <Compile Include="NeuralNet.fs" />
     <None Include="Regression.fsx" />
     <None Include="packages.config" />
-    <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="MnistDataLoad.fs" />
+    <Compile Include="DeepBeliefNet.fs" />
     <None Include="MnistData.fsx" />
     <None Include="DeepBeliefNet.fsx" />
+    <Content Include="t10k-images.idx3-ubyte">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="t10k-labels.idx1-ubyte">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="train-images.idx3-ubyte">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="train-labels.idx1-ubyte">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">

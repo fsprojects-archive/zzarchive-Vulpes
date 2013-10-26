@@ -5,13 +5,15 @@ open FsUnit.Xunit
 open DeepBelief.DeepBeliefNet
 open MathNet.Numerics.LinearAlgebra.Double
 open MathNet.Numerics.LinearAlgebra.Generic
+open DeepBelief.MnistDataLoad
 open System
 
 type ``Given a Deep belief network with two layers`` ()=
     let sizes = [100; 50]
     let alpha = 1.0
-    let momentum = 0.0
-    let xInputs = DenseMatrix.zeroCreate 60000 784
+    let momentum = 0.5
+    let xInputs = DenseMatrix.init 1000 784 (fun _ _ -> rand.NextDouble())
+    //let xInputs = loadMnistImage MnistTrainingImageData
     let twoLayerDbn = dbn sizes alpha momentum xInputs
 
     let (rows0, Drows0) = (twoLayerDbn.[0].Weights.RowCount, twoLayerDbn.[0].DWeights.RowCount)
@@ -24,7 +26,8 @@ type ``Given a Deep belief network with two layers`` ()=
     let (v1, Dv1) = (twoLayerDbn.[1].VisibleBiases, twoLayerDbn.[1].DVisibleBiases)
     let (h1, Dh1) = (twoLayerDbn.[1].HiddenBiases, twoLayerDbn.[1].DHiddenBiases)
 
-    let batch = DenseMatrix.init 10 784 (fun i j -> (i - 50) * (j - 392) |> float)
+    let batch = DenseMatrix.init 10 784 (fun i j -> (i - 5) * (j - 392) |> float)
+    let inputs = DenseMatrix.init 100 784 (fun i j -> rand.NextDouble() |> float)
 
     [<Fact>] member test.
         ``The length of the DBN should be 2.``()=
@@ -55,9 +58,9 @@ type ``Given a Deep belief network with two layers`` ()=
         (h1.Count, Dh1.Count) |> should equal (50, 50)
 
     [<Fact>] member test.
-        ``Each RBM should be initialised to have zero momentum and unit alpha.``()=
+        ``Each RBM should be initialised to have 0.5 momentum and unit alpha.``()=
         twoLayerDbn |> List.map (fun x -> (x.Alpha, x.Momentum)) 
-        |> List.forall (fun x -> x = (1.0, 0.0)) 
+        |> List.forall (fun x -> x = (1.0, 0.5)) 
         |> should equal true
 
     [<Fact>] member test.
@@ -98,3 +101,20 @@ type ``Given a Deep belief network with two layers`` ()=
     [<Fact>] member test.
         ``The permuteRows method preserves the dimensions of the batch matrix.``()=
         permuteRows rand batch |> (fun x -> (x.RowCount, x.ColumnCount)) |> should equal (10, 784)
+
+    [<Fact>] member test.
+        ``The first epoch gives a positive error.``()=
+        epoch rand 10 twoLayerDbn.[0] inputs |> fst |> should greaterThan 0.0
+
+    [<Fact>] member test.
+        ``The first epoch gives an RBM with non-zero weights.``()=
+        epoch rand 10 twoLayerDbn.[0] inputs |> snd |> (fun r -> r.Weights |> Matrix.nonZeroEntries |> Seq.isEmpty) |> should equal false 
+
+    [<Fact>] member test.
+        ``The batchesOf function splits 1 to 10 up correctly.``()=
+        [1..10] |> batchesOf 3 |> should equal [[1;2;3];[4;5;6];[7;8;9];[10]]
+
+    [<Fact>] member test.
+        ``Training 20 epochs gives an RBM with non-zero weights.``()=
+        rbmTrain rand 200 20 twoLayerDbn.[0] inputs |> (fun r -> r.Weights |> Matrix.nonZeroEntries |> Seq.isEmpty) |> should equal false 
+

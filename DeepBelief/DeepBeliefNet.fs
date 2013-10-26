@@ -55,29 +55,21 @@ module DeepBeliefNet =
             |> snd
             |> List.rev
 
-    let rbmTrain rbm (xInputs : Matrix<float>) batchSize epochs =
-        let numBatches = xInputs.RowCount / batchSize
-        rbm
-
     let transpose (M : Matrix<float>) = M.Transpose()
 
-    let addHiddenBiases rbm =
-        Matrix.mapCols (fun _ col -> col + rbm.HiddenBiases)
+    let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
 
-    let addVisibleBiases rbm =
-        Matrix.mapRows (fun _ row -> row + rbm.VisibleBiases)
+    let addHiddenBiases rbm = Matrix.mapCols (fun _ col -> col + rbm.HiddenBiases)
 
-    let forward rbm v =
-        rbm.Weights * (transpose v) |> addHiddenBiases rbm |> transpose
+    let addVisibleBiases rbm = Matrix.mapRows (fun _ row -> row + rbm.VisibleBiases)
 
-    let backward rbm h =
-        h * rbm.Weights |> addVisibleBiases rbm
+    let forward rbm v = rbm.Weights * (transpose v) |> addHiddenBiases rbm |> transpose
 
-    let sumOfRows M =
-        M |> Matrix.sumRowsBy (fun _ row -> row)
+    let backward rbm h = h * rbm.Weights |> addVisibleBiases rbm
 
-    let sumOfSquares M =
-        M |> Matrix.fold (fun acc element -> acc + element * element) 0.0
+    let sumOfRows M = M |> Matrix.sumRowsBy (fun _ row -> row)
+
+    let sumOfSquares M = M |> Matrix.fold (fun acc element -> acc + element * element) 0.0
 
     let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
         xInputs |> Matrix.map(fun x -> activation x > rnd.NextDouble() |> Convert.ToInt32 |> float)
@@ -131,6 +123,21 @@ module DeepBeliefNet =
             }
         )
 
-    let epoch rnd xInputs =
+    let batchesOf n =
+        Seq.ofList >>
+        Seq.mapi (fun i v -> i / n, v) >>
+        Seq.groupBy fst >>
+        Seq.map snd >>
+        Seq.map (Seq.map snd >> Seq.toList) >>
+        Seq.toList
+    
+    let epoch rnd batchSize rbm xInputs =
         let xRand = permuteRows rnd xInputs
-        xRand
+        let samples = xRand |> toRows |> batchesOf batchSize |> List.map (fun rows -> DenseMatrix.ofRowVectors rows)
+        samples |> List.fold(fun acc batch ->
+            let result = updateWeights rnd (snd acc) batch
+            (fst acc + fst result, snd result)) (0.0, rbm)
+
+    let rbmTrain rnd batchSize epochs rbm xInputs  =
+        [1..epochs] |> List.fold(fun acc i ->
+            snd (epoch rnd batchSize acc xInputs)) rbm

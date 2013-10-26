@@ -15,12 +15,17 @@ open MathNet.Numerics.Distributions
 open MathNet.Numerics.LinearAlgebra.Double
 open MathNet.Numerics.LinearAlgebra.Generic
 
-let batch = DenseMatrix.init 10 784 (fun i j -> (i - 50) * (j - 392) |> float)
-let xInputs = DenseMatrix.zeroCreate 60000 784
+let batch = DenseMatrix.init 10 784 (fun i j -> rand.NextDouble() |> float)
+let xInputs = DenseMatrix.init 60000 784 (fun i j -> rand.NextDouble() |> float)
 let sizes = [100; 50]
 let alpha = 1.0
-let momentum = 0.0
+let momentum = 0.5
 let twoLayerDbn = dbn sizes alpha momentum xInputs
+let inputs = DenseMatrix.init 100 784 (fun i j -> rand.NextDouble() |> float)
 
 activate rand sigmoid batch |> Matrix.forall(fun y -> y * (y - 1.0) = 0.0);;
 batch |> forward twoLayerDbn.[0] |> activate rand sigmoid |> backward twoLayerDbn.[0];;
+//epoch rand 10 twoLayerDbn.[0] xInputs;;
+let rbm = rbmTrain rand 10 1000 twoLayerDbn.[0] xInputs;;
+rbm.VisibleBiases;;
+epoch rand 10 twoLayerDbn.[0] inputs |> (fun x -> fst x) 
