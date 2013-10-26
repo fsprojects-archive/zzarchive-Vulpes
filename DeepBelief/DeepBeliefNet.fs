@@ -2,7 +2,6 @@
 
 module DeepBeliefNet =
 
-    open Alea.CUDA
     open MathNet.Numerics
     open MathNet.Numerics.Random
     open MathNet.Numerics.Distributions
@@ -25,20 +24,27 @@ module DeepBeliefNet =
 
     let rand = new MersenneTwister()
 
-    let dbnTrain trainLayer stepUp (rbms : List<'a>) xInputs =
-        let start = trainLayer (rbms.Head, xInputs)
-        rbms.Tail |> List.fold(fun (acc : List<'b * 'c>) element -> 
-            let currentTuple = acc.Head
-            let x = stepUp (fst currentTuple) (snd currentTuple)
-            let nextRbm = trainLayer (element, x)
-            (nextRbm, x) :: acc) [(start, xInputs)]
-            |> List.rev
+    let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
 
-    let initRbm nVisible nHidden alpha momentum =
+    let toColumns (M : Matrix<float>) = [0..(M.ColumnCount - 1)] |> List.map(fun i -> M.Column i)
+
+    let proportionOfVisibleUnits (v : Vector<float>) =
+        v.ToArray() |> Array.filter (fun u -> u > 0.5) |> fun arr -> float arr.Length / float v.Count
+
+    let initVisibleUnit v =
+        let p = proportionOfVisibleUnits v
+        Math.Max(-100.0, Math.Log(p)) - Math.Max(-100.0, Math.Log(1.0 - p))
+        
+    // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
+    // The initial weights should have zero mean and 0.01 standard deviation.
+    // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
+    // of training vectors in which the unit i is on.
+    let gaussianDistribution = new Normal(0.0, 0.01)
+    let initRbm nVisible nHidden alpha momentum (xInputs : Matrix<float>) =
         { 
             Alpha = alpha; 
             Momentum = momentum; 
-            Weights = DenseMatrix.zeroCreate nHidden nVisible;
+            Weights = DenseMatrix.randomCreate nHidden nVisible gaussianDistribution;
             DWeights = DenseMatrix.zeroCreate nHidden nVisible;
             VisibleBiases = DenseVector.zeroCreate nVisible;
             DVisibleBiases = DenseVector.zeroCreate nVisible;
@@ -50,14 +56,12 @@ module DeepBeliefNet =
         sizes |> List.fold(fun acc element -> 
             let nVisible = fst acc
             let nHidden = element
-            (element, (initRbm nVisible nHidden alpha momentum) :: snd acc))
+            (element, (initRbm nVisible nHidden alpha momentum xInputs) :: snd acc))
             (xInputs.ColumnCount, [])
             |> snd
             |> List.rev
 
     let transpose (M : Matrix<float>) = M.Transpose()
-
-    let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
 
     let addHiddenBiases rbm = Matrix.mapCols (fun _ col -> col + rbm.HiddenBiases)
 
@@ -74,16 +78,8 @@ module DeepBeliefNet =
     let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
         xInputs |> Matrix.map(fun x -> activation x > rnd.NextDouble() |> Convert.ToInt32 |> float)
 
-    let rec permutation (rnd : AbstractRandomNumberGenerator) list =
-        let indexedList = list |> List.mapi (fun i element -> (i, element))
-        match list with
-        | [] -> []
-        | _ ->
-            let n = list.Length
-            let index = rnd.Next n
-            list.[index] :: permutation rnd (indexedList 
-                |> List.filter (fun t -> fst t <> index)
-                |> List.map (fun t -> snd t))
+    let permutation (rnd : AbstractRandomNumberGenerator) list =
+        list |> List.sortBy (fun element -> rnd.NextDouble())
 
     let permute rnd n = permutation rnd [0..(n-1)]
 
@@ -105,12 +101,14 @@ module DeepBeliefNet =
 
         let changeOfVisibleUnits = v1 - v2
         let changeOfHiddenUnits = h1 - h2
+        let visibleError = (changeOfVisibleUnits |> sumOfSquares) / batchSize
+        let hiddenError = (changeOfHiddenUnits |> sumOfSquares) / batchSize
 
         let DWeights = rbm.Momentum * rbm.DWeights + weightedAlpha * (c1 - c2)
         let DVisibleBiases = rbm.Momentum * rbm.DVisibleBiases + weightedAlpha * (sumOfRows changeOfVisibleUnits)
         let DHiddenBiases = rbm.Momentum * rbm.DHiddenBiases + weightedAlpha * (sumOfRows changeOfHiddenUnits)
         ( 
-            (changeOfVisibleUnits |> sumOfSquares) / batchSize,
+            visibleError,
             {
                 Alpha = rbm.Alpha;
                 Momentum = rbm.Momentum;
@@ -138,6 +136,30 @@ module DeepBeliefNet =
             let result = updateWeights rnd (snd acc) batch
             (fst acc + fst result, snd result)) (0.0, rbm)
 
-    let rbmTrain rnd batchSize epochs rbm xInputs  =
+    let rbmUp rbm activation xInputs =
+        forward rbm xInputs |> Matrix.map activation
+
+    let rbmTrain rnd batchSize epochs rbm xInputs =
+        let initialisedRbm =
+            {
+                Alpha = rbm.Alpha;
+                Momentum = rbm.Momentum;
+                Weights = rbm.Weights;
+                DWeights = rbm.DWeights;
+                VisibleBiases = xInputs |> toColumns |> List.map initVisibleUnit |> DenseVector.ofList;
+                DVisibleBiases = rbm.DVisibleBiases
+                HiddenBiases = rbm.HiddenBiases
+                DHiddenBiases = rbm.DHiddenBiases
+            }
         [1..epochs] |> List.fold(fun acc i ->
-            snd (epoch rnd batchSize acc xInputs)) rbm
+            snd (epoch rnd batchSize acc xInputs)) initialisedRbm
+
+    let dbnTrain rnd batchSize epochs rbms xInputs =
+        let start = rbmTrain rnd batchSize epochs (List.head rbms) xInputs
+        rbms.Tail |> List.fold(fun acc element -> 
+            let currentTuple = List.head acc
+            let x = rbmUp (fst currentTuple) sigmoid (snd currentTuple)
+            let nextRbm = rbmTrain rnd batchSize epochs element x
+            (nextRbm, x) :: acc) [(start, xInputs)]
+            |> List.map fst
+            |> List.rev
