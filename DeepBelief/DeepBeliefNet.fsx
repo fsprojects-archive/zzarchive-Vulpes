@@ -25,7 +25,7 @@ let inputs = DenseMatrix.init 100 784 (fun i j -> rand.NextDouble() |> float)
 
 activate rand sigmoid batch |> Matrix.forall(fun y -> y * (y - 1.0) = 0.0);;
 batch |> forward twoLayerDbn.[0] |> activate rand sigmoid |> backward twoLayerDbn.[0];;
-//epoch rand 10 twoLayerDbn.[0] xInputs;;
+
 let rbm = rbmTrain rand 10 1000 twoLayerDbn.[0] xInputs;;
 rbm.VisibleBiases;;
 epoch rand 10 twoLayerDbn.[0] inputs |> (fun x -> fst x) 
