@@ -7,7 +7,7 @@ open DeepBelief
 open MnistDataLoad
 open System.IO
 
-Directory.SetCurrentDirectory(@"C:\Users\white_000\Documents\GitHub\Vulpes\DeepBelief")
+Directory.SetCurrentDirectory(@"C:\Users\white_000\Documents\GitHub\Vulpes\MnistClassification")
 
 let testImages = loadMnistImage MnistTestImageData
 let trainingImages = loadMnistImage MnistTrainingImageData
@@ -15,6 +15,8 @@ let trainingImages = loadMnistImage MnistTrainingImageData
 printfn "testImages is a %d by %d matrix." testImages.RowCount testImages.ColumnCount
 printfn "trainingImages is a %d by %d matrix." trainingImages.RowCount trainingImages.ColumnCount
 
-loadMnistLabel MnistTestLabelData
-loadMnistLabel MnistTrainingLabelData
+let testLabels = loadMnistLabel MnistTestLabelData
+let trainingLabels = loadMnistLabel MnistTrainingLabelData
 
+printfn "testLabels is a %d by %d matrix." testLabels.RowCount testLabels.ColumnCount
+printfn "trainingLabels is a %d by %d matrix." trainingLabels.RowCount trainingLabels.ColumnCount

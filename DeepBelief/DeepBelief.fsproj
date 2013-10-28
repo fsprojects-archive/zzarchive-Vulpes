@@ -52,25 +52,10 @@
   <ItemGroup>
     <None Include="packages.config" />
     <Compile Include="Utils.fs" />
-    <Compile Include="NeuralNet.fs" />
-    <Compile Include="MnistDataLoad.fs" />
     <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="Classification.fs" />
+    <Compile Include="NeuralNet.fs" />
     <None Include="Regression.fsx" />
-    <None Include="MnistData.fsx" />
     <None Include="DeepBeliefNet.fsx" />
-    <Content Include="t10k-images.idx3-ubyte">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="t10k-labels.idx1-ubyte">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="train-images.idx3-ubyte">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-    <Content Include="train-labels.idx1-ubyte">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
@@ -85,7 +70,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="MathNet.Numerics">
-      <HintPath>..\packages\MathNet.Numerics.2.6.1\lib\net40\MathNet.Numerics.dll</HintPath>
+      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MathNet.Numerics.FSharp">
@@ -93,7 +78,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="MathNet.Numerics.IO">
-      <HintPath>..\packages\MathNet.Numerics.2.6.1\lib\net40\MathNet.Numerics.IO.dll</HintPath>
+      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.IO.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />

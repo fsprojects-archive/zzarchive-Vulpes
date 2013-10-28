@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>MathNet.Numerics</id>
-    <version>2.6.1</version>
+    <version>2.6.2</version>
     <title>Math.NET Numerics</title>
     <authors>Marcus Cuda, Christoph Ruegg, Jurgen Van Gael</authors>
     <owners>Marcus Cuda, Christoph Ruegg, Jurgen Van Gael</owners>
@@ -12,10 +12,10 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Math.NET Numerics is the numerical foundation of the Math.NET project, aiming to provide methods and algorithms for numerical computations in science, engineering and every day use. Numerics is the result of merging dnAnalytics with Math.NET Iridium and is intended to replace both. Also includes a portable build supporting .Net 4 and higher, SL5, WP8 and .NET for Windows Store apps.</description>
     <summary>Math.NET Numerics, providing methods and algorithms for numerical computations in science, engineering and every day use. Supports .Net 4 and higher, SL5, WP8 and .NET for Windows Store apps.</summary>
-    <releaseNotes>BUG: Fix bug in ArrayStatistics.Variance on arrays longer than 46341 entries. GitHub Issue #137.</releaseNotes>
+    <releaseNotes>Package-only updated for better WindowsPhone 8 support.</releaseNotes>
     <tags>math numeric statistics probability integration interpolation linear algebra matrix fft</tags>
     <frameworkAssemblies>
-      <frameworkAssembly assemblyName="System.Numerics" targetFramework="" />
+      <frameworkAssembly assemblyName="System.Numerics" targetFramework=".NETFramework4.0, .NETFramework4.5, Windows8.0, Silverlight5.0" />
     </frameworkAssemblies>
   </metadata>
 </package>

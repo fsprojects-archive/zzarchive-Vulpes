@@ -23,8 +23,12 @@ module MnistDataLoad =
     let readInt (b : BinaryReader) =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0
 
-    let readImage (b : BinaryReader, rowArray, colArray) =
-        rowArray |> Array.collect (fun r -> Array.map (fun c -> (b.ReadByte() |> int |> float)/255.0 ) colArray)
+    let readImage (b : BinaryReader, row, col) =
+        row |> List.collect (fun r -> List.map (fun c -> (b.ReadByte() |> int |> float)/255.0 ) col)
+
+    let readLabel (b : BinaryReader) =
+        let digit = int (b.ReadByte())
+        [0..9] |> List.map(fun i -> if i = digit then 1.0 else 0.0)
 
     // TRAINING SET IMAGE FILE (train-images-idx3-ubyte):
     // [offset] [type]          [value]          [description] 
@@ -56,10 +60,10 @@ module MnistDataLoad =
         let nRows = readInt(reader)
         let nCols = readInt(reader)
 
-        let rowArray = [|1..nRows|]
-        let colArray = [|1..nCols|]
-        let images = [1..nImages] |> List.map (fun i -> readImage(reader, rowArray, colArray))
-        DenseMatrix.ofRows nImages (nRows * nCols) images;
+        let row = [1..nRows]
+        let col = [1..nCols]
+        let images = [1..nImages] |> List.map (fun _ -> readImage(reader, row, col))
+        matrix images;
 
     // TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
     // [offset] [type]          [value]          [description] 
@@ -84,4 +88,4 @@ module MnistDataLoad =
         use reader = new BinaryReader(stream)
         let magicNumber = readInt(reader)
         let nLabels = readInt(reader)
-        [1..nLabels] |> List.map (fun i -> int (reader.ReadByte()))
+        [1..nLabels] |> List.map (fun _ -> readLabel reader) |> matrix

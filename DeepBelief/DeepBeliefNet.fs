@@ -4,7 +4,6 @@ module DeepBeliefNet =
 
     open MathNet.Numerics
     open MathNet.Numerics.Random
-    open MathNet.Numerics.Distributions
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
     open System
@@ -33,14 +32,11 @@ module DeepBeliefNet =
         let p = proportionOfVisibleUnits v
         Math.Max(-100.0, Math.Log(p)) - Math.Max(-100.0, Math.Log(1.0 - p))
         
-    // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
-    // The initial weights should have zero mean and 0.01 standard deviation.
-    let gaussianDistribution = new Normal(0.0, 0.01)
     let initRbm nVisible nHidden alpha momentum =
         { 
             Alpha = alpha; 
             Momentum = momentum; 
-            Weights = DenseMatrix.randomCreate nHidden nVisible gaussianDistribution;
+            Weights = initGaussianWeights nHidden nVisible;
             DWeights = DenseMatrix.zeroCreate nHidden nVisible;
             VisibleBiases = DenseVector.zeroCreate nVisible;
             DVisibleBiases = DenseVector.zeroCreate nVisible;
@@ -61,9 +57,6 @@ module DeepBeliefNet =
 
     let forward rbm v = rbm.Weights * (transpose v) |> addHiddenBiases rbm |> transpose
     let backward rbm h = h * rbm.Weights |> addVisibleBiases rbm
-
-    let sumOfRows M = M |> Matrix.sumRowsBy (fun _ row -> row)
-    let sumOfSquares M = M |> Matrix.fold (fun acc element -> acc + element * element) 0.0
 
     let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
         xInputs |> Matrix.map(fun x -> activation x > rnd.NextDouble() |> Convert.ToInt32 |> float)
@@ -88,8 +81,8 @@ module DeepBeliefNet =
 
         let changeOfVisibleUnits = v1 - v2
         let changeOfHiddenUnits = h1 - h2
-        let visibleError = (changeOfVisibleUnits |> sumOfSquares) / batchSize
-        let hiddenError = (changeOfHiddenUnits |> sumOfSquares) / batchSize
+        let visibleError = (changeOfVisibleUnits |> sumOfSquaresMatrix) / batchSize
+        let hiddenError = (changeOfHiddenUnits |> sumOfSquaresMatrix) / batchSize
 
         let DWeights = rbm.Momentum * rbm.DWeights + weightedAlpha * (c1 - c2)
         let DVisibleBiases = rbm.Momentum * rbm.DVisibleBiases + weightedAlpha * (sumOfRows changeOfVisibleUnits)

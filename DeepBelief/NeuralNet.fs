@@ -22,7 +22,7 @@ module NeuralNet =
         fun x -> ((f (x + eps/2.0) - f (x - eps/2.0)) / eps)
 
     /// returns list of (out, out') vectors per layer
-    let feedforward (netProps : NnetProperties) input = 
+    let feedForward (netProps : NnetProperties) input = 
         List.fold 
             (fun (os : (Vector<_> * Vector<_>) list) (W, f) -> 
                 let prevLayerOutput = 
@@ -86,15 +86,12 @@ module NeuralNet =
             DenseMatrix.Create(W.RowCount, W.ColumnCount, fun _ _ -> 0.0) :> Matrix<float>)
 
     let step netProps prevDs input target = 
-        let layeroutputs = feedforward netProps input
+        let layeroutputs = feedForward netProps input
         let Gs = gradients netProps.Weights layeroutputs input target
         (updateWeights netProps.Weights Gs prevDs)
 
-    let mersenne = new MersenneTwister()
-
-    let nnetTrain props samples epochs = 
+    let nnetTrain (rnd : AbstractRandomNumberGenerator) props samples epochs = 
         let count = samples |> Array.length
-        let rnd = new MersenneTwister()
         let Ws, fs = props.Weights, props.Activations
         let rec loop Ws Ds i =
             match i < (epochs * count) with
@@ -106,3 +103,18 @@ module NeuralNet =
             | _    -> Ws
         let Ws' = loop Ws (initDeltaWeights Ws) 0
         { props with Weights = Ws' }
+
+    let netoutput (layeroutputs : ('a * 'a) list) = fst (layeroutputs.Head)
+
+    let computeResults rnd netProps trainingSet testSet epochs = 
+        let netProps' = nnetTrain rnd netProps trainingSet epochs
+        let setSize = trainingSet.Length
+
+        let testError = 
+            testSet 
+            |> Array.fold (fun E (x, t) -> 
+                let outs = feedForward netProps' x
+                let En = error t (netoutput outs)
+                E + En) 0.0
+
+        testError / (float setSize)
