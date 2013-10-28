@@ -12,8 +12,8 @@ module MnistClassification =
     let mnistTrainingImages = loadMnistImage MnistTrainingImageData
     let mnistTrainingLabels = loadMnistImage MnistTrainingImageData
 
-    let mnistTestImages = loadMnistImage MnistTestImageData
-    let mnistTestLabels = loadMnistImage MnistTestLabelData
+    let mnistTestImages = loadMnistLabel MnistTestImageData
+    let mnistTestLabels = loadMnistLabel MnistTestLabelData
 
     let dbnSizes = [500; 250; 100; 50]
     let alpha = 0.5

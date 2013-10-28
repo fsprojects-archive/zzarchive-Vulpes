@@ -54,10 +54,11 @@
     <Compile Include="Utils.fs" />
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="NeuralNet.fs" />
-    <None Include="Regression.fsx" />
-    <None Include="DeepBeliefNet.fsx" />
     <Compile Include="MnistDataLoad.fs" />
     <Compile Include="MnistClassification.fs" />
+    <None Include="Regression.fsx" />
+    <None Include="DeepBeliefNet.fsx" />
+    <None Include="MnistData.fsx" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
