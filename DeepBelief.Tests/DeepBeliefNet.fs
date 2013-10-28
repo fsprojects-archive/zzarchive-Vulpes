@@ -2,13 +2,14 @@
 
 open Xunit
 open FsUnit.Xunit
-open DeepBelief.DeepBeliefNet
+open DeepBelief
+open DeepBeliefNet
 open MathNet.Numerics.LinearAlgebra.Double
 open MathNet.Numerics.LinearAlgebra.Generic
-open DeepBelief.MnistDataLoad
 open System
+open Utils
 
-type ``Given a Deep belief network with two layers`` ()=
+type ``Given a Deep belief network with four layers`` ()=
     let sizes = [500; 250; 100; 50]
     let alpha = 0.5
     let momentum = 0.9

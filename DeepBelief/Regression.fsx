@@ -15,6 +15,8 @@ open NeuralNet
 
 fsi.ShowDeclarationValues <- false
 
+let sigmoid x = 1.0 / (1.0 + exp(-x))
+
 /// returns the output vector from a given list of layer outputs
 let netoutput (layeroutputs : ('a * 'a) list) = 
     fst (layeroutputs.Head)

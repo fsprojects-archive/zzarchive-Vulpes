@@ -8,6 +8,7 @@ module DeepBeliefNet =
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
     open System
+    open Utils
 
     type RestrictedBoltzmannMachine = {
         Alpha : float
@@ -20,12 +21,7 @@ module DeepBeliefNet =
         DHiddenBiases : Vector<float>
     }
 
-    let sigmoid x = 1.0 / (1.0 + exp(-x))
-
     let rand = new MersenneTwister()
-
-    let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
-    let toColumns (M : Matrix<float>) = [0..(M.ColumnCount - 1)] |> List.map(fun i -> M.Column i)
 
     let proportionOfVisibleUnits (v : Vector<float>) =
         v.ToArray() |> Array.filter (fun u -> u > 0.5) |> fun arr -> float arr.Length / float v.Count
@@ -40,7 +36,7 @@ module DeepBeliefNet =
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.
     let gaussianDistribution = new Normal(0.0, 0.01)
-    let initRbm nVisible nHidden alpha momentum (xInputs : Matrix<float>) =
+    let initRbm nVisible nHidden alpha momentum =
         { 
             Alpha = alpha; 
             Momentum = momentum; 
@@ -56,12 +52,9 @@ module DeepBeliefNet =
         sizes |> List.fold(fun acc element -> 
             let nVisible = fst acc
             let nHidden = element
-            (element, (initRbm nVisible nHidden alpha momentum xInputs) :: snd acc))
+            (element, (initRbm nVisible nHidden alpha momentum) :: snd acc))
             (xInputs.ColumnCount, [])
-            |> snd
-            |> List.rev
-
-    let transpose (M : Matrix<float>) = M.Transpose()
+            |> snd |> List.rev
 
     let addHiddenBiases rbm = Matrix.mapCols (fun _ col -> col + rbm.HiddenBiases)
     let addVisibleBiases rbm = Matrix.mapRows (fun _ row -> row + rbm.VisibleBiases)
@@ -137,7 +130,7 @@ module DeepBeliefNet =
                 Momentum = rbm.Momentum;
                 Weights = rbm.Weights;
                 DWeights = rbm.DWeights;
-                VisibleBiases = xInputs |> toColumns |> List.map initVisibleUnit |> DenseVector.ofList;
+                VisibleBiases = xInputs |> toColumns |> List.map initVisibleUnit |> vector;
                 DVisibleBiases = rbm.DVisibleBiases
                 HiddenBiases = rbm.HiddenBiases
                 DHiddenBiases = rbm.DHiddenBiases
@@ -152,5 +145,4 @@ module DeepBeliefNet =
             let x = rbmUp (fst currentTuple) sigmoid (snd currentTuple)
             let nextRbm = rbmTrain rnd batchSize epochs element x
             (nextRbm, x) :: acc) [(start, xInputs)]
-            |> List.map fst
-            |> List.rev
+            |> List.map fst |> List.rev

@@ -7,16 +7,10 @@ module NeuralNet =
     open MathNet.Numerics.Distributions
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
+    open Utils
 
     /// precision for calculating the derivatives
     let prc = 1e-6
-
-    let sigmoid x = 1.0 / (1.0 + exp(-x))
-
-    let prepend value (vec : Vector<float>) = 
-        vector [ yield! value :: (vec |> Vector.toList) ]
-
-    let prependForBias : Vector<float> -> Vector<float> = prepend 1.0
 
     type NnetProperties = {
         Weights : Matrix<float> list

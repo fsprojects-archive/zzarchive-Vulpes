@@ -84,7 +84,4 @@ module MnistDataLoad =
         use reader = new BinaryReader(stream)
         let magicNumber = readInt(reader)
         let nLabels = readInt(reader)
-        let labels = [1..nLabels] |> List.map (fun i -> (int)(reader.ReadByte()))
-        (magicNumber, nLabels, labels)
-
-
+        [1..nLabels] |> List.map (fun i -> int (reader.ReadByte()))

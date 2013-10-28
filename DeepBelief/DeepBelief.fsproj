@@ -50,11 +50,13 @@
   </Choose>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
-    <Compile Include="NeuralNet.fs" />
-    <None Include="Regression.fsx" />
     <None Include="packages.config" />
+    <Compile Include="Utils.fs" />
+    <Compile Include="NeuralNet.fs" />
     <Compile Include="MnistDataLoad.fs" />
     <Compile Include="DeepBeliefNet.fs" />
+    <Compile Include="Classification.fs" />
+    <None Include="Regression.fsx" />
     <None Include="MnistData.fsx" />
     <None Include="DeepBeliefNet.fsx" />
     <Content Include="t10k-images.idx3-ubyte">
