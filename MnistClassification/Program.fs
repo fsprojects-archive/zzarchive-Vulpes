@@ -4,14 +4,10 @@ namespace MnistClassification
 
 module Main =
 
-    open TestRun
     open DeepBelief
     open DeepBeliefNet
-    open MathNet.Numerics.LinearAlgebra.Double
-    open MathNet.Numerics.LinearAlgebra.Generic
     open NeuralNet
-    open Utils
-    open MnistDataLoad
+    open MnistClassification
 
     [<EntryPoint>]
     let main argv = 

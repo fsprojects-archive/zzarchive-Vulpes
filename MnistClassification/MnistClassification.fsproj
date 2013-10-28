@@ -59,14 +59,20 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <Compile Include="MnistDataLoad.fs" />
-    <Compile Include="MnistClassification.fs" />
     <Compile Include="Program.fs" />
     <None Include="MnistData.fsx" />
-    <None Include="t10k-images.idx3-ubyte" />
-    <None Include="t10k-labels.idx1-ubyte" />
-    <None Include="train-images.idx3-ubyte" />
-    <None Include="train-labels.idx1-ubyte" />
+    <None Include="t10k-images.idx3-ubyte">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="t10k-labels.idx1-ubyte">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="train-images.idx3-ubyte">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="train-labels.idx1-ubyte">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

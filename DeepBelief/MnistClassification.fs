@@ -1,8 +1,7 @@
-﻿namespace MnistClassification
+﻿namespace DeepBelief
 
-module TestRun =
+module MnistClassification =
 
-    open DeepBelief
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
     open NeuralNet

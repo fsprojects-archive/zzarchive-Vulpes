@@ -56,6 +56,8 @@
     <Compile Include="NeuralNet.fs" />
     <None Include="Regression.fsx" />
     <None Include="DeepBeliefNet.fsx" />
+    <Compile Include="MnistDataLoad.fs" />
+    <Compile Include="MnistClassification.fs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
