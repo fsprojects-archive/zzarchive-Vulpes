@@ -102,7 +102,7 @@ type ``Given a Deep belief network with four layers`` ()=
 
     [<Fact>] member test.
         ``The permuteRows method preserves the dimensions of the batch matrix.``()=
-        permuteRows rand batch |> (fun x -> (x.RowCount, x.ColumnCount)) |> should equal (10, 784)
+        permuteRows rand batch |> (fun x -> (x.Length, x.Head.Length)) |> should equal (10, 784)
 
     [<Fact>] member test.
         ``The first epoch gives a positive error.``()=
@@ -123,10 +123,6 @@ type ``Given a Deep belief network with four layers`` ()=
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
         dbnTrain rand 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> Matrix.nonZeroEntries |> Seq.isEmpty |> should equal false 
-
-    [<Fact>] member test.
-        ``The sumOfRows function maps the identity matrix to a bector of ones.``()=
-        DenseMatrix.Identity 10 |> sumOfRows |> Vector.forall(fun i -> i = 1.0) |> should equal true
 
     [<Fact>] member test.
         ``The addVisibleBiases function adds the visible biases of an RBM to a row of zeroes.``()=

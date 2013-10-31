@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>DeepBelief</RootNamespace>
     <AssemblyName>DeepBelief</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>DeepBelief</Name>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <TargetFrameworkProfile />
@@ -55,6 +55,8 @@
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="NeuralNet.fs" />
     <Compile Include="MnistDataLoad.fs" />
+    <Compile Include="Kernels.fs" />
+    <Compile Include="CudaTemplates.fs" />
     <Compile Include="MnistClassification.fs" />
     <None Include="Regression.fsx" />
     <None Include="DeepBeliefNet.fsx" />
@@ -62,11 +64,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
-      <HintPath>..\packages\Alea.cuBase.1.1.549\lib\net40\Alea.CUDA.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Alea.Interop">
-      <HintPath>..\packages\Alea.cuBase.1.1.549\lib\net40\Alea.Interop.dll</HintPath>
+      <HintPath>..\packages\Alea.cuBase.1.2.669\lib\net40\Alea.CUDA.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">

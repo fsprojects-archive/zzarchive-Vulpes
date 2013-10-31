@@ -6,16 +6,29 @@ module Utils =
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
 
+    type [<ReflectedDefinition>] Matrix = float32[,]
+    type Vector = float32[]
+
+    let flatten M = 
+        let h = Array2D.length1 M
+        let w = Array2D.length2 M
+        Array.init (h*w) (fun i -> M.[i / w,i % w])
+    let buildMatrix w X =
+        let h = Array.length X
+        Array2D.init h w (fun i j -> i * w + j)
+    let height = Array2D.length1
+    let width = Array2D.length2
+
     let prepend value (vec : Vector<float>) = 
         vector [ yield! value :: (vec |> Vector.toList) ]
 
     let prependForBias : Vector<float> -> Vector<float> = prepend 1.0
 
+    let sigmoid x = 1.0 / (1.0 + exp(-x))
+
     let toRows (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> M.Row i)
     let toColumns (M : Matrix<float>) = [0..(M.ColumnCount - 1)] |> List.map(fun i -> M.Column i)
     let to2DList (M : Matrix<float>) = [0..(M.RowCount - 1)] |> List.map(fun i -> List.ofArray ((M.Row i).ToArray()))
-
-    let sigmoid x = 1.0 / (1.0 + exp(-x))
 
     let transpose (M : Matrix<float>) = M.Transpose()
 

@@ -65,7 +65,7 @@ module DeepBeliefNet =
         list |> List.sortBy (fun element -> rnd.NextDouble())
     let permute rnd n = permutation rnd [0..(n-1)]
     let permuteRows rnd (M : Matrix<float>) = 
-        permute rnd M.RowCount |> List.map (fun i -> M.Row i)
+        permute rnd M.RowCount |> List.map (fun i -> M.Row i |> Vector.toList)
 
     let updateWeights rnd rbm (batch : Matrix<float>) =
         let batchSize = float batch.RowCount
@@ -106,9 +106,11 @@ module DeepBeliefNet =
         Seq.groupBy fst >> Seq.map snd >>
         Seq.map (Seq.map snd >> Seq.toList) >> Seq.toList
     
-    let epoch rnd batchSize rbm xInputs =
+    let epoch rnd batchSize rbm (xInputs : Matrix<float>) =
+        let nRows = xInputs.RowCount
+        let nCols = xInputs.ColumnCount
         let xRand = permuteRows rnd xInputs
-        let samples = xRand |> batchesOf batchSize |> List.map (fun rows -> DenseMatrix.ofRowVectors rows)
+        let samples = xRand |> batchesOf batchSize |> List.map (fun rows -> SparseMatrix.ofRowsList rows.Length nCols rows)
         samples |> List.fold(fun acc batch ->
             let result = updateWeights rnd (snd acc) batch
             (fst acc + fst result, snd result)) (0.0, rbm)

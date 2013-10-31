@@ -2,17 +2,20 @@
 
 module MnistClassification =
 
+    open Alea.CUDA
+    open Alea.CUDA.Utilities
     open MathNet.Numerics.LinearAlgebra.Double
     open MathNet.Numerics.LinearAlgebra.Generic
     open NeuralNet
     open Utils
     open MnistDataLoad
     open DeepBeliefNet
+    open CudaTemplates
 
-    let mnistTrainingImages = loadMnistImage MnistTrainingImageData
-    let mnistTrainingLabels = loadMnistImage MnistTrainingImageData
+    let mnistTrainingImages = loadMnistImage MnistTrainingImageData |> SparseMatrix.ofArray2
+    let mnistTrainingLabels = loadMnistLabel MnistTrainingLabelData
 
-    let mnistTestImages = loadMnistLabel MnistTestImageData
+    let mnistTestImages = loadMnistImage MnistTestImageData |> DenseMatrix.ofArray2
     let mnistTestLabels = loadMnistLabel MnistTestLabelData
 
     let dbnSizes = [500; 250; 100; 50]
@@ -20,7 +23,8 @@ module MnistClassification =
     let momentum = 0.9
 
     let mnistDbn = dbn dbnSizes alpha momentum mnistTrainingImages
-    let trainedDbn = dbnTrain rand 100 10 mnistDbn mnistTrainingImages
+    //let trainedDbn = dbnTrain rand 100 10 mnistDbn mnistTrainingImages
+    let trainedDbn = dbnTrain rand 100 2 mnistDbn mnistTrainingImages
 
     let rbmProps = 
         mnistDbn 

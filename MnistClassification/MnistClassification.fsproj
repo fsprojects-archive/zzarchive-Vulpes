@@ -9,7 +9,7 @@
     <OutputType>Exe</OutputType>
     <RootNamespace>MnistClassification</RootNamespace>
     <AssemblyName>MnistClassification</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <Name>MnistClassification</Name>
     <TargetFrameworkProfile />
   </PropertyGroup>

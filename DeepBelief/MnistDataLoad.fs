@@ -23,8 +23,8 @@ module MnistDataLoad =
     let readInt (b : BinaryReader) =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0
 
-    let readImage (b : BinaryReader, rowArray, colArray) =
-        rowArray |> Array.collect (fun r -> Array.map (fun c -> (b.ReadByte() |> int |> float)/255.0 ) colArray)
+    let readImage (b : BinaryReader) =
+        (b.ReadByte() |> int |> float)/255.0
 
     let readLabel (b : BinaryReader) =
         let digit = int (b.ReadByte())
@@ -59,11 +59,7 @@ module MnistDataLoad =
         let nImages = readInt(reader)
         let nRows = readInt(reader)
         let nCols = readInt(reader)
-
-        let row = [|1..nRows|]
-        let col = [|1..nCols|]
-        let images = [1..nImages] |> List.map (fun _ -> readImage(reader, row, col))
-        DenseMatrix.ofRows nImages (nRows * nCols) images;
+        Array2D.init nImages (nRows * nCols) (fun _ _ -> readImage reader)
 
     // TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
     // [offset] [type]          [value]          [description] 
