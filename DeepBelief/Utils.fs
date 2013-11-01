@@ -13,9 +13,26 @@ module Utils =
         let h = Array2D.length1 M
         let w = Array2D.length2 M
         Array.init (h*w) (fun i -> M.[i / w,i % w])
-    let buildMatrix w X =
-        let h = Array.length X
-        Array2D.init h w (fun i j -> i * w + j)
+
+    let stackRows w X =
+        let h = Array.length X / w
+        Array2D.init h w (fun i j -> X.[i * w + j])
+
+    let nextMultipleOf n i =
+        let r = i % n
+        if r = 0 then i else i + n - r
+
+    let padToMultiplesOf n M =
+        let h = Array2D.length1 M
+        let w = Array2D.length2 M
+        let paddedHeight = nextMultipleOf n h
+        let paddedWidth = nextMultipleOf n w
+        Array2D.init paddedHeight paddedWidth 
+            (fun i j -> if i < h && j < w then M.[i, j] else 0.0f)
+
+    let topLeftSubmatrix h w (M : float32[,]) =
+        Array2D.init h w (fun i j -> M.[i, j])
+
     let height = Array2D.length1
     let width = Array2D.length2
 

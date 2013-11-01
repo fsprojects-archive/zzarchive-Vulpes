@@ -12,6 +12,12 @@ module CudaTemplates =
     let multiplyMatrices (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
 
+            let finalHeight = height A
+            let finalWidth = width B
+
+            let A = padToMultiplesOf blockSize A
+            let B = padToMultiplesOf blockSize B
+
             let wA = width A
             let wB = width B
             let wC = wB
@@ -29,7 +35,7 @@ module CudaTemplates =
             let lp = LaunchParam(grid, threads)
             kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
             let result = C.Gather()
-            result
+            stackRows wC result |> topLeftSubmatrix finalHeight finalWidth
 
     let matrixMulTemplate (blockSize:int) = cuda {
         let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
