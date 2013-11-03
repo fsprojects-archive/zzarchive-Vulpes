@@ -6,7 +6,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>dd787fe8-4bf7-4564-b20d-3aef8b73f2f1</ProjectGuid>
-    <OutputType>Exe</OutputType>
+    <OutputType>Library</OutputType>
     <RootNamespace>DeepBelief.Tests</RootNamespace>
     <AssemblyName>DeepBelief.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
@@ -73,13 +73,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="DeepBeliefNet.fs" />
-    <None Include="Script.fsx" />
     <None Include="packages.config" />
+    <Compile Include="TestUtils.fs" />
+    <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="CudaTemplates.fs" />
     <Compile Include="Utils.fs" />
     <None Include="App.config" />
-    <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">

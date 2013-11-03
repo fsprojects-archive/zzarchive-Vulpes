@@ -5,44 +5,43 @@ module NeuralNet =
     open System
     open MathNet.Numerics.Random
     open MathNet.Numerics.Distributions
-    open MathNet.Numerics.LinearAlgebra.Double
-    open MathNet.Numerics.LinearAlgebra.Generic
     open Utils
 
     /// precision for calculating the derivatives
-    let prc = 1e-6
+    let prc = 1e-6f
 
     type NnetProperties = {
-        Weights : Matrix<float> list
-        Activations : (float -> float) list
+        Weights : Matrix list
+        Activations : (float32 -> float32) list
     }
 
     /// compute the derivative of a function, midpoint rule
     let derivative eps f = 
-        fun x -> ((f (x + eps/2.0) - f (x - eps/2.0)) / eps)
+        fun x -> ((f (x + eps/2.0f) - f (x - eps/2.0f)) / eps)
 
     /// returns list of (out, out') vectors per layer
     let feedForward (netProps : NnetProperties) input = 
         List.fold 
-            (fun (os : (Vector<_> * Vector<_>) list) (W, f) -> 
+            (fun (os : (Vector * Vector) list) (W, f) -> 
                 let prevLayerOutput = 
                     match os.IsEmpty with
                     | true -> input
                     | _    -> fst (os.Head)
                 let prevOut = prependForBias prevLayerOutput
-                let layerInput = W * prevOut
-                (layerInput |> Vector.map f, 
-                 layerInput |> Vector.map (derivative prc f)) :: os) 
+                let layerInput = prevOut |> multiplyVectorByMatrix W
+                (layerInput |> Array.map f, 
+                 layerInput |> Array.map (derivative prc f)) :: os) 
           [] (List.zip netProps.Weights netProps.Activations)
 
     /// matlab like pointwise multiply
-    let (.*) (a : Vector<float>) (b : Vector<float>) = 
-        a.PointwiseMultiply(b)
+    let (.*) (v1 : Vector) (v2 : Vector) = 
+        let n = Array.length v1
+        Array.init n (fun i -> v1.[i] + v2.[i])
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer
-    let errorSignals (Ws : Matrix<_> list) layeroutputs (target : Vector<float>) = 
-        let trp = fun (W : Matrix<_>) -> Some(W.Transpose())
+    let errorSignals (Ws : Matrix list) layeroutputs (target : Vector) = 
+        let trp = fun W -> Some(transpose W)
 
         // need weights and layer outputs in reverse order, 
         // e.g starting from output layer
@@ -50,40 +49,38 @@ module NeuralNet =
             let transposed = Ws |> List.tail |> List.map trp |> List.rev
             List.zip (None :: transposed) layeroutputs
 
-        List.fold (fun prevDs ((W : Matrix<_> option), (o, o')) -> 
+        List.fold (fun prevDs ((W : Matrix option), (o, o')) -> 
             match W with
-            | None    -> (o' .* (target - o)) :: prevDs 
+            | None    -> (o' .* (subtractVectors target o)) :: prevDs 
             | Some(W) -> let ds = prevDs.Head
-                         (o' .* ((W * ds)).[1..]) :: prevDs) 
+                         (o' .* ((multiplyVectorByMatrix W ds)).[1..]) :: prevDs) 
           [] weightsAndOutputs
 
     /// computes a list of gradients matrices
-    let gradients (Ws : Matrix<_> list) layeroutputs input target = 
+    let gradients (Ws : Matrix list) layeroutputs input target = 
         let actualOuts = 
             layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
         let signals = errorSignals Ws layeroutputs target
         (input :: actualOuts, signals) 
             ||> List.zip 
-            |> List.map (fun (zs, ds) -> 
-                ds.OuterProduct(prependForBias zs))
+            |> List.map (fun (zs, ds) -> outerProduct ds (prependForBias zs))
 
-    let eta = 0.8
-    let alpha = 0.25
+    let eta = 0.8f
+    let alpha = 0.25f
 
     /// updates the weights matrices with the given deltas 
     /// of timesteps (t) and (t-1)
     /// returns the new weights matrices
-    let updateWeights Ws (Gs : Matrix<_> list) (prevDs : Matrix<_> list) = 
+    let updateWeights Ws (Gs : Matrix list) (prevDs : Matrix list) = 
         (List.zip3 Ws Gs prevDs) 
             |> List.map (fun (W, G, prevD) ->
-                let dW = eta * G + (alpha * prevD)
-                W + dW, dW)
+                let dW = addMatrices (multiplyMatrixByScalar eta G) (multiplyMatrixByScalar alpha prevD)
+                addMatrices W dW, dW)
 
     /// for each weight matrix builds another matrix with same dimension
     /// initialized with 0.0
-    let initDeltaWeights (Ws : Matrix<_> list) = 
-        Ws |> List.map (fun W -> 
-            DenseMatrix.Create(W.RowCount, W.ColumnCount, fun _ _ -> 0.0) :> Matrix<float>)
+    let initDeltaWeights (Ws : Matrix list) = 
+        Ws |> List.map (fun W -> initGaussianWeights (height W) (width W))
 
     let step netProps prevDs input target = 
         let layeroutputs = feedForward netProps input
@@ -115,6 +112,6 @@ module NeuralNet =
             |> Array.fold (fun E (x, t) -> 
                 let outs = feedForward netProps' x
                 let En = error t (netoutput outs)
-                E + En) 0.0
+                E + En) 0.0f
 
-        testError / (float setSize)
+        testError / (float32 setSize)

@@ -2,8 +2,6 @@
 
 module MnistDataLoad =
 
-    open MathNet.Numerics.LinearAlgebra.Double
-    open MathNet.Numerics.LinearAlgebra.Generic
     open Microsoft.FSharp.Collections
     open System
     open System.IO
@@ -24,11 +22,11 @@ module MnistDataLoad =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0
 
     let readImage (b : BinaryReader) =
-        (b.ReadByte() |> int |> float)/255.0
+        (b.ReadByte() |> int |> float32)/255.0f
 
     let readLabel (b : BinaryReader) =
         let digit = int (b.ReadByte())
-        [0..9] |> List.map(fun i -> if i = digit then 1.0 else 0.0)
+        [|0..9|] |> Array.map(fun i -> if i = digit then 1.0f else 0.0f)
 
     // TRAINING SET IMAGE FILE (train-images-idx3-ubyte):
     // [offset] [type]          [value]          [description] 
@@ -84,4 +82,4 @@ module MnistDataLoad =
         use reader = new BinaryReader(stream)
         let magicNumber = readInt(reader)
         let nLabels = readInt(reader)
-        [1..nLabels] |> List.map (fun _ -> readLabel reader) |> matrix
+        [|1..nLabels|] |> Array.map (fun _ -> readLabel reader)

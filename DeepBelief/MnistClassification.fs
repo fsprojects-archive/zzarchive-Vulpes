@@ -4,23 +4,21 @@ module MnistClassification =
 
     open Alea.CUDA
     open Alea.CUDA.Utilities
-    open MathNet.Numerics.LinearAlgebra.Double
-    open MathNet.Numerics.LinearAlgebra.Generic
     open NeuralNet
     open Utils
     open MnistDataLoad
     open DeepBeliefNet
     open CudaTemplates
 
-    let mnistTrainingImages = loadMnistImage MnistTrainingImageData |> SparseMatrix.ofArray2
+    let mnistTrainingImages = loadMnistImage MnistTrainingImageData
     let mnistTrainingLabels = loadMnistLabel MnistTrainingLabelData
 
-    let mnistTestImages = loadMnistImage MnistTestImageData |> DenseMatrix.ofArray2
+    let mnistTestImages = loadMnistImage MnistTestImageData
     let mnistTestLabels = loadMnistLabel MnistTestLabelData
 
     let dbnSizes = [500; 250; 100; 50]
-    let alpha = 0.5
-    let momentum = 0.9
+    let alpha = 0.5f
+    let momentum = 0.9f
 
     let mnistDbn = dbn dbnSizes alpha momentum mnistTrainingImages
     //let trainedDbn = dbnTrain rand 100 10 mnistDbn mnistTrainingImages
@@ -33,5 +31,5 @@ module MnistClassification =
 
     let props = { Weights = List.concat [|rbmProps.Weights; [initGaussianWeights 50 10]|]; Activations = sigmoid :: rbmProps.Activations }
 
-    let trainingSet = List.zip (toRows mnistTrainingImages) (toRows mnistTrainingLabels) |> Array.ofList
-    let testSet = List.zip (toRows mnistTestImages) (toRows mnistTestLabels) |> Array.ofList
+    let trainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
+    let testSet = Array.zip (toArray mnistTestImages) mnistTestLabels

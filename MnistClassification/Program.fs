@@ -8,6 +8,7 @@ module Main =
     open DeepBeliefNet
     open NeuralNet
     open MnistClassification
+    open Utils
 
     [<EntryPoint>]
     let main argv = 
