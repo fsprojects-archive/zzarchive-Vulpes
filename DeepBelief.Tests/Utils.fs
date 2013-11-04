@@ -141,3 +141,12 @@ type ``Numerical Utilities``() =
     [<Fact>] member test.
         ``The permuteRows method preserves the dimensions of the batch matrix.``()=
         permuteRows rand Mt |> (fun x -> (x.Length, x.[0].Length)) |> should equal (3, 2)
+
+    [<Fact>] member test.
+        ``The proportionOfVisible units function gives 0.2 for the vector [0,1,0,0,0,0,0,1,0,0]``()=
+            [| 0.0f; 1.0f ;0.0f ;0.0f ;0.0f ;0.0f ;0.0f ;1.0f ;0.0f ;0.0f |] 
+            |> proportionOfVisibleUnits |> should equal 0.2f
+
+    [<Fact>] member test.
+        ``The toColumns function breaks Mt up into columns v and w.``()=
+            toColumns Mt |> should equal [|v; w|]

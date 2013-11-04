@@ -112,8 +112,3 @@ type ``Given a Deep belief network with four layers`` ()=
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
         dbnTrain rand 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
-
-    [<Fact>] member test.
-        ``The proportionOfVisible units function gives 0.2 for the vector [0,1,0,0,0,0,0,1,0,0]``()=
-        [|0.0f; 1.0f ;0.0f ;0.0f ;0.0f ;0.0f ;0.0f ;1.0f ;0.0f ;0.0f|] 
-        |> proportionOfVisibleUnits |> should equal 0.2f

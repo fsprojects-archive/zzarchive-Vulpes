@@ -17,9 +17,6 @@ module DeepBeliefNet =
         HiddenBiases : Vector
         DHiddenBiases : Vector
     }
-
-    let proportionOfVisibleUnits v =
-        v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
         
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion

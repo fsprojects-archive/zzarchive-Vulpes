@@ -4,6 +4,7 @@ module Utils =
 
     open MathNet.Numerics.Random
     open MathNet.Numerics.Distributions
+    open System.Threading.Tasks
 
     type [<ReflectedDefinition>] Matrix = float32[,]
     type [<ReflectedDefinition>] Vector = float32[]
@@ -44,25 +45,59 @@ module Utils =
     let scalarProduct (v : Vector) w = Array.map2 (*) v w |> Array.sum
 
     let multiply A B =
-        let h = height A
-        let w = width B
-        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
-        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfB.[j])
-
+        let rowsA, colsA = height A, width A
+        let rowsB, colsB = height B, width B
+        let result = Array2D.create rowsA colsB 0.0f
+        Parallel.For(0, rowsA, (fun i->
+            for j = 0 to colsB - 1 do
+               for k = 0 to colsA - 1 do
+                  result.[i,j] <- result.[i,j] + A.[i,k] * B.[k,j]))  
+        |> ignore
+        result
+    
     let transposeAndMultiply A B =
-        let h = width A
-        let w = width B
-        let rowsOfAT = [|0..h - 1|] |> Array.map (fun i -> column i A)
-        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
-        Array2D.init h w (fun i j -> scalarProduct rowsOfAT.[i] columnsOfB.[j])
+        let rowsA, colsA = width A, height A
+        let rowsB, colsB = height B, width B
+        let result = Array2D.create rowsA colsB 0.0f
+        Parallel.For(0, rowsA, (fun i->
+            for j = 0 to colsB - 1 do
+               for k = 0 to colsA - 1 do
+                  result.[i,j] <- result.[i,j] + A.[k,i] * B.[k,j]))  
+        |> ignore
+        result
 
     let multiplyByTranspose A B =
-        let h = height A
-        let w = height B
-        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-        let columnsOfBT = [|0..w - 1|] |> Array.map (fun j -> row j B)
-        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfBT.[j])
+        let rowsA, colsA = height A, width A
+        let rowsB, colsB = width B, height B
+        let result = Array2D.create rowsA colsB 0.0f
+        Parallel.For(0, rowsA, (fun i->
+            for j = 0 to colsB - 1 do
+               for k = 0 to colsA - 1 do
+                  result.[i,j] <- result.[i,j] + A.[i,k] * B.[j,k]))  
+        |> ignore
+        result
+
+//
+//    let multiply A B =
+//        let h = height A
+//        let w = width B
+//        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
+//        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
+//        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfB.[j])
+
+//    let transposeAndMultiply A B =
+//        let h = width A
+//        let w = width B
+//        let rowsOfAT = [|0..h - 1|] |> Array.map (fun i -> column i A)
+//        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
+//        Array2D.init h w (fun i j -> scalarProduct rowsOfAT.[i] columnsOfB.[j])
+
+//    let multiplyByTranspose A B =
+//        let h = height A
+//        let w = height B
+//        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
+//        let columnsOfBT = [|0..w - 1|] |> Array.map (fun j -> row j B)
+//        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfBT.[j])
 
     let multiplyVectorByMatrix A v  =
         let h = height A
@@ -93,13 +128,15 @@ module Utils =
         let w = width M
         [|0..h - 1|] |> Array.map (fun i -> Array.init w (fun j -> M.[i, j]))
 
-    let rec transposeList = function
-        | (_::_)::_ as M -> List.map List.head M :: transposeList (List.map List.tail M)
-        | _ -> []
+    let transpose M =
+        let h = width M
+        let w = height M
+        Array2D.init h w (fun i j -> M.[j, i])
 
-    let transpose : Matrix -> Matrix = toList >> transposeList >> array2D
-
-    let toColumns = transpose >> toArray
+    let toColumns (M : Matrix) = 
+        let h = height M
+        let w = width M
+        [|0..w - 1|] |> Array.map (fun j -> Array.init h (fun i -> M.[i, j])) 
 
     let prependColumn (column : Vector) M =
         Array2D.init (height M) (width M + 1)
@@ -185,3 +222,5 @@ module Utils =
     let permuteRows rnd M = 
         permute rnd (height M) |> Array.map (fun i -> row i M)
 
+    let proportionOfVisibleUnits v =
+        v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
