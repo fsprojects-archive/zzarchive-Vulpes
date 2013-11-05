@@ -150,3 +150,11 @@ type ``Numerical Utilities``() =
     [<Fact>] member test.
         ``The toColumns function breaks Mt up into columns v and w.``()=
             toColumns Mt |> should equal [|v; w|]
+    
+    [<Fact>] member test.
+        ``The error function gives zero for the vectors [1,0,0] and [1,0,0].``()=
+            error [|1.0f; 0.0f; 0.0f|] [|1.0f; 0.0f; 0.0f|] |> should equal 0.0f    
+   
+    [<Fact>] member test.
+        ``The error function gives one for the vectors [1,0,0] and [0,0,1].``()=
+            error [|1.0f; 0.0f; 0.0f|] [|0.0f; 0.0f; 1.0f|] |> should equal 1.0f
