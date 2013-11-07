@@ -76,3 +76,8 @@ module Kernels =
             // each thread writes one element
             let c = wB * blockSize * by + blockSize * bx
             C.[c + wB * ty + tx] <- Csub @>
+
+
+    let rbmUpdateWeightsKernel =
+        <@ fun (rbmOut : deviceptr<float32>) (rbmIn : deviceptr<float32>) (batch : deviceptr<float32>) ->
+        rbmOut @>

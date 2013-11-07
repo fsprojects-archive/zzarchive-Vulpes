@@ -12,4 +12,4 @@ module TestUtils =
         M |> toArray |> Array.fold (fun acc element -> acc && allElementsOfVector predicate element) true
 
     let nonZeroEntries M =
-        M |> flatten |> Array.filter (fun x -> x <> 0.0f)
+        M |> flattenMatrix |> Array.filter (fun x -> x <> 0.0f)

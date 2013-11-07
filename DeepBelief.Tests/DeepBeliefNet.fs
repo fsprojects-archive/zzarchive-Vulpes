@@ -99,11 +99,11 @@ type ``Given a Deep belief network with four layers`` ()=
 
     [<Fact>] member test.
         ``The first epoch gives a positive error.``()=
-        epoch rand 10 layeredDbn.[0] inputs |> fst |> should greaterThan 0.0f
+        rbmEpoch rand 10 layeredDbn.[0] inputs |> fst |> should greaterThan 0.0f
 
     [<Fact>] member test.
         ``The first epoch gives an RBM with non-zero weights.``()=
-        epoch rand 10 layeredDbn.[0] inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
+        rbmEpoch rand 10 layeredDbn.[0] inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
 
     [<Fact>] member test.
         ``Training 50 epochs of the first RBM gives an RBM with non-zero weights.``()=
@@ -112,3 +112,13 @@ type ``Given a Deep belief network with four layers`` ()=
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
         dbnTrain rand 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+
+    [<Fact>] member test.
+        ``The flattened RBM is in the correct format``()=
+        layeredDbn.[0] |> flattenRbm 
+        |> fun x -> (x.[0], x.[1], x.[2..501], x.[502..1001], x.[1002..1785], x.[1786..2569], x.[2570..394569], x.[394570..786569]) 
+        |> should equal 
+            (layeredDbn.[0].Alpha, layeredDbn.[0].Momentum, 
+            layeredDbn.[0].HiddenBiases, layeredDbn.[0].DHiddenBiases,
+            layeredDbn.[0].VisibleBiases, layeredDbn.[0].DVisibleBiases,
+            flattenMatrix layeredDbn.[0].Weights, flattenMatrix layeredDbn.[0].DWeights)

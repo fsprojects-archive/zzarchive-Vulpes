@@ -23,8 +23,8 @@ module CudaTemplates =
             let wC = wB
             let hC = height A
 
-            let A = flatten A
-            let B = flatten B
+            let A = flattenMatrix A
+            let B = flattenMatrix B
 
             use A = worker.Malloc(A)
             use B = worker.Malloc(B)
@@ -47,3 +47,5 @@ module CudaTemplates =
             fun (A : Matrix) (B : Matrix) ->
                 multiplyMatrices blockSize worker kernel A B
             ) }
+
+    //let updateWeightsTemplate (blockSize:int) 

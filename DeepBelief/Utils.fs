@@ -2,14 +2,20 @@
 
 module Utils =
 
+    open Microsoft.FSharp.Quotations
     open MathNet.Numerics.Random
     open MathNet.Numerics.Distributions
     open System.Threading.Tasks
+    open Alea.CUDA.Utilities
 
     type [<ReflectedDefinition>] Matrix = float32[,]
     type [<ReflectedDefinition>] Vector = float32[]
 
-    let flatten M = 
+    /// Density of normal with mean mu and standard deviation sigma. 
+    let inline normpdf (mu:'T) (sigma:'T) : Expr<'T -> 'T> =
+        <@ fun x -> exp(-(x - mu)*(x - mu)/(2G*sigma*sigma)) / (sigma*__sqrt2pi()) @>
+
+    let flattenMatrix M = 
         let h = Array2D.length1 M
         let w = Array2D.length2 M
         Array.init (h*w) (fun i -> M.[i / w,i % w])
@@ -76,28 +82,6 @@ module Utils =
                   result.[i,j] <- result.[i,j] + A.[i,k] * B.[j,k]))  
         |> ignore
         result
-
-//
-//    let multiply A B =
-//        let h = height A
-//        let w = width B
-//        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-//        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
-//        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfB.[j])
-
-//    let transposeAndMultiply A B =
-//        let h = width A
-//        let w = width B
-//        let rowsOfAT = [|0..h - 1|] |> Array.map (fun i -> column i A)
-//        let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j B)
-//        Array2D.init h w (fun i j -> scalarProduct rowsOfAT.[i] columnsOfB.[j])
-
-//    let multiplyByTranspose A B =
-//        let h = height A
-//        let w = height B
-//        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-//        let columnsOfBT = [|0..w - 1|] |> Array.map (fun j -> row j B)
-//        Array2D.init h w (fun i j -> scalarProduct rowsOfA.[i] columnsOfBT.[j])
 
     let multiplyVectorByMatrix A v  =
         let h = height A

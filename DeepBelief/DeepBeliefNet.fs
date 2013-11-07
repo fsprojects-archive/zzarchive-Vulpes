@@ -17,7 +17,45 @@ module DeepBeliefNet =
         HiddenBiases : Vector
         DHiddenBiases : Vector
     }
-        
+    
+    let sizeOfRbm (rbm : RestrictedBoltzmannMachine) =
+        2 * (1 + Array.length rbm.HiddenBiases + Array.length rbm.VisibleBiases + (width rbm.Weights) * (height rbm.Weights))
+
+    let rbmValue i alpha momentum hiddenBiases dHiddenBiases visibleBiases dVisibleBiases weights dWeights =
+        let nh = Array.length hiddenBiases
+        let nv = Array.length visibleBiases
+        let nw = Array.length weights
+        let nDh = Array.length dHiddenBiases
+        let nDv = Array.length dVisibleBiases
+        let nDw = Array.length dWeights
+        let ph = 2 + nh
+        let pDh = ph + nDh
+        let pv = pDh + nv
+        let pDv = pv + nDv
+        let pw = pDv + nw
+        let pDw = pw + nDw
+        match i with
+        | 0 -> alpha
+        | 1 -> momentum
+        | j when j < ph -> hiddenBiases.[j - 2]
+        | j when j < pDh -> dHiddenBiases.[j - ph]
+        | j when j < pv -> visibleBiases.[j - pDh]
+        | j when j < pDv -> dVisibleBiases.[j - pv]
+        | j when j < pw -> weights.[j - pDv]
+        | j when j < pDw -> dWeights.[j - pw]
+        | _ -> 0.0f
+
+    let flattenRbm rbm =
+        let alpha = rbm.Alpha
+        let momentum = rbm.Momentum
+        let hiddenBiases = rbm.HiddenBiases
+        let dHiddenBiases = rbm.DHiddenBiases
+        let visibleBiases = rbm.VisibleBiases
+        let dVisibleBiases = rbm.DVisibleBiases
+        let weights = flattenMatrix rbm.Weights
+        let dWeights = flattenMatrix rbm.DWeights
+        Array.init (sizeOfRbm rbm) (fun i -> rbmValue i alpha momentum hiddenBiases dHiddenBiases visibleBiases dVisibleBiases weights dWeights)
+
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
     // of training vectors in which the unit i is on.
@@ -93,7 +131,7 @@ module DeepBeliefNet =
             }
         )
     
-    let epoch rnd batchSize rbm xInputs =
+    let rbmEpoch rnd batchSize rbm xInputs =
         let nRows = height xInputs
         let nCols = width xInputs
         let xRand = permuteRows rnd xInputs
@@ -118,7 +156,7 @@ module DeepBeliefNet =
                 DHiddenBiases = rbm.DHiddenBiases
             }
         [1..epochs] |> List.fold(fun acc i ->
-            snd (epoch rnd batchSize acc xInputs)) initialisedRbm
+            snd (rbmEpoch rnd batchSize acc xInputs)) initialisedRbm
 
     let dbnTrain rnd batchSize epochs rbms xInputs =
         let start = rbmTrain rnd batchSize epochs (List.head rbms) xInputs

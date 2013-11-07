@@ -68,7 +68,7 @@ type ``Numerical Utilities``() =
 
     [<Fact>] member test.
         ``M flattens to the 1 to 6 array.``() =
-            flatten M |> should equal X
+            flattenMatrix M |> should equal X
 
     [<Fact>] member test.
         ``The 1 to 6 array stacks up to M.``() =
