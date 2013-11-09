@@ -54,7 +54,8 @@ module DeepBeliefNet =
         let dVisibleBiases = rbm.DVisibleBiases
         let weights = flattenMatrix rbm.Weights
         let dWeights = flattenMatrix rbm.DWeights
-        Array.init (sizeOfRbm rbm) (fun i -> rbmValue i alpha momentum hiddenBiases dHiddenBiases visibleBiases dVisibleBiases weights dWeights)
+        Array.init (sizeOfRbm rbm) 
+            (fun i -> rbmValue i alpha momentum hiddenBiases dHiddenBiases visibleBiases dVisibleBiases weights dWeights)
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
