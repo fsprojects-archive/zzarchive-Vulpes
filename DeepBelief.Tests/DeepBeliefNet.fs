@@ -114,7 +114,7 @@ type ``Given a Deep belief network with four layers`` ()=
         dbnTrain rand 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
     [<Fact>] member test.
-        ``The flattened RBM is in the correct format``()=
+        ``The flattened RBM is in the correct format.``()=
         layeredDbn.[0] |> flattenRbm 
         |> fun x -> (x.[0], x.[1], x.[2..501], x.[502..1001], x.[1002..1785], x.[1786..2569], x.[2570..394569], x.[394570..786569]) 
         |> should equal 
@@ -122,3 +122,7 @@ type ``Given a Deep belief network with four layers`` ()=
             layeredDbn.[0].HiddenBiases, layeredDbn.[0].DHiddenBiases,
             layeredDbn.[0].VisibleBiases, layeredDbn.[0].DVisibleBiases,
             flattenMatrix layeredDbn.[0].Weights, flattenMatrix layeredDbn.[0].DWeights)
+
+    [<Fact>] member test.
+        ``The flattened RBM is subsequently rebuilt correctly.``()=
+        layeredDbn.[0] |> flattenRbm |> rebuildRbm 784 500 |> should equal layeredDbn.[0]

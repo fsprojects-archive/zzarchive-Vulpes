@@ -18,6 +18,7 @@ type ``Numerical Utilities``() =
                                 [32.0f; 77.0f] ]
                                                              
     let X = [| 1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f |]
+    let Xconcat = [| 1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f; 1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f |]
 
     let v = [|1.0f; 2.0f; 3.0f|]
     let w = [|4.0f; 5.0f; 6.0f|]
@@ -71,8 +72,12 @@ type ``Numerical Utilities``() =
             flattenMatrix M |> should equal X
 
     [<Fact>] member test.
+        ``An array of M instances flattens to a concatenated version of the 1 to 6 array.``() =
+            flattenSamples [|M; M|] |> should equal Xconcat
+
+    [<Fact>] member test.
         ``The 1 to 6 array stacks up to M.``() =
-            stackRows 3 X |> should equal M
+            rebuildMatrix 3 X |> should equal M
 
     [<Fact>] member test.
         ``6 padded out to a multiple of 1 is 6.``() =

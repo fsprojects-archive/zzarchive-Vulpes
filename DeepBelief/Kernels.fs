@@ -214,6 +214,8 @@ module Kernels =
 
             r
 
+    type XorShift7Signature<'T> = int -> int -> deviceptr<uint32> -> deviceptr<uint32> -> int -> deviceptr<'T> -> unit
+
     /// We generate the random numbers in different runs and in each block in non-overlapping streams.
     /// This template produces a single run, of total numRun runs, identified by the run rank.
     /// The streams are used to parallelize the generation of a run and must be a multiple of the block size.
@@ -256,6 +258,8 @@ module Kernels =
                 results.[index] <- (%convertExpr) (rng.Next())
                 index <- index + numThreads @>
 
-    let rbmUpdateWeightsKernel =
-        <@ fun (rbmOut : deviceptr<float32>) (rbmIn : deviceptr<float32>) (batch : deviceptr<float32>) ->
-        rbmOut @>
+    type RunEpochKernelSignature = int -> int-> deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
+
+    let runEpochKernel =
+        <@ fun (nVisible : int) (nHidden : int) (rbmIn : deviceptr<float32>) (batch : deviceptr<float32>) (rbmOut : deviceptr<float32>) ->
+        rbmOut.[0] <- 1.0f @>

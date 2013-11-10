@@ -5,26 +5,25 @@ module CudaTemplates =
     open System
     open Alea.CUDA
     open Kernels
-    open Utils
 
     let max i (j : int) = Math.Max(i, j)
 
     let multiplyMatrices (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
-        fun (A:Matrix) (B:Matrix) ->
+        fun (A:Utils.Matrix) (B:Utils.Matrix) ->
 
-            let finalHeight = height A
-            let finalWidth = width B
+            let finalHeight = Utils.height A
+            let finalWidth = Utils.width B
 
-            let A = padToMultiplesOf blockSize A
-            let B = padToMultiplesOf blockSize B
+            let A = Utils.padToMultiplesOf blockSize A
+            let B = Utils.padToMultiplesOf blockSize B
 
-            let wA = width A
-            let wB = width B
+            let wA = Utils.width A
+            let wB = Utils.width B
             let wC = wB
-            let hC = height A
+            let hC = Utils.height A
 
-            let A = flattenMatrix A
-            let B = flattenMatrix B
+            let A = Utils.flattenMatrix A
+            let B = Utils.flattenMatrix B
 
             use A = worker.Malloc(A)
             use B = worker.Malloc(B)
@@ -35,7 +34,29 @@ module CudaTemplates =
             let lp = LaunchParam(grid, threads)
             kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
             let result = C.Gather()
-            stackRows wC result |> topLeftSubmatrix finalHeight finalWidth
+            Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
+
+    let runEpoch (blockSize : int) (worker : Worker) (kernel:Kernel<RunEpochKernelSignature>) =
+        fun (samples : Utils.Matrix[]) rbm ->
+            let nSamples = samples |> Array.map (fun sample -> Utils.height sample) |> Array.sum
+            let sampleSize = Utils.width samples.[0]
+
+            let flattenedSamples = Utils.flattenSamples samples
+            let flattenedRbm = DeepBeliefNet.flattenRbm rbm
+            let sizeOfRbm = Array.length flattenedRbm
+            
+            use flattenedRbm = worker.Malloc(flattenedRbm)
+            use flattenedSamples = worker.Malloc(flattenedSamples)
+            use output = worker.Malloc<float32>(sizeOfRbm)
+
+            let nVisible = Array.length rbm.VisibleBiases
+            let nHidden = Array.length rbm.HiddenBiases
+
+            let threads = dim3(blockSize, blockSize)
+            let grid = dim3(sizeOfRbm / threads.x |> max 1, sizeOfRbm / threads.y |> max 1)
+            let lp = LaunchParam(grid, threads)
+            kernel.Launch lp nVisible nHidden flattenedRbm.Ptr flattenedSamples.Ptr output.Ptr
+            output.Gather() |> DeepBeliefNet.rebuildRbm nVisible nHidden
 
     let matrixMulTemplate (blockSize:int) = cuda {
         let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
@@ -44,8 +65,31 @@ module CudaTemplates =
             let worker = program.Worker
             let kernel = program.Apply(kernel)
 
-            fun (A : Matrix) (B : Matrix) ->
+            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
                 multiplyMatrices blockSize worker kernel A B
             ) }
 
-    //let updateWeightsTemplate (blockSize:int) 
+    let runEpochTemplate (blockSize:int) = cuda {
+        let! mulKernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
+        let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let rngKernel = program.Apply(rngKernel)
+
+            // Copy pre-calculated bit-matrices, needed for jump-ahead
+            // calculations, to the device memory.
+            let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
+
+            fun (streams : int) steps seed runs rank -> 
+                let state0 = Utils.generateStartState seed
+                use state0 = worker.Malloc(state0)
+
+                use numbers = worker.Malloc<float32>(streams * steps)
+
+                let threads = dim3(blockSize, blockSize)
+                let grid = dim3(1, 1)
+                let lp = LaunchParam(grid, threads)
+                rngKernel.Launch lp runs rank state0.Ptr jumpAheadMatrices.Ptr steps numbers.Ptr
+                numbers.Gather()
+        ) }

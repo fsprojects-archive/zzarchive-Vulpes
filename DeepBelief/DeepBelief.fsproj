@@ -51,6 +51,7 @@
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <ItemGroup>
     <None Include="packages.config" />
+    <Compile Include="Data.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="NeuralNet.fs" />

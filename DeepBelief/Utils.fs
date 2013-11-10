@@ -11,6 +11,24 @@ module Utils =
     type [<ReflectedDefinition>] Matrix = float32[,]
     type [<ReflectedDefinition>] Vector = float32[]
 
+    let LCG_A = 1664525u
+    let LCG_C = 1013904223u
+
+    let generateStartState (seed:uint32) =
+        let state = Array.zeroCreate 8
+        state.[0] <- seed
+        for i = 1 to 7 do state.[i] <- LCG_A * state.[i - 1] + LCG_C
+        state
+
+    /// Transforms an uint32 random number to a float value 
+    /// on the interval [0,1] by dividing by 2^32-1
+    let [<ReflectedDefinition>] toFloat32 (x:uint32) = float32(x) * 2.3283064E-10f
+
+    /// Transforms an uint32 random number to a float value 
+    /// on the interval [0,1] by dividing by 2^32-1
+    let [<ReflectedDefinition>] toFloat64 (x:uint32) = float(x) * 2.328306437080797e-10   
+
+
     /// Density of normal with mean mu and standard deviation sigma. 
     let inline normpdf (mu:'T) (sigma:'T) : Expr<'T -> 'T> =
         <@ fun x -> exp(-(x - mu)*(x - mu)/(2G*sigma*sigma)) / (sigma*__sqrt2pi()) @>
@@ -20,7 +38,11 @@ module Utils =
         let w = Array2D.length2 M
         Array.init (h*w) (fun i -> M.[i / w,i % w])
 
-    let stackRows w X =
+    let flattenSamples samples =
+        samples |> Array.map flattenMatrix
+        |> Array.fold (fun acc element -> Array.concat [acc; element]) [| |]
+
+    let rebuildMatrix w X =
         let h = Array.length X / w
         Array2D.init h w (fun i j -> X.[i * w + j])
 

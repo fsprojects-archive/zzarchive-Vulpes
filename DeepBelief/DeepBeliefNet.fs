@@ -57,6 +57,25 @@ module DeepBeliefNet =
         Array.init (sizeOfRbm rbm) 
             (fun i -> rbmValue i alpha momentum hiddenBiases dHiddenBiases visibleBiases dVisibleBiases weights dWeights)
 
+    let rebuildRbm nVisible nHidden (X : Vector) =
+        let nWeights = nHidden * nVisible
+        let endHiddenBiases = 2 + nHidden - 1
+        let endDHiddenBiases = endHiddenBiases + nHidden
+        let endVisibleBiases = endDHiddenBiases + nVisible
+        let endDVisibleBiases = endVisibleBiases + nVisible
+        let endWeights = endDVisibleBiases + nWeights
+        let endDWeights = endWeights + nWeights
+        {
+            Alpha = X.[0];
+            Momentum = X.[1];
+            HiddenBiases = X.[2..endHiddenBiases];
+            DHiddenBiases = X.[(endHiddenBiases + 1)..endDHiddenBiases];
+            VisibleBiases = X.[(endDHiddenBiases + 1)..endVisibleBiases];
+            DVisibleBiases = X.[(endVisibleBiases + 1)..endDVisibleBiases];
+            Weights = rebuildMatrix nVisible X.[(endDVisibleBiases + 1)..endWeights];
+            DWeights = rebuildMatrix nVisible X.[(endWeights + 1)..endDWeights]
+        }
+
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
     // of training vectors in which the unit i is on.
