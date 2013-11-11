@@ -65,6 +65,35 @@ module CudaTemplates =
             let result = C.Gather()
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
+    let loadTransposeAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
+        fun (A:Utils.Matrix) (B:Utils.Matrix) ->
+
+            let finalHeight = Utils.width A
+            let finalWidth = Utils.width B
+
+            let A = Utils.padToMultiplesOf blockSize A
+            let B = Utils.padToMultiplesOf blockSize B
+
+            let wA = Utils.width A
+            let hB = Utils.height B
+            let wB = Utils.width B
+            let wC = wB
+            let hC = Utils.width A
+
+            let A = Utils.flattenMatrix A
+            let B = Utils.flattenMatrix B
+
+            use A = worker.Malloc(A)
+            use B = worker.Malloc(B)
+            use C = worker.Malloc<float32>(wC * hC)
+
+            let threads = dim3(blockSize, blockSize)
+            let grid = dim3(hB / threads.x |> max 1, hC / threads.y |> max 1)
+            let lp = LaunchParam(grid, threads)
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
+            let result = C.Gather()
+            Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
+
     let runEpoch (blockSize : int) (worker : Worker) (kernel:Kernel<RunEpochKernelSignature>) =
         fun (samples : Utils.Matrix[]) rbm ->
             let nSamples = samples |> Array.map (fun sample -> Utils.height sample) |> Array.sum
@@ -88,7 +117,7 @@ module CudaTemplates =
             output.Gather() |> DeepBeliefNet.rebuildRbm nVisible nHidden
 
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
+        let! kernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -99,7 +128,7 @@ module CudaTemplates =
             ) }
 
     let loadAndMultiplyByTransposeTemplate (blockSize:int) = cuda {
-        let! kernel = blockSize |> multiplyByTransposeKernel |> Compiler.DefineKernel
+        let! kernel = multiplyByTransposeElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -109,6 +138,17 @@ module CudaTemplates =
                 loadAndMultiplyByTranspose blockSize worker kernel A B
             ) }
 
+    let loadTransposeAndMultiplyTemplate (blockSize:int) = cuda {
+        let! kernel = transposeAndMultiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
+                loadTransposeAndMultiply blockSize worker kernel A B
+            ) }
+
     // This template, which finds the n-th power of a square matrix,
     // shows how launch logic can be reused within the CUDA monad.
     // The same launch parameters are used in each iteration, and the
@@ -116,7 +156,7 @@ module CudaTemplates =
     // means that there is no copying of data from the CPU to the GPU
     // throughout the loop.
     let powerOfNTemplate (blockSize : int) = cuda {
-        let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
+        let! kernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
@@ -142,7 +182,7 @@ module CudaTemplates =
             ) }
 
     let runEpochTemplate (blockSize:int) = cuda {
-        let! mulKernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
+        let! mulKernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
 
         return Entry(fun program ->

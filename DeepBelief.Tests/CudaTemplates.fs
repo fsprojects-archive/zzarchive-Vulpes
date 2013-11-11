@@ -11,6 +11,8 @@ type ``Matrix Multiplication`` () =
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
     let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
+
+    let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ]
     let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
 
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
@@ -31,6 +33,9 @@ type ``Matrix Multiplication`` () =
 
     let loadAndMultiplyByTransposeProgram = 32 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
     let productOfAWithTransposeOfBTranspose = loadAndMultiplyByTransposeProgram.Run A Bt
+
+    let loadTransposeAndMultiplyProgram = 32 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
+    let productOfTransposeOfATransposeWithB = loadTransposeAndMultiplyProgram.Run At B
 
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
     let MToThePowerOf10 = powerProgram.Run M 10
@@ -55,3 +60,7 @@ type ``Matrix Multiplication`` () =
     [<Fact>] member test.
         ``The loadAndMultiplyByTransposeTemplate multiplies A by the transpose of (B Transpose) to give AB.``() =
             productOfAWithTransposeOfBTranspose |> should equal C
+
+    [<Fact>] member test.
+        ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (A Transpose) by B to give AB.``() =
+            productOfTransposeOfATransposeWithB |> should equal C
