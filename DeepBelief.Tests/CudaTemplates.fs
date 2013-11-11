@@ -11,6 +11,7 @@ type ``Matrix Multiplication`` () =
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
     let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
+    let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
 
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
     let MtoN n =
@@ -23,21 +24,24 @@ type ``Matrix Multiplication`` () =
         let aToN = pown a n
         array2D [ [aToN; (float32 n) * pown a (n - 1) * b]; [0.0f; aToN] ]
 
-    let multiplyMatricesBlock1Program = 1 |> matrixMulTemplate |> Compiler.load Worker.Default
-    let multiplyMatricesBlock32Program = 32 |> matrixMulTemplate |> Compiler.load Worker.Default
-    let productOfMatricesBlock1 = multiplyMatricesBlock1Program.Run A B
-    let productOfMatricesBlock32 = multiplyMatricesBlock32Program.Run A B
+    let loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
+    let loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
+    let productOfMatricesBlock1 = loadAndMultiplyMatricesBlock1Program.Run A B
+    let productOfMatricesBlock32 = loadAndMultiplyMatricesBlock32Program.Run A B
+
+    let loadAndMultiplyByTransposeProgram = 32 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
+    let productOfAWithTransposeOfBTranspose = loadAndMultiplyByTransposeProgram.Run A Bt
 
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
     let MToThePowerOf10 = powerProgram.Run M 10
     let UTToThePowerOf10 = UpperTriangle 2.0f 3.0f |> fun m -> powerProgram.Run m 10
 
     [<Fact>] member test.
-        ``The matrixMulTemplate multiplies A by B with a block size of 1.``() =
+        ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
             productOfMatricesBlock1 |> should equal C
 
     [<Fact>] member test.
-        ``The matrixMulTemplate multiplies A by B with a block size of 32.``() =
+        ``The loadAndMultiplyTemplate multiplies A by B with a block size of 32.``() =
             productOfMatricesBlock32 |> should equal C
 
     [<Fact>] member test.
@@ -47,3 +51,7 @@ type ``Matrix Multiplication`` () =
     [<Fact>] member test.
         ``The powerOfNTemplate raises an Upper Triangular matrix to the power of 10.``() =
             UTToThePowerOf10 |> should equal (UpperTriangleToN 10 2.0f 3.0f)
+
+    [<Fact>] member test.
+        ``The loadAndMultiplyByTransposeTemplate multiplies A by the transpose of (B Transpose) to give AB.``() =
+            productOfAWithTransposeOfBTranspose |> should equal C
