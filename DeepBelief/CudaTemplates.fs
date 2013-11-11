@@ -69,6 +69,32 @@ module CudaTemplates =
                 multiplyMatrices blockSize worker kernel A B
             ) }
 
+    let powerOfNTemplate (blockSize : int) = cuda {
+        let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Utils.Matrix) n ->
+                let originalSize = Utils.width A
+                let A = Utils.padToMultiplesOf blockSize A
+                let paddedSize = Utils.width A
+                let A = Utils.flattenMatrix A
+                let Ai = Utils.identityMatrix paddedSize |> Utils.flattenMatrix
+
+                use A = worker.Malloc(A)
+                use Ai = worker.Malloc(Ai)
+
+                let threads = dim3(blockSize, blockSize)
+                let grid = dim3(paddedSize / threads.x |> max 1, paddedSize / threads.y |> max 1)
+                let lp = LaunchParam(grid, threads)
+
+                for i = 1 to n do
+                    kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize
+                Ai.Gather() |> Utils.rebuildMatrix paddedSize |> Utils.topLeftSubmatrix originalSize originalSize
+            ) }
+
     let runEpochTemplate (blockSize:int) = cuda {
         let! mulKernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
