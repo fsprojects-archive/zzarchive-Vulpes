@@ -69,6 +69,12 @@ module CudaTemplates =
                 multiplyMatrices blockSize worker kernel A B
             ) }
 
+    // This template, which finds the n-th power of a square matrix,
+    // shows how launch logic can be reused within the CUDA monad.
+    // The same launch parameters are used in each iteration, and the
+    // inputs of the launcher are addresses in the GPU memory.  This
+    // means that there is no copying of data from the CPU to the GPU
+    // throughout the loop.
     let powerOfNTemplate (blockSize : int) = cuda {
         let! kernel = blockSize |> matrixMulKernel |> Compiler.DefineKernel
 
