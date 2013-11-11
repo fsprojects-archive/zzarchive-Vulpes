@@ -16,13 +16,21 @@ type ``Matrix Multiplication`` () =
     let MtoN n =
         array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
 
+    let UpperTriangle a b =
+        array2D [ [a; b]; [0.0f; a] ]
+
+    let UpperTriangleToN n a b =
+        let aToN = pown a n
+        array2D [ [aToN; (float32 n) * pown a (n - 1) * b]; [0.0f; aToN] ]
+
     let multiplyMatricesBlock1Program = 1 |> matrixMulTemplate |> Compiler.load Worker.Default
     let multiplyMatricesBlock32Program = 32 |> matrixMulTemplate |> Compiler.load Worker.Default
     let productOfMatricesBlock1 = multiplyMatricesBlock1Program.Run A B
     let productOfMatricesBlock32 = multiplyMatricesBlock32Program.Run A B
 
-    let MToThePowerOf10Program = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
-    let MToThePowerOf10 = MToThePowerOf10Program.Run M 10
+    let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
+    let MToThePowerOf10 = powerProgram.Run M 10
+    let UTToThePowerOf10 = UpperTriangle 2.0f 3.0f |> fun m -> powerProgram.Run m 10
 
     [<Fact>] member test.
         ``The matrixMulTemplate multiplies A by B with a block size of 1.``() =
@@ -35,3 +43,7 @@ type ``Matrix Multiplication`` () =
     [<Fact>] member test.
         ``The powerOfNTemplate raises M to the power of 10.``() =
             MToThePowerOf10 |> should equal (MtoN 10)
+
+    [<Fact>] member test.
+        ``The powerOfNTemplate raises an Upper Triangular matrix to the power of 10.``() =
+            UTToThePowerOf10 |> should equal (UpperTriangleToN 10 2.0f 3.0f)
