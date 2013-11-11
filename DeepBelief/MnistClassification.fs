@@ -20,9 +20,9 @@ module MnistClassification =
     let alpha = 0.5f
     let momentum = 0.9f
 
-    let mnistDbn = dbn dbnSizes alpha momentum mnistTrainingImages
+    let mnistDbn = dbn dbnSizes mnistTrainingImages
     //let trainedDbn = dbnTrain rand 100 10 mnistDbn mnistTrainingImages
-    let trainedDbn = dbnTrain rand 100 2 mnistDbn mnistTrainingImages
+    let trainedDbn = dbnTrain rand alpha momentum 100 2 mnistDbn mnistTrainingImages
 
     let rbmProps = 
         mnistDbn 

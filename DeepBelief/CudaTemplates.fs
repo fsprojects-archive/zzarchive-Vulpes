@@ -55,7 +55,7 @@ module CudaTemplates =
             let threads = dim3(blockSize, blockSize)
             let grid = dim3(sizeOfRbm / threads.x |> max 1, sizeOfRbm / threads.y |> max 1)
             let lp = LaunchParam(grid, threads)
-            kernel.Launch lp nVisible nHidden flattenedRbm.Ptr flattenedSamples.Ptr output.Ptr
+            // kernel.Launch lp nVisible nHidden flattenedRbm.Ptr flattenedSamples.Ptr output.Ptr
             output.Gather() |> DeepBeliefNet.rebuildRbm nVisible nHidden
 
     let matrixMulTemplate (blockSize:int) = cuda {
