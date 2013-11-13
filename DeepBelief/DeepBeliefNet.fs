@@ -83,19 +83,16 @@ module DeepBeliefNet =
         let v2 = h1 |> backward weightsAndBiases |> activate rnd sigmoid
         let h2 = v2 |> forward weightsAndBiases  |> activate rnd sigmoid
 
+        let visibleError = (subtractMatrices v1 v2 |> sumOfSquaresMatrix) / batchSize
+        let hiddenError = (subtractMatrices h1 h2 |> sumOfSquaresMatrix) / batchSize
+
         let c1 = multiply h1 v1
         let c2 = multiply h2 v2
-
-        let changeOfVisibleUnits = subtractMatrices v1 v2
-        let changeOfHiddenUnits = subtractMatrices h1 h2
-
-        let visibleError = (changeOfVisibleUnits |> sumOfSquaresMatrix) / batchSize
-        let hiddenError = (changeOfHiddenUnits |> sumOfSquaresMatrix) / batchSize
 
         let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedAlpha (subtractMatrices c1 c2))
         let weightsAndBiases = addMatrices weightsAndBiases dWeightsAndBiases
         ( 
-            visibleError,
+            (visibleError, hiddenError),
             toRbm weightsAndBiases dWeightsAndBiases
         )
     
@@ -104,7 +101,9 @@ module DeepBeliefNet =
         let samples = xRand |> batchesOf batchSize |> Array.map array2D
         samples |> Array.fold(fun acc batch ->
             let result = updateWeights rnd alpha momentum (snd acc) batch
-            (fst acc + fst result, snd result)) (0.0f, rbm)
+            let resultErrors = fst result
+            let cumulativeErrors = fst acc
+            ((fst cumulativeErrors + fst resultErrors, snd cumulativeErrors + snd resultErrors), snd result)) ((0.0f, 0.0f), rbm)
 
     let rbmUp rbm activation xInputs =
         forward rbm xInputs |> mapMatrix activation |> transpose

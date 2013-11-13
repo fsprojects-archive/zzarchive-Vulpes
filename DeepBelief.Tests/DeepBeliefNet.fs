@@ -104,8 +104,12 @@ type ``Given a single RBM``()=
         activate rand sigmoid batch |> allElementsOfMatrix (fun x -> x * (x - 1.0f) = 0.0f) |> should equal true
 
     [<Fact>] member test.
-        ``The first epoch gives a positive error.``()=
-        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> should greaterThan 0.0f
+        ``The first epoch gives a positive visible error.``()=
+        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> fst |> should greaterThan 0.0f
+
+    [<Fact>] member test.
+        ``The first epoch gives a positive hidden error.``()=
+        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> snd |> should greaterThan 0.0f
 
     [<Fact>] member test.
         ``The first epoch gives an RBM with non-zero weights.``()=
