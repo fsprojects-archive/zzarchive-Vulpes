@@ -35,14 +35,6 @@ module DeepBeliefNet =
             VisibleBiases = weightsAndBiases.[0..0, 1..nVisible] |> row 0;
             DVisibleBiases = dWeightsAndBiases.[0..0, 1..nVisible] |> row 0;
         }
-//
-//    let flattenRbm rbm =
-//        [| toWeightsAndBiases rbm |> flattenMatrix; toDWeightsAndBiases rbm |> flattenMatrix |]
-//        |> Array.concat
-//
-//    let rebuildRbm nVisible nHidden (X : Vector) =
-//        let matrixSize = (nVisible + 1) * (nHidden + 1)
-//        toRbm (rebuildMatrix (nVisible + 1) X.[0..(matrixSize - 1)]) (rebuildMatrix (nVisible + 1) X.[matrixSize..(2 * matrixSize - 1)])
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
