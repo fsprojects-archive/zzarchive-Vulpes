@@ -17,7 +17,7 @@ type ``Given a Deep belief network with four layers`` ()=
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|]
     let layeredDbn = dbn sizes xInputs
-    let sinTrainedRbm = rbmTrain rand alpha momentum 1 2 layeredDbn.[0] sinInput
+    let sinTrainedRbm = rbmTrain rand alpha momentum 1 2 layeredDbn.[0] (sinInput |> prependColumnOfOnes)
 
     let (rows0, Drows0) = (height layeredDbn.[0].Weights, height layeredDbn.[0].DWeights)
     let (columns0, Dcolumns0) = (width layeredDbn.[0].Weights, width layeredDbn.[0].DWeights)
@@ -28,9 +28,6 @@ type ``Given a Deep belief network with four layers`` ()=
     let (columns1, Dcolumns1) = (width layeredDbn.[1].Weights, width layeredDbn.[1].DWeights)
     let (v1, Dv1) = (layeredDbn.[1].VisibleBiases, layeredDbn.[1].DVisibleBiases)
     let (h1, Dh1) = (layeredDbn.[1].HiddenBiases, layeredDbn.[1].DHiddenBiases)
-
-    let batch = Array2D.init 10 784 (fun i j -> (i - 5) * (j - 392) |> float32)
-    let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32)
 
     [<Fact>] member test.
         ``The length of the DBN should be 4.``()=
@@ -76,6 +73,27 @@ type ``Given a Deep belief network with four layers`` ()=
         |> should equal (layeredDbn |> List.map(fun x -> true))
 
     [<Fact>] member test.
+        ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
+        dbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+
+type ``Given a single RBM``()=
+    let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32) |> prependColumnOfOnes
+    let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] |> prependColumnOfOnes
+
+    let alpha = 0.5f
+    let momentum = 0.9f
+    let rbm = initRbm 784 500 |> fun rbm ->
+        {
+            Weights = rbm.Weights;
+            DWeights = Array2D.init 500 784 (fun _ _ -> rand.NextDouble() |> float32);
+            HiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32);
+            DHiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32);
+            VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
+            DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
+        }
+    let batch = Array2D.init 10 784 (fun i j -> (i - 5) * (j - 392) |> float32)
+
+    [<Fact>] member test.
         ``The activation function converts a matrix into a matrix of the same size.``()=
         activate rand sigmoid batch |> (fun x -> (height x, width x)) |> should equal (10, 784)
 
@@ -84,42 +102,33 @@ type ``Given a Deep belief network with four layers`` ()=
         activate rand sigmoid batch |> allElementsOfMatrix (fun x -> x * (x - 1.0f) = 0.0f) |> should equal true
 
     [<Fact>] member test.
-        ``The forward iteration of the first RBM converts ten samples of length 784 into ten samples of size 500.``()=
-         batch |> forward layeredDbn.[0] |> (fun x -> (height x, width x)) |> should equal (500, 10)
-
-    [<Fact>] member test.
-        ``The backward iteration of the first RBM converts ten samples of length 500 into ten samples of length 784.``()=
-         batch |> forward layeredDbn.[0] |> activate rand sigmoid |> backward layeredDbn.[0] |> (fun x -> (height x, width x)) |> should equal (10, 784)
-
-    [<Fact>] member test.
         ``The first epoch gives a positive error.``()=
-        rbmEpoch rand alpha momentum 10 layeredDbn.[0] inputs |> fst |> should greaterThan 0.0f
+        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> should greaterThan 0.0f
 
     [<Fact>] member test.
         ``The first epoch gives an RBM with non-zero weights.``()=
-        rbmEpoch rand alpha momentum 10 layeredDbn.[0] inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
+        rbmEpoch rand alpha momentum 10 rbm inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
 
     [<Fact>] member test.
-        ``Training 50 epochs of the first RBM gives an RBM with non-zero weights.``()=
-        rbmTrain rand alpha momentum 1 50 layeredDbn.[0] sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+        ``The forward iteration of the RBM converts ten samples of length 784 into ten samples of size 500.``()=
+         batch |> prependColumnOfOnes |> forward (toWeightsAndBiases rbm) |> (fun x -> (height x, width x)) |> should equal (501, 10)
 
     [<Fact>] member test.
-        ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
-        dbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+        ``The backward iteration of the RBM converts ten samples of length 500 into ten samples of length 784.``()=
+         batch |> prependColumnOfOnes |> forward (toWeightsAndBiases rbm) |> activate rand sigmoid |> backward (toWeightsAndBiases rbm) |> (fun x -> (height x, width x)) |> should equal (10, 785)
 
     [<Fact>] member test.
-        ``The flattened RBM is in the correct format.``()=
-        layeredDbn.[0] |> flattenRbm 
-        |> fun x -> (x.[0..499], x.[500..999], x.[1000..1783], x.[1784..2567], x.[2568..394567], x.[394568..786567]) 
-        |> should equal 
-            (layeredDbn.[0].HiddenBiases, layeredDbn.[0].DHiddenBiases,
-            layeredDbn.[0].VisibleBiases, layeredDbn.[0].DVisibleBiases,
-            flattenMatrix layeredDbn.[0].Weights, flattenMatrix layeredDbn.[0].DWeights)
-
-    [<Fact>] member test.
-        ``The size of the flattened RBM agrees with the sizeOfRbm function.``()=
-        layeredDbn.[0] |> flattenRbm |> Array.length |> should equal (sizeOfRbm layeredDbn.[0])
+        ``Training 50 epochs of the RBM gives an RBM with non-zero weights.``()=
+        rbmTrain rand alpha momentum 1 50 rbm sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
     [<Fact>] member test.
         ``The flattened RBM is subsequently rebuilt correctly.``()=
-        layeredDbn.[0] |> flattenRbm |> rebuildRbm 784 500 |> should equal layeredDbn.[0]
+        rbm |> flattenRbm |> rebuildRbm 784 500 |> should equal rbm
+
+    [<Fact>] member test.
+        ``The toWeightsAndBiases function creates a matrix with one more row and one more column than the Weights matrix.``()=
+        (toWeightsAndBiases rbm |> height, toWeightsAndBiases rbm |> width) |> should equal (1 + height rbm.Weights, 1 + width rbm.Weights)
+
+    [<Fact>] member test.
+        ``The toDWeightsAndBiases function creates a matrix with one more row and one more column than the DWeights matrix.``()=
+        (toWeightsAndBiases rbm |> height, toWeightsAndBiases rbm |> width) |> should equal (1 + height rbm.DWeights, 1 + width rbm.DWeights)

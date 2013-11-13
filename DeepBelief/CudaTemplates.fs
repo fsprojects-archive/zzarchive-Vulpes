@@ -181,8 +181,10 @@ module CudaTemplates =
                 Ai.Gather() |> Utils.rebuildMatrix paddedSize |> Utils.topLeftSubmatrix originalSize originalSize
             ) }
 
-    let runEpochTemplate (blockSize:int) = cuda {
-        let! mulKernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+    let runDbnEpochTemplate (blockSize:int) = cuda {
+        let! multplyKernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multiplyByTransposeKernel = multiplyByTransposeElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! transposeAndMultiplyKernel = transposeAndMultiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
 
         return Entry(fun program ->
@@ -193,15 +195,24 @@ module CudaTemplates =
             // calculations, to the device memory.
             let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
 
-            fun (streams : int) steps seed runs rank -> 
-                let state0 = Utils.generateStartState seed
-                use state0 = worker.Malloc(state0)
+            fun alpha momentum batchSize (rbm : DeepBeliefNet.RestrictedBoltzmannMachine) xInputs -> 
+                let nRows = Utils.height xInputs
+                let nCols = Utils.width xInputs
+                let xRand = Utils.permuteRows Utils.rand xInputs
+                let samples = xRand |> Utils.batchesOf batchSize |> Array.map array2D
+                let nHidden = Array.length rbm.HiddenBiases
+                let nVisible = Array.length rbm.VisibleBiases
+                let visibleSampleSize = nHidden * (nVisible + 1)
+                let hiddenSampleSize = (nHidden + 1) * nVisible
+                let rbm = DeepBeliefNet.flattenRbm rbm
 
-                use numbers = worker.Malloc<float32>(streams * steps)
+                use rbm = worker.Malloc rbm
+                use v1 = worker.Malloc<float32>(visibleSampleSize)
+                use h1 = worker.Malloc<float32>(hiddenSampleSize)
+                use v2 = worker.Malloc<float32>(visibleSampleSize)
+                use h2 = worker.Malloc<float32>(hiddenSampleSize)
 
-                let threads = dim3(blockSize, blockSize)
-                let grid = dim3(1, 1)
-                let lp = LaunchParam(grid, threads)
-                rngKernel.Launch lp runs rank state0.Ptr jumpAheadMatrices.Ptr steps numbers.Ptr
-                numbers.Gather()
+                for sample in samples do
+                    sample.[0, 0] <- 1.0f
+                alpha
         ) }
