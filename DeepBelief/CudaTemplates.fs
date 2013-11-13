@@ -94,28 +94,6 @@ module CudaTemplates =
             let result = C.Gather()
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
-    let runEpoch (blockSize : int) (worker : Worker) (kernel:Kernel<RunEpochKernelSignature>) =
-        fun (samples : Utils.Matrix[]) rbm ->
-            let nSamples = samples |> Array.map (fun sample -> Utils.height sample) |> Array.sum
-            let sampleSize = Utils.width samples.[0]
-
-            let flattenedSamples = Utils.flattenSamples samples
-            let flattenedRbm = DeepBeliefNet.flattenRbm rbm
-            let sizeOfRbm = Array.length flattenedRbm
-            
-            use flattenedRbm = worker.Malloc(flattenedRbm)
-            use flattenedSamples = worker.Malloc(flattenedSamples)
-            use output = worker.Malloc<float32>(sizeOfRbm)
-
-            let nVisible = Array.length rbm.VisibleBiases
-            let nHidden = Array.length rbm.HiddenBiases
-
-            let threads = dim3(blockSize, blockSize)
-            let grid = dim3(sizeOfRbm / threads.x |> max 1, sizeOfRbm / threads.y |> max 1)
-            let lp = LaunchParam(grid, threads)
-            // kernel.Launch lp nVisible nHidden flattenedRbm.Ptr flattenedSamples.Ptr output.Ptr
-            output.Gather() |> DeepBeliefNet.rebuildRbm nVisible nHidden
-
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
         let! kernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
@@ -207,8 +185,9 @@ module CudaTemplates =
                 let sizeOfHiddenBatch = sizeOfHiddenUnitVectors * batchSize
                 let sizeOfVisibleBatch = sizeOfVisibleUnitVectors * batchSize
                 let sizeOfWeightsAndBiases = sizeOfHiddenUnitVectors * sizeOfVisibleUnitVectors
-                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.flattenMatrix
-                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.flattenMatrix
+
+                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize |> Utils.flattenMatrix
+                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize |> Utils.flattenMatrix
 
                 use weightsAndBiases = worker.Malloc weightsAndBiases
                 use dWeightsAndBiases = worker.Malloc dWeightsAndBiases

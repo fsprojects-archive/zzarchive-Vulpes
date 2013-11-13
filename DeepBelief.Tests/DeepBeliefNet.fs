@@ -91,6 +91,8 @@ type ``Given a single RBM``()=
             VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
             DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
         }
+    let weightsAndBiases = toWeightsAndBiases rbm
+    let dWeightsAndBiases = toDWeightsAndBiases rbm
     let batch = Array2D.init 10 784 (fun i j -> (i - 5) * (j - 392) |> float32)
 
     [<Fact>] member test.
@@ -122,8 +124,12 @@ type ``Given a single RBM``()=
         rbmTrain rand alpha momentum 1 50 rbm sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
     [<Fact>] member test.
-        ``The flattened RBM is subsequently rebuilt correctly.``()=
-        rbm |> flattenRbm |> rebuildRbm 784 500 |> should equal rbm
+        ``toRbm reverses the toWeightsAndBiases and toDWeightsAndBiases functions.``()=
+        toRbm (toWeightsAndBiases rbm) (toDWeightsAndBiases rbm) |> should equal rbm
+
+    [<Fact>] member test.
+        ``toWeightsAndBiases and toDWeightsAndBiases reverse the toRbm function.``()=
+        toRbm weightsAndBiases dWeightsAndBiases |> fun r -> (toWeightsAndBiases r, toDWeightsAndBiases r) |> should equal (weightsAndBiases, dWeightsAndBiases)
 
     [<Fact>] member test.
         ``The toWeightsAndBiases function creates a matrix with one more row and one more column than the Weights matrix.``()=
