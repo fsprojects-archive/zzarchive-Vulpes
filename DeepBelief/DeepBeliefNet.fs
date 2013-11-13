@@ -87,7 +87,7 @@ module DeepBeliefNet =
         let c2 = multiply h2 v2
 
         let changeOfVisibleUnits = subtractMatrices v1 v2
-        let changeOfHiddenUnits = (subtractMatrices h1 h2) |> transpose
+        let changeOfHiddenUnits = subtractMatrices h1 h2
 
         let visibleError = (changeOfVisibleUnits |> sumOfSquaresMatrix) / batchSize
         let hiddenError = (changeOfHiddenUnits |> sumOfSquaresMatrix) / batchSize
