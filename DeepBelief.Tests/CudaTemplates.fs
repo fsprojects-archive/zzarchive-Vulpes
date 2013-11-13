@@ -8,7 +8,7 @@ open DeepBelief.DeepBeliefNet
 open DeepBelief.CudaTemplates
 open DeepBelief.Utils
 
-type ``Matrix Multiplication`` () =
+type ``CUDA Matrix Multiplication``()=
 
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]

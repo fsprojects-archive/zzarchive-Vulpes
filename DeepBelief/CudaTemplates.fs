@@ -202,15 +202,22 @@ module CudaTemplates =
                 let samples = xRand |> Utils.batchesOf batchSize |> Array.map array2D
                 let nHidden = Array.length rbm.HiddenBiases
                 let nVisible = Array.length rbm.VisibleBiases
-                let visibleSampleSize = nHidden * (nVisible + 1)
-                let hiddenSampleSize = (nHidden + 1) * nVisible
-                let rbm = DeepBeliefNet.flattenRbm rbm
+                let sizeOfHiddenUnitVectors = 1 + nHidden
+                let sizeOfVisibleUnitVectors = 1 + nVisible
+                let sizeOfHiddenBatch = sizeOfHiddenUnitVectors * batchSize
+                let sizeOfVisibleBatch = sizeOfVisibleUnitVectors * batchSize
+                let sizeOfWeightsAndBiases = sizeOfHiddenUnitVectors * sizeOfVisibleUnitVectors
+                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.flattenMatrix
+                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.flattenMatrix
 
-                use rbm = worker.Malloc rbm
-                use v1 = worker.Malloc<float32>(visibleSampleSize)
-                use h1 = worker.Malloc<float32>(hiddenSampleSize)
-                use v2 = worker.Malloc<float32>(visibleSampleSize)
-                use h2 = worker.Malloc<float32>(hiddenSampleSize)
+                use weightsAndBiases = worker.Malloc weightsAndBiases
+                use dWeightsAndBiases = worker.Malloc dWeightsAndBiases
+                use v1 = worker.Malloc<float32>(sizeOfVisibleBatch)
+                use h1 = worker.Malloc<float32>(sizeOfHiddenBatch)
+                use v2 = worker.Malloc<float32>(sizeOfVisibleBatch)
+                use h2 = worker.Malloc<float32>(sizeOfHiddenBatch)
+                use c1 = worker.Malloc<float32>(sizeOfWeightsAndBiases)
+                use c2 = worker.Malloc<float32>(sizeOfWeightsAndBiases)
 
                 for sample in samples do
                     sample.[0, 0] <- 1.0f
