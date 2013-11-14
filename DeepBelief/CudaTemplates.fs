@@ -4,6 +4,7 @@ module CudaTemplates =
 
     open System
     open Alea.CUDA
+    open Alea.CUDA.Utilities
     open Kernels
 
     let max i (j : int) = Math.Max(i, j)
@@ -168,37 +169,74 @@ module CudaTemplates =
         return Entry(fun program ->
             let worker = program.Worker
             let rngKernel = program.Apply(rngKernel)
+            let multiplyByTransposeKernel = program.Apply(multiplyByTransposeKernel)
 
             // Copy pre-calculated bit-matrices, needed for jump-ahead
             // calculations, to the device memory.
             let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
 
-            fun alpha momentum batchSize (rbm : DeepBeliefNet.RestrictedBoltzmannMachine) xInputs -> 
+            fun alpha momentum batchSize rbm xInputs -> 
                 let nRows = Utils.height xInputs
                 let nCols = Utils.width xInputs
                 let xRand = Utils.permuteRows Utils.rand xInputs
-                let samples = xRand |> Utils.batchesOf batchSize |> Array.map array2D
-                let nHidden = Array.length rbm.HiddenBiases
-                let nVisible = Array.length rbm.VisibleBiases
-                let sizeOfHiddenUnitVectors = 1 + nHidden
-                let sizeOfVisibleUnitVectors = 1 + nVisible
-                let sizeOfHiddenBatch = sizeOfHiddenUnitVectors * batchSize
-                let sizeOfVisibleBatch = sizeOfVisibleUnitVectors * batchSize
-                let sizeOfWeightsAndBiases = sizeOfHiddenUnitVectors * sizeOfVisibleUnitVectors
+                let samples = 
+                    xRand |> Utils.batchesOf batchSize 
+                    |> Array.map (array2D >> Utils.prependColumnOfOnes >> Utils.padToMultiplesOf blockSize)
+                
+                let paddedSampleHeight = Utils.height samples.[0]
+                let paddedSampleWidth = Utils.width samples.[0]
 
-                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize |> Utils.flattenMatrix
-                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize |> Utils.flattenMatrix
+                let samples = samples |> Array.map (Utils.flattenMatrix >> worker.Malloc)
+
+                let nHidden = DeepBeliefNet.numberOfHiddenUnits rbm
+                let nVisible = DeepBeliefNet.numberOfVisibleUnits rbm
+                
+                let heightOfVisibleUnitMatrix = paddedSampleHeight
+                let widthOfVisibleUnitMatrix = paddedSampleWidth
+
+                let widthOfHiddenUnitMatrix = heightOfVisibleUnitMatrix
+                let heightOfHiddenUnitMatrix = 1 + nHidden |> Utils.nextMultipleOf blockSize
+
+                let dimVisibleUnits = heightOfVisibleUnitMatrix * widthOfVisibleUnitMatrix
+                let dimHiddenUnits = heightOfHiddenUnitMatrix * widthOfHiddenUnitMatrix
+
+                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize 
+                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize
+                let weightsAndBiasesWidth = Utils.width weightsAndBiases
+                let weightsAndBiases = weightsAndBiases|> Utils.flattenMatrix
+                let dWeightsAndBiases = dWeightsAndBiases |> Utils.flattenMatrix
+                let dimWeightsAndBiases = Array.length weightsAndBiases
 
                 use weightsAndBiases = worker.Malloc weightsAndBiases
                 use dWeightsAndBiases = worker.Malloc dWeightsAndBiases
-                use v1 = worker.Malloc<float32>(sizeOfVisibleBatch)
-                use h1 = worker.Malloc<float32>(sizeOfHiddenBatch)
-                use v2 = worker.Malloc<float32>(sizeOfVisibleBatch)
-                use h2 = worker.Malloc<float32>(sizeOfHiddenBatch)
-                use c1 = worker.Malloc<float32>(sizeOfWeightsAndBiases)
-                use c2 = worker.Malloc<float32>(sizeOfWeightsAndBiases)
+                use h1 = worker.Malloc<float32>(dimHiddenUnits)
+                use v2 = worker.Malloc<float32>(dimVisibleUnits)
+                use h2 = worker.Malloc<float32>(dimHiddenUnits)
+                use c1 = worker.Malloc<float32>(dimWeightsAndBiases)
+                use c2 = worker.Malloc<float32>(dimWeightsAndBiases)
 
-                for sample in samples do
-                    sample.[0, 0] <- 1.0f
+                use hiddenRandoms = worker.Malloc<float32>(dimHiddenUnits)
+                use visibleRandoms = worker.Malloc<float32>(dimVisibleUnits)
+
+                let threads = dim3(blockSize, blockSize)
+                let fowardMatrixGrid = dim3(heightOfVisibleUnitMatrix / threads.x |> max 1, weightsAndBiasesWidth / threads.y |> max 1)
+                let forwardMatrixLp = LaunchParam(fowardMatrixGrid, threads)
+
+                let rngNumStreams = 1024
+                let rngBlockSize = dim3(32, 8)
+                let rngNumThreadsPerBlock = rngBlockSize.Size
+                let rngGridSize = dim3(rngNumStreams / rngNumThreadsPerBlock)
+                let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
+                let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
+
+                use state0 = Utils.generateStartState 42u |> worker.Malloc
+
+                for i in 0..samples.Length - 1 do
+                    
+                    use v1 = samples.[0]
+                    // Perform the forward iteration to populate h1
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesWidth widthOfVisibleUnitMatrix
+                    rngKernel.Launch rngLp samples.Length i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+
                 alpha
         ) }

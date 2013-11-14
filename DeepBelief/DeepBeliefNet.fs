@@ -2,7 +2,6 @@
 
 module DeepBeliefNet =
 
-    open MathNet.Numerics
     open MathNet.Numerics.Random
     open System
     open Utils
@@ -35,6 +34,9 @@ module DeepBeliefNet =
             VisibleBiases = weightsAndBiases.[0..0, 1..nVisible] |> row 0;
             DVisibleBiases = dWeightsAndBiases.[0..0, 1..nVisible] |> row 0;
         }
+
+    let numberOfHiddenUnits rbm = Array.length rbm.HiddenBiases
+    let numberOfVisibleUnits rbm = Array.length rbm.VisibleBiases
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
