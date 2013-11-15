@@ -18,7 +18,9 @@ module CudaTemplates =
             let A = Utils.padToMultiplesOf blockSize A
             let B = Utils.padToMultiplesOf blockSize B
 
+            let hA = Utils.height A
             let wA = Utils.width A
+            let hB = Utils.height B
             let wB = Utils.width B
             let wC = wB
             let hC = Utils.height A
@@ -31,9 +33,9 @@ module CudaTemplates =
             use C = worker.Malloc<float32>(wC * hC)
 
             let threads = dim3(blockSize, blockSize)
-            let grid = dim3(wB / threads.x |> max 1, hC / threads.y |> max 1)
+            let grid = dim3(wB / threads.x, hC / threads.y)
             let lp = LaunchParam(grid, threads)
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
@@ -46,6 +48,7 @@ module CudaTemplates =
             let A = Utils.padToMultiplesOf blockSize A
             let B = Utils.padToMultiplesOf blockSize B
 
+            let hA = Utils.height A
             let wA = Utils.width A
             let hB = Utils.height B
             let wB = Utils.width B
@@ -60,9 +63,9 @@ module CudaTemplates =
             use C = worker.Malloc<float32>(wC * hC)
 
             let threads = dim3(blockSize, blockSize)
-            let grid = dim3(hB / threads.x |> max 1, hC / threads.y |> max 1)
+            let grid = dim3(hB / threads.x, hC / threads.y)
             let lp = LaunchParam(grid, threads)
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
@@ -75,6 +78,7 @@ module CudaTemplates =
             let A = Utils.padToMultiplesOf blockSize A
             let B = Utils.padToMultiplesOf blockSize B
 
+            let hA = Utils.height A
             let wA = Utils.width A
             let hB = Utils.height B
             let wB = Utils.width B
@@ -89,14 +93,14 @@ module CudaTemplates =
             use C = worker.Malloc<float32>(wC * hC)
 
             let threads = dim3(blockSize, blockSize)
-            let grid = dim3(hB / threads.x |> max 1, hC / threads.y |> max 1)
+            let grid = dim3(hB / threads.x, hC / threads.y)
             let lp = LaunchParam(grid, threads)
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr wA wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -107,7 +111,7 @@ module CudaTemplates =
             ) }
 
     let loadAndMultiplyByTransposeTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyByTransposeElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyByTransposeStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -118,7 +122,7 @@ module CudaTemplates =
             ) }
 
     let loadTransposeAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = transposeAndMultiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = transposeAndMultiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -135,7 +139,7 @@ module CudaTemplates =
     // means that there is no copying of data from the CPU to the GPU
     // throughout the loop.
     let powerOfNTemplate (blockSize : int) = cuda {
-        let! kernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
@@ -161,15 +165,17 @@ module CudaTemplates =
             ) }
 
     let runDbnEpochTemplate (blockSize:int) = cuda {
-        let! multplyKernel = multiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
-        let! multiplyByTransposeKernel = multiplyByTransposeElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
-        let! transposeAndMultiplyKernel = transposeAndMultiplyElement |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multplyKernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multiplyByTransposeKernel = multiplyByTransposeStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
+        let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
-            let rngKernel = program.Apply(rngKernel)
-            let multiplyByTransposeKernel = program.Apply(multiplyByTransposeKernel)
+            let rngKernel = program.Apply rngKernel
+            let multiplyByTransposeKernel = program.Apply multiplyByTransposeKernel
+            let activateFirstRowKernel = program.Apply activateFirstRowKernel
 
             // Copy pre-calculated bit-matrices, needed for jump-ahead
             // calculations, to the device memory.
@@ -219,8 +225,12 @@ module CudaTemplates =
                 use visibleRandoms = worker.Malloc<float32>(dimVisibleUnits)
 
                 let threads = dim3(blockSize, blockSize)
+
                 let fowardMatrixGrid = dim3(heightOfVisibleUnitMatrix / threads.x |> max 1, weightsAndBiasesWidth / threads.y |> max 1)
                 let forwardMatrixLp = LaunchParam(fowardMatrixGrid, threads)
+
+                let activateFirstRowGrid = dim3(heightOfHiddenUnitMatrix / threads.x |> max 1, widthOfHiddenUnitMatrix / threads.y |> max 1)
+                let activateFirstRowLp = LaunchParam(activateFirstRowGrid, threads)
 
                 let rngNumStreams = 1024
                 let rngBlockSize = dim3(32, 8)
@@ -236,7 +246,18 @@ module CudaTemplates =
                     use v1 = samples.[0]
                     // Perform the forward iteration to populate h1
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesWidth widthOfVisibleUnitMatrix
-                    rngKernel.Launch rngLp samples.Length i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    // rngKernel.Launch rngLp samples.Length i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    // activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr widthOfHiddenUnitMatrix nRows
+                    
+                    let h = h1.Gather()
+                    let v = v1.Gather()
+                    let w = weightsAndBiases.Gather()
+
+                    let hNans = h |> Array.filter Single.IsNaN
+                    let vNans = h |> Array.filter Single.IsNaN
+                    let wNans = h |> Array.filter Single.IsNaN
+
+                    h.[0] <- h.[0] + 0.0f
 
                 alpha
         ) }

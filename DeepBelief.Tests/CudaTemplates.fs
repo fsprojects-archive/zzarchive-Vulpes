@@ -13,13 +13,18 @@ type ``CUDA Matrix Multiplication``()=
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
     let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
+    
+    let D = array2D [ [1.0f; 2.0f;]
+                      [3.0f; 4.0f;] 
+                      [5.0f; 6.0f;] ];
+    let E = array2D [ [1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f; 7.0f; 8.0f];
+                      [2.0f; 4.0f; 6.0f; 8.0f; 1.0f; 3.0f; 5.0f; 7.0f] ]
 
     let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ]
     let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
 
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
-    let MtoN n =
-        array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
+    let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
 
     let UpperTriangle a b =
         array2D [ [a; b]; [0.0f; a] ]
@@ -30,8 +35,8 @@ type ``CUDA Matrix Multiplication``()=
 
     let loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
     let loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
-    let loadAndMultiplyByTransposeProgram = 32 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
-    let loadTransposeAndMultiplyProgram = 32 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
+    let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
+    let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
 
     [<Fact>] member test.

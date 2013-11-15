@@ -6,19 +6,54 @@ module Kernels =
     open Alea.CUDA
     open Alea.CUDA.Utilities
 
-    type MatrixMulKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> int -> unit
+    type MatrixMulKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> int -> int -> int -> unit
 
-    let multiplyElement =
-        <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[ty, k] * B.[k, tx] @>
+    [<Struct>]
+    type IterationStrategy = 
+        struct
+            val Begin : int
+            val End : int
+            val Step : int
 
-    let multiplyByTransposeElement =
-        <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[ty, k] * B.[tx, k] @>
+            [<ReflectedDefinition>] new (b, e, s) = { Begin = b; End = e; Step = s }
+        end
 
-    let transposeAndMultiplyElement =
-        <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[k, ty] * B.[k, tx] @>
+    [<Struct>]
+    type CudaMultiplicationStrategy = 
+        struct
+            val MultiplyElement : float32[,] -> float32[,] -> int -> int -> int -> float32
+            val AIteration : int -> int -> int -> int -> IterationStrategy
+            val BIteration : int -> int -> int -> int -> IterationStrategy
 
-    let matrixMulKernel (blockSize:int) (mul:Expr<float32[,] -> float32[,] -> int -> int -> int -> float32>) =
-        <@ fun (C:deviceptr<float32>) (A:deviceptr<float32>) (B:deviceptr<float32>) (wA:int) (wB:int) ->
+            [<ReflectedDefinition>] new (m, a, b) = { MultiplyElement = m; AIteration = a; BIteration = b }
+        end
+    
+    let multiplyStrategy =
+        <@ new CudaMultiplicationStrategy
+            (
+                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
+                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
+                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
+            ) @>
+
+    let multiplyByTransposeStrategy =
+        <@ new CudaMultiplicationStrategy
+            (
+                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
+                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
+                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize))
+            ) @>
+
+    let transposeAndMultiplyStrategy =
+        <@ new CudaMultiplicationStrategy
+            (
+                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
+                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width)),
+                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
+            ) @>
+
+    let activateFirstRowKernel (blockSize:int) =
+        <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
             // Block index
             let bx = blockIdx.x
             let by = blockIdx.y
@@ -27,20 +62,44 @@ module Kernels =
             let tx = threadIdx.x
             let ty = threadIdx.y
 
+            let start = wM * blockSize * by
+            for i = 0 to blockSize - 1 do
+                let index = start + i
+                M.[index] <- if index < nActivations then 1.0f else 0.0f
+            @>
+
+    let matrixMulKernel (blockSize:int) (strategy:Expr<CudaMultiplicationStrategy>) =
+        <@ fun (C:deviceptr<float32>) (A:deviceptr<float32>) (B:deviceptr<float32>) (hA:int) (wA:int) (hB:int) (wB:int) ->
+            // Block index
+            let bx = blockIdx.x
+            let by = blockIdx.y
+
+            // Thread index
+            let tx = threadIdx.x
+            let ty = threadIdx.y
+
+            let strategy = %strategy
+
+            let iterationA = strategy.AIteration hA wA blockSize by
+            let iterationB = strategy.BIteration hB wB blockSize bx
+
             // Index of the first sub-matrix of A processed by the block
-            let aBegin = wA * blockSize * by
+            let aBegin = iterationA.Begin
 
             // Index of the last sub-matrix of A processed by the block
-            let aEnd = aBegin + wA - 1
+            let aEnd = iterationA.End
 
             // Step size used to iterate through the sub-matrices of A
-            let aStep = blockSize
+            let aStep = iterationA.Step
 
             // Index of the first sub-matrix of B processed by the block
-            let bBegin = blockSize * bx
+            let bBegin = iterationB.Begin
+
+            // Index of the last sub-matrix of B processed by the block
+            let bEnd = iterationB.End
 
             // Step size used to iterate through the sub-matrices of B
-            let bStep = blockSize * wB
+            let bStep = iterationB.Step
 
             // Csub is used to store the element of the block sub-matrix
             // that is computed by the thread
@@ -50,7 +109,7 @@ module Kernels =
             // required to compute the block sub-matrix
             let mutable a = aBegin
             let mutable b = bBegin
-            while a <= aEnd do
+            while a <= aEnd && b <= bEnd do
             
                 // Declaration of the shared memory array As used to
                 // store the sub-matrix of A
@@ -73,7 +132,7 @@ module Kernels =
                 // each thread computes one element
                 // of the block sub-matrix
                 for k = 0 to blockSize - 1 do
-                    Csub <- Csub + ((%mul) As Bs ty k tx)
+                    Csub <- Csub + (strategy.MultiplyElement As Bs ty k tx)
 
                 // Synchronize to make sure that the preceding
                 // computation is done before loading two new
