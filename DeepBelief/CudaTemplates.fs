@@ -100,7 +100,7 @@ module CudaTemplates =
             Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
 
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -111,7 +111,7 @@ module CudaTemplates =
             ) }
 
     let loadAndMultiplyByTransposeTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyByTransposeStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyByTransposeStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -122,7 +122,7 @@ module CudaTemplates =
             ) }
 
     let loadTransposeAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = transposeAndMultiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = transposeAndMultiplyStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -139,7 +139,7 @@ module CudaTemplates =
     // means that there is no copying of data from the CPU to the GPU
     // throughout the loop.
     let powerOfNTemplate (blockSize : int) = cuda {
-        let! kernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
@@ -160,14 +160,14 @@ module CudaTemplates =
                 let lp = LaunchParam(grid, threads)
 
                 for i = 1 to n do
-                    kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize
+                    kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize paddedSize paddedSize
                 Ai.Gather() |> Utils.rebuildMatrix paddedSize |> Utils.topLeftSubmatrix originalSize originalSize
             ) }
 
     let runDbnEpochTemplate (blockSize:int) = cuda {
-        let! multplyKernel = multiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
-        let! multiplyByTransposeKernel = multiplyByTransposeStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
-        let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multplyKernel = multiplyStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multiplyByTransposeKernel = multiplyByTransposeStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy() |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
         let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
 

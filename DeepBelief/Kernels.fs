@@ -8,48 +8,112 @@ module Kernels =
 
     type MatrixMulKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> int -> int -> int -> unit
 
-    [<Struct>]
-    type IterationStrategy = 
-        struct
-            val Begin : int
-            val End : int
-            val Step : int
+    [<Class>]
+    type IterationStrategy() = 
+        [<ClassField>]
+        member this.Begin
+            with get () : int = failwith "device only"
+            and set (value:int) : unit = failwith "device only"
 
-            [<ReflectedDefinition>] new (b, e, s) = { Begin = b; End = e; Step = s }
-        end
+        [<ClassField>]
+        member this.End
+            with get () : int = failwith "device only"
+            and set (value:int) : unit = failwith "device only"
 
-    [<Struct>]
-    type CudaMultiplicationStrategy = 
-        struct
-            val MultiplyElement : float32[,] -> float32[,] -> int -> int -> int -> float32
-            val AIteration : int -> int -> int -> int -> IterationStrategy
-            val BIteration : int -> int -> int -> int -> IterationStrategy
+        [<ClassField>]
+        member this.Step
+            with get () : int = failwith "device only"
+            and set (value:int) : unit = failwith "device only"
 
-            [<ReflectedDefinition>] new (m, a, b) = { MultiplyElement = m; AIteration = a; BIteration = b }
-        end
-    
-    let multiplyStrategy =
-        <@ new CudaMultiplicationStrategy
+        [<ReflectedDefinition>]
+        static member Size = __sizeof<IterationStrategy>()
+
+        [<ReflectedDefinition>]
+        member this.Init(b, e, s) =
+            this.Begin <- b
+            this.End <- e
+            this.Step <- s
+
+        // Bless is reinterpret a buffer into our ref class type, then use
+        // __ptrtoobj to construct the ref class object, which will use
+        // the memory pointed by the pointer as the underlying storage.
+        [<ReflectedDefinition>]
+        static member Bless(buffer:deviceptr<IterationStrategy>) =
+            buffer.Reinterpret<IterationStrategy>() |> __ptr_to_obj
+
+        [<ReflectedDefinition>] 
+        static member Create(b, e, s) = 
+            let size = IterationStrategy.Size
+            let sharedData = __shared__.Extern<IterationStrategy>(size)
+
+            let strategy = sharedData |> IterationStrategy.Bless
+            strategy.Init(b, e, s)
+            strategy
+
+    [<Class>]
+    type CudaMultiplicationStrategy() = 
+        [<ClassField>]
+        member this.MultiplyElement 
+            with get () : float32[,] -> float32[,] -> int -> int -> int -> float32 = failwith "device only"
+            and set(value : float32[,] -> float32[,] -> int -> int -> int -> float32) : unit = failwith "device only"
+
+        [<ClassField>]
+        member this.AIteration 
+            with get () : int -> int -> int -> int -> IterationStrategy = failwith "device only"
+            and set(value : int -> int -> int -> int -> IterationStrategy) : unit = failwith "device only"
+        
+        [<ClassField>]
+        member this.BIteration 
+            with get () : int -> int -> int -> int -> IterationStrategy = failwith "device only"
+            and set(value : int -> int -> int -> int -> IterationStrategy) : unit = failwith "device only"
+
+        [<ReflectedDefinition>]
+        static member Size = __sizeof<CudaMultiplicationStrategy>()
+
+        [<ReflectedDefinition>]
+        member this.Init(m, a, b) =
+            this.MultiplyElement <- m
+            this.AIteration <- a
+            this.BIteration <- b
+
+        // Bless is reinterpret a buffer into our ref class type, then use
+        // __ptrtoobj to construct the ref class object, which will use
+        // the memory pointed by the pointer as the underlying storage.
+        [<ReflectedDefinition>]
+        static member Bless(buffer:deviceptr<CudaMultiplicationStrategy>) =
+            buffer.Reinterpret<CudaMultiplicationStrategy>() |> __ptr_to_obj
+
+        [<ReflectedDefinition>] 
+        static member Create(m, a, b) = 
+            let size = CudaMultiplicationStrategy.Size
+            let sharedData = __shared__.Extern<CudaMultiplicationStrategy>(size)
+
+            let strategy = sharedData |> CudaMultiplicationStrategy.Bless
+            strategy.Init(m, a, b)
+            strategy
+
+    let inline multiplyStrategy() =
+        <@ CudaMultiplicationStrategy.Create
             (
                 (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
-                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
             ) @>
 
-    let multiplyByTransposeStrategy =
-        <@ new CudaMultiplicationStrategy
+    let inline multiplyByTransposeStrategy() =
+        <@ CudaMultiplicationStrategy.Create
             (
                 (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
-                (fun height width blockSize blockIndex -> new IterationStrategy(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize))
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize))
             ) @>
 
-    let transposeAndMultiplyStrategy =
-        <@ new CudaMultiplicationStrategy
+    let inline transposeAndMultiplyStrategy() =
+        <@ CudaMultiplicationStrategy.Create
             (
                 (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width)),
-                (fun height width blockSize blockIndex -> new IterationStrategy(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width)),
+                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
             ) @>
 
     let activateFirstRowKernel (blockSize:int) =
@@ -70,6 +134,7 @@ module Kernels =
 
     let matrixMulKernel (blockSize:int) (strategy:Expr<CudaMultiplicationStrategy>) =
         <@ fun (C:deviceptr<float32>) (A:deviceptr<float32>) (B:deviceptr<float32>) (hA:int) (wA:int) (hB:int) (wB:int) ->
+
             // Block index
             let bx = blockIdx.x
             let by = blockIdx.y
@@ -78,10 +143,8 @@ module Kernels =
             let tx = threadIdx.x
             let ty = threadIdx.y
 
-            let strategy = %strategy
-
-            let iterationA = strategy.AIteration hA wA blockSize by
-            let iterationB = strategy.BIteration hB wB blockSize bx
+            let iterationA = (%strategy).AIteration hA wA blockSize by
+            let iterationB = (%strategy).BIteration hB wB blockSize bx
 
             // Index of the first sub-matrix of A processed by the block
             let aBegin = iterationA.Begin
@@ -132,7 +195,7 @@ module Kernels =
                 // each thread computes one element
                 // of the block sub-matrix
                 for k = 0 to blockSize - 1 do
-                    Csub <- Csub + (strategy.MultiplyElement As Bs ty k tx)
+                    Csub <- Csub + ((%strategy).MultiplyElement As Bs ty k tx)
 
                 // Synchronize to make sure that the preceding
                 // computation is done before loading two new
