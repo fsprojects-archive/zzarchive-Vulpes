@@ -23,6 +23,20 @@ type ``CUDA Matrix Multiplication``()=
     let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ]
     let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
 
+    let Dt = array2D [ [1.0f; 3.0f; 5.0f];
+                       [2.0f; 4.0f; 6.0f] ];
+    let Et = array2D [ [1.0f; 2.0f];
+                       [2.0f; 4.0f];
+                       [3.0f; 6.0f];
+                       [4.0f; 8.0f];
+                       [5.0f; 1.0f];
+                       [6.0f; 3.0f];
+                       [7.0f; 5.0f];
+                       [8.0f; 7.0f] ] 
+    let DE = array2D [ [5.0f;  10.0f; 15.0f; 20.0f; 7.0f;  12.0f; 17.0f; 22.0f ];
+                       [11.0f; 22.0f; 33.0f; 44.0f; 19.0f; 30.0f; 41.0f; 52.0f ];
+                       [17.0f; 34.0f; 51.0f; 68.0f; 31.0f; 48.0f; 65.0f; 82.0f ] ]
+    
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
     let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
 
@@ -39,13 +53,23 @@ type ``CUDA Matrix Multiplication``()=
     let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
 
+    let temp = loadTransposeAndMultiplyProgram.Run Dt E
+
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
             loadAndMultiplyMatricesBlock1Program.Run A B |> should equal C
 
     [<Fact>] member test.
+        ``The loadAndMultiplyTemplate multiplies D by E with a block size of 1.``() =
+            loadAndMultiplyMatricesBlock1Program.Run D E |> should equal DE
+
+    [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 32.``() =
             loadAndMultiplyMatricesBlock32Program.Run A B |> should equal C
+
+    [<Fact>] member test.
+        ``The loadAndMultiplyTemplate multiplies D by E with a block size of 32.``() =
+            loadAndMultiplyMatricesBlock32Program.Run D E |> should equal DE
 
     [<Fact>] member test.
         ``The powerOfNTemplate raises M to the power of 10.``() =
@@ -60,8 +84,16 @@ type ``CUDA Matrix Multiplication``()=
             loadAndMultiplyByTransposeProgram.Run A Bt |> should equal C
 
     [<Fact>] member test.
+        ``The loadAndMultiplyByTransposeTemplate multiplies D by the transpose of (E Transpose) to give DE.``() =
+            loadAndMultiplyByTransposeProgram.Run D Et |> should equal DE
+
+    [<Fact>] member test.
         ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (A Transpose) by B to give AB.``() =
             loadTransposeAndMultiplyProgram.Run At B |> should equal C
+
+    [<Fact>] member test.
+        ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``() =
+            loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
 
 type ``CUDA DBN Epoch``() =
 

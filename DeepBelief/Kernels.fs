@@ -8,113 +8,97 @@ module Kernels =
 
     type MatrixMulKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> int -> int -> int -> unit
 
-    [<Class>]
-    type IterationStrategy() = 
-        [<ClassField>]
-        member this.Begin
-            with get () : int = failwith "device only"
-            and set (value:int) : unit = failwith "device only"
+    // a quotation that: fun height width blockIndex -> begin, end, step
+    type IterationStrategy = Expr<int -> int -> int -> int * int * int>
 
-        [<ClassField>]
-        member this.End
-            with get () : int = failwith "device only"
-            and set (value:int) : unit = failwith "device only"
+    // a quotation that: fun A B ty k tx -> result
+    type MultiplyElement = Expr<float32[,] -> float32[,] -> int -> int -> int -> float32>
 
-        [<ClassField>]
-        member this.Step
-            with get () : int = failwith "device only"
-            and set (value:int) : unit = failwith "device only"
+    type CUpdate = Expr<int -> int -> int -> int -> int -> int -> int -> int>
 
-        [<ReflectedDefinition>]
-        static member Size = __sizeof<IterationStrategy>()
+    type Strategy =
+        {
+            BlockSize : int
+            AIteration : IterationStrategy
+            BIteration : IterationStrategy
+            MultiplyElement : MultiplyElement
+            CUpdate : CUpdate
+        }
 
-        [<ReflectedDefinition>]
-        member this.Init(b, e, s) =
-            this.Begin <- b
-            this.End <- e
-            this.Step <- s
+    let multiplyStrategy blockSize =
+        let aIteration = 
+            <@ fun height width blockIndex ->
+                let b = width * blockSize * blockIndex
+                let e = width * blockSize * blockIndex + width - 1
+                let s = blockSize
+                b, e, s @>
 
-        // Bless is reinterpret a buffer into our ref class type, then use
-        // __ptrtoobj to construct the ref class object, which will use
-        // the memory pointed by the pointer as the underlying storage.
-        [<ReflectedDefinition>]
-        static member Bless(buffer:deviceptr<IterationStrategy>) =
-            buffer.Reinterpret<IterationStrategy>() |> __ptr_to_obj
+        let bIteration =
+            <@ fun height width blockIndex ->
+                let b = blockSize * blockIndex
+                let e = blockSize * blockIndex + width * (height - blockSize)
+                let s = blockSize * width
+                b, e, s @>
 
-        [<ReflectedDefinition>] 
-        static member Create(b, e, s) = 
-            let size = IterationStrategy.Size
-            let sharedData = __shared__.Extern<IterationStrategy>(size)
+        let multiplyElement = <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[ty, k] * B.[k, tx] @>
+        let cUpdate = <@ fun hB wB blockSize yBlockIndex yThreadIndex xBlockIndex xThreadIndex -> wB * (blockSize * yBlockIndex + yThreadIndex) + (blockSize * xBlockIndex + xThreadIndex) @>
+        {
+            BlockSize = blockSize
+            AIteration = aIteration
+            BIteration = bIteration
+            MultiplyElement = multiplyElement
+            CUpdate = cUpdate
+        }
 
-            let strategy = sharedData |> IterationStrategy.Bless
-            strategy.Init(b, e, s)
-            strategy
+    let multiplyByTransposeStrategy blockSize =
+        let aIteration = 
+            <@ fun height width blockIndex ->
+                let b = width * blockSize * blockIndex
+                let e = width * blockSize * blockIndex + width - 1
+                let s = blockSize
+                b, e, s @>
 
-    [<Class>]
-    type CudaMultiplicationStrategy() = 
-        [<ClassField>]
-        member this.MultiplyElement 
-            with get () : float32[,] -> float32[,] -> int -> int -> int -> float32 = failwith "device only"
-            and set(value : float32[,] -> float32[,] -> int -> int -> int -> float32) : unit = failwith "device only"
+        let bIteration =
+            <@ fun height width blockIndex ->
+                let b = width * blockSize * blockIndex
+                let e = width * blockSize * blockIndex + width - 1
+                let s = blockSize
+                b, e, s @>
 
-        [<ClassField>]
-        member this.AIteration 
-            with get () : int -> int -> int -> int -> IterationStrategy = failwith "device only"
-            and set(value : int -> int -> int -> int -> IterationStrategy) : unit = failwith "device only"
-        
-        [<ClassField>]
-        member this.BIteration 
-            with get () : int -> int -> int -> int -> IterationStrategy = failwith "device only"
-            and set(value : int -> int -> int -> int -> IterationStrategy) : unit = failwith "device only"
+        let multiplyElement = <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[ty, k] * B.[tx, k] @>
+        let cUpdate = <@ fun hB wB blockSize yBlockIndex yThreadIndex xBlockIndex xThreadIndex -> hB * (blockSize * yBlockIndex + yThreadIndex) + (blockSize * xBlockIndex + xThreadIndex) @>
+        {
+            BlockSize = blockSize
+            AIteration = aIteration
+            BIteration = bIteration
+            MultiplyElement = multiplyElement
+            CUpdate = cUpdate
+        }
 
-        [<ReflectedDefinition>]
-        static member Size = __sizeof<CudaMultiplicationStrategy>()
+    let transposeAndMultiplyStrategy blockSize =
+        let aIteration = 
+            <@ fun height width blockIndex ->
+                let b = blockSize * blockIndex
+                let e = blockSize * blockIndex + width * (height - blockSize)
+                let s = blockSize * width
+                b, e, s @>
 
-        [<ReflectedDefinition>]
-        member this.Init(m, a, b) =
-            this.MultiplyElement <- m
-            this.AIteration <- a
-            this.BIteration <- b
+        let bIteration =
+            <@ fun height width blockIndex ->
+                let b = blockSize * blockIndex
+                let e = blockSize * blockIndex + width * (height - blockSize)
+                let s = blockSize * width
+                b, e, s @>
 
-        // Bless is reinterpret a buffer into our ref class type, then use
-        // __ptrtoobj to construct the ref class object, which will use
-        // the memory pointed by the pointer as the underlying storage.
-        [<ReflectedDefinition>]
-        static member Bless(buffer:deviceptr<CudaMultiplicationStrategy>) =
-            buffer.Reinterpret<CudaMultiplicationStrategy>() |> __ptr_to_obj
-
-        [<ReflectedDefinition>] 
-        static member Create(m, a, b) = 
-            let size = CudaMultiplicationStrategy.Size
-            let sharedData = __shared__.Extern<CudaMultiplicationStrategy>(size)
-
-            let strategy = sharedData |> CudaMultiplicationStrategy.Bless
-            strategy.Init(m, a, b)
-            strategy
-
-    let inline multiplyStrategy() =
-        <@ CudaMultiplicationStrategy.Create
-            (
-                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
-            ) @>
-
-    let inline multiplyByTransposeStrategy() =
-        <@ CudaMultiplicationStrategy.Create
-            (
-                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize)),
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(width * blockSize * blockIndex, width * blockSize * blockIndex + width - 1, blockSize))
-            ) @>
-
-    let inline transposeAndMultiplyStrategy() =
-        <@ CudaMultiplicationStrategy.Create
-            (
-                (fun A B ty k tx -> A.[ty, k] * B.[k, tx]), 
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width)),
-                (fun height width blockSize blockIndex -> IterationStrategy.Create(blockSize * blockIndex, blockSize * blockIndex + width * height, blockSize * width))
-            ) @>
+        let multiplyElement = <@ fun (A:float32[,]) (B:float32[,]) ty k tx -> A.[k, ty] * B.[k, tx] @>
+        let cUpdate = <@ fun hB wB blockSize yBlockIndex yThreadIndex xBlockIndex xThreadIndex -> wB * (blockSize * yBlockIndex + yThreadIndex) + (blockSize * xBlockIndex + xThreadIndex) @>
+        {
+            BlockSize = blockSize
+            AIteration = aIteration
+            BIteration = bIteration
+            MultiplyElement = multiplyElement
+            CUpdate = cUpdate
+        }
 
     let activateFirstRowKernel (blockSize:int) =
         <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
@@ -132,7 +116,7 @@ module Kernels =
                 M.[index] <- if index < nActivations then 1.0f else 0.0f
             @>
 
-    let matrixMulKernel (blockSize:int) (strategy:Expr<CudaMultiplicationStrategy>) =
+    let matrixMulKernel (blockSize:int) (strategy:Strategy) =
         <@ fun (C:deviceptr<float32>) (A:deviceptr<float32>) (B:deviceptr<float32>) (hA:int) (wA:int) (hB:int) (wB:int) ->
 
             // Block index
@@ -143,26 +127,26 @@ module Kernels =
             let tx = threadIdx.x
             let ty = threadIdx.y
 
-            let iterationA = (%strategy).AIteration hA wA blockSize by
-            let iterationB = (%strategy).BIteration hB wB blockSize bx
+            let aBegin, aEnd, aStep = (%strategy.AIteration) hA wA by
+            let bBegin, bEnd, bStep = (%strategy.BIteration) hB wB bx
 
             // Index of the first sub-matrix of A processed by the block
-            let aBegin = iterationA.Begin
+            let aBegin = aBegin
 
             // Index of the last sub-matrix of A processed by the block
-            let aEnd = iterationA.End
+            let aEnd = aEnd
 
             // Step size used to iterate through the sub-matrices of A
-            let aStep = iterationA.Step
+            let aStep = aStep
 
             // Index of the first sub-matrix of B processed by the block
-            let bBegin = iterationB.Begin
+            let bBegin = bBegin
 
             // Index of the last sub-matrix of B processed by the block
-            let bEnd = iterationB.End
+            let bEnd = bEnd
 
             // Step size used to iterate through the sub-matrices of B
-            let bStep = iterationB.Step
+            let bStep = bStep
 
             // Csub is used to store the element of the block sub-matrix
             // that is computed by the thread
@@ -172,7 +156,7 @@ module Kernels =
             // required to compute the block sub-matrix
             let mutable a = aBegin
             let mutable b = bBegin
-            while a <= aEnd && b <= bEnd do
+            while a <= aEnd do
             
                 // Declaration of the shared memory array As used to
                 // store the sub-matrix of A
@@ -195,7 +179,7 @@ module Kernels =
                 // each thread computes one element
                 // of the block sub-matrix
                 for k = 0 to blockSize - 1 do
-                    Csub <- Csub + ((%strategy).MultiplyElement As Bs ty k tx)
+                    Csub <- Csub + ((%strategy.MultiplyElement) As Bs ty k tx)
 
                 // Synchronize to make sure that the preceding
                 // computation is done before loading two new
@@ -207,8 +191,7 @@ module Kernels =
 
             // Write the block sub-matrix to device memory;
             // each thread writes one element
-            let c = wB * blockSize * by + blockSize * bx
-            C.[c + wB * ty + tx] <- Csub @>
+            C.[(%strategy.CUpdate) hB wB blockSize by ty bx tx] <- Csub @>
 
     [<ReflectedDefinition>]
     let jumpAhead (numThreads:int) (threadRank:int)
