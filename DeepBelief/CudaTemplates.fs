@@ -24,7 +24,7 @@ module CudaTemplates =
         let grid = dim3(wB / threads.x, wA / threads.y)
         LaunchParam(grid, threads)
 
-    let createActivateLp blockSize hA wA =
+    let createSimpleMatrixOperationLp blockSize hA wA =
         createMultiplyLp blockSize hA wA hA wA
 
     let createActivateFirstRowLp blockSize hM wM =
@@ -108,8 +108,8 @@ module CudaTemplates =
 
                 let forwardMatrixLp = createMultiplyByTransposeLp blockSize weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                 let backwardMatrixLp = createTransposeAndMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
-                let activateHiddenLp = createActivateLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
-                let activateVisibleLp = createActivateLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                let activateHiddenLp = createSimpleMatrixOperationLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
+                let activateVisibleLp = createSimpleMatrixOperationLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                 let activateFirstRowLp = createActivateFirstRowLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                 let activateFirstColumnLp = createActivateFirstColumnLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                 let computeCValueLp = createMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
@@ -148,12 +148,5 @@ module CudaTemplates =
                     // Compute c1 and c2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-
-                    let x = c1.Gather()
-                    let y = c2.Gather()
-
-                    let xNan = x |> Array.filter Single.IsNaN
-                    let yNan = y |> Array.filter Single.IsNaN
-                    x.[0] <- x.[0]
                 alpha
         ) }

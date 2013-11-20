@@ -9,6 +9,26 @@ open DeepBelief.CudaTemplates
 open DeepBelief.Kernels
 open DeepBelief.Utils
 
+module Common =
+    type SimpleMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> int -> int -> unit
+    let simpleMatrixOperation blockSize A B (kernel : Kernel<SimpleMatrixOperationKernelSignature>) (worker : Worker) =
+        let hA = height A
+        let wA = width A
+        let paddedA = padToMultiplesOf blockSize A
+        let paddedB = padToMultiplesOf blockSize B
+        let hPaddedA = height paddedA
+        let wPaddedA = width paddedA
+        let flattenedA = flattenMatrix paddedA
+        let flattenedB = flattenMatrix paddedB
+
+        use flattenedA = worker.Malloc flattenedA
+        use flattenedB = worker.Malloc flattenedB
+
+        let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
+        kernel.Launch lp flattenedA.Ptr flattenedB.Ptr hPaddedA wPaddedA
+
+        flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+
 type ``CUDA Matrix Multiplication``()=
 
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
@@ -197,6 +217,54 @@ type ``CUDA Matrix Multiplication``()=
                 Ai.Gather() |> rebuildMatrix paddedSize |> topLeftSubmatrix originalSize originalSize
             ) }
 
+    let addTemplate (blockSize : int) = cuda {
+        let! addKernel =  addKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let addKernel = program.Apply addKernel
+
+            fun (A : Matrix) (B : Matrix) ->
+                Common.simpleMatrixOperation blockSize A B addKernel worker
+        )
+    }
+
+    let subtractTemplate (blockSize : int) = cuda {
+        let! subtractKernel =  subtractKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let subtractKernel = program.Apply subtractKernel
+
+            fun (A : Matrix) (B : Matrix) ->
+                Common.simpleMatrixOperation blockSize A B subtractKernel worker
+        )
+    }
+
+    let scalarMultiplyTemplate (blockSize : int) = cuda {
+        let! scalarMultiplyKernel =  scalarMultiplyKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let scalarMultiplyKernel = program.Apply scalarMultiplyKernel
+
+            fun (A : Matrix) (lambda : float32) ->
+                let hA = height A
+                let wA = width A
+                let paddedA = padToMultiplesOf blockSize A
+                let hPaddedA = height paddedA
+                let wPaddedA = width paddedA
+                let flattenedA = flattenMatrix paddedA
+
+                use flattenedA = worker.Malloc flattenedA
+
+                let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
+                scalarMultiplyKernel.Launch lp flattenedA.Ptr lambda hPaddedA wPaddedA
+
+                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+        )
+    }
+
     let loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
     let loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
     let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
@@ -343,22 +411,7 @@ type ``CUDA Matrix Activation``()=
             let activateKernel = program.Apply activateKernel
 
             fun (A : Matrix) (rnd : Matrix) ->
-                let hA = height A
-                let wA = width A
-                let paddedA = padToMultiplesOf blockSize A
-                let paddedRnd = padToMultiplesOf blockSize rnd
-                let hPaddedA = height paddedA
-                let wPaddedA = width paddedA
-                let flattenedA = flattenMatrix paddedA
-                let flattenedRnd = flattenMatrix paddedRnd
-
-                use flattenedA = worker.Malloc flattenedA
-                use flattenedRnd = worker.Malloc flattenedRnd
-
-                let lp = createMultiplyLp blockSize hPaddedA wPaddedA hPaddedA wPaddedA
-                activateKernel.Launch lp flattenedA.Ptr flattenedRnd.Ptr hPaddedA wPaddedA
-
-                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+                Common.simpleMatrixOperation blockSize A rnd activateKernel worker
         )
     }
 

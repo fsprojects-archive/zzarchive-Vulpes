@@ -345,20 +345,12 @@ module Kernels =
     let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
         let strategy = multiplyStrategy blockSize
         <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) (hA : int) (wA : int) ->
-            
-            // Block index
-            let bx = blockIdx.x
-            let by = blockIdx.y
 
-            // Thread index
-            let tx = threadIdx.x
-            let ty = threadIdx.y
-
-            let b, e, s = (%strategy.AIteration) hA wA by
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
 
             let mutable a = b
             while a <= e do
-                let i = wA * ty + a + tx
+                let i = wA * threadIdx.y + a + threadIdx.x
                 A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
                 __syncthreads()
                 a <- a + s
@@ -387,4 +379,46 @@ module Kernels =
             let i = start + wM * tx
             let max = nActivations * wM
             M.[i] <- if i < max then 1.0f else 0.0f
+            @>
+
+    let subtractKernel (blockSize : int) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
+            
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * threadIdx.y + a + threadIdx.x
+                A.[i] <- A.[i] - B.[i]
+                __syncthreads()
+                a <- a + s
+            @>
+
+    let addKernel (blockSize : int) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
+            
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * threadIdx.y + a + threadIdx.x
+                A.[i] <- A.[i] + B.[i]
+                __syncthreads()
+                a <- a + s
+            @>
+
+    let scalarMultiplyKernel (blockSize : int) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (lambda : float32) (hA : int) (wA : int) ->
+            
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * threadIdx.y + a + threadIdx.x
+                A.[i] <- A.[i] * lambda
+                __syncthreads()
+                a <- a + s
             @>
