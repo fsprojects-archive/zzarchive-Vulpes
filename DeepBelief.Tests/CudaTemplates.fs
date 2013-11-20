@@ -41,6 +41,9 @@ type ``CUDA Matrix Multiplication``()=
     let E = array2D [ [1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f; 7.0f; 8.0f];
                       [2.0f; 4.0f; 6.0f; 8.0f; 1.0f; 3.0f; 5.0f; 7.0f] ]
 
+    let ATimes2 = array2D [ [2.0f; 4.0f; 6.0f]; [8.0f; 10.0f; 12.0f] ]
+    let ATimes3 = array2D [ [3.0f; 6.0f; 9.0f]; [12.0f; 15.0f; 18.0f] ]
+
     let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ]
     let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
 
@@ -270,6 +273,9 @@ type ``CUDA Matrix Multiplication``()=
     let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
     let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
+    let addProgram = 2 |> addTemplate |> Compiler.load Worker.Default
+    let subtractProgram = 2 |> subtractTemplate |> Compiler.load Worker.Default
+    let scalarMultiplyProgram = 2 |> scalarMultiplyTemplate |> Compiler.load Worker.Default
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
@@ -310,6 +316,18 @@ type ``CUDA Matrix Multiplication``()=
     [<Fact>] member test.
         ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``() =
             loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
+
+    [<Fact>] member test.
+        ``The addTemplate adds A to 2A to give 3A.``() =
+            addProgram.Run A ATimes2 |> should equal ATimes3
+
+    [<Fact>] member test.
+        ``The subtractTemplate subtracts A from 3A to give 2A.``() =
+            subtractProgram.Run ATimes3 A |> should equal ATimes2
+
+    [<Fact>] member test.
+        ``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``() =
+            scalarMultiplyProgram.Run A 3.0f |> should equal ATimes3
 
 type ``CUDA Matrix Activation``()=
     
@@ -457,7 +475,8 @@ type ``CUDA DBN Epoch``() =
     let firstRbm = layeredDbn.[0]
 
     let cudaDbnEpochProgram = 32 |> runDbnEpochTemplate |> Compiler.load Worker.Default
+    let result = [1..5] |> List.fold (fun acc element -> cudaDbnEpochProgram.Run alpha momentum 10 acc xInputs) firstRbm
 
     [<Fact>] member test.
         ``The DBN Epoch template runs an epoch on the GPU.``()=
-            cudaDbnEpochProgram.Run alpha momentum 10 firstRbm xInputs |> should equal alpha
+            (height result.Weights, width result.Weights) |> should equal (500, 784)

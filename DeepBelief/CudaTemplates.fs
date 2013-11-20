@@ -45,6 +45,9 @@ module CudaTemplates =
         let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
         let! activateFirstColumnKernel = activateFirstColumnKernel blockSize |> Compiler.DefineKernel
         let! activateKernel = <@ sigmoid @> |> activateKernel blockSize |> Compiler.DefineKernel
+        let! addKernel = addKernel blockSize |> Compiler.DefineKernel
+        let! subtractKernel = subtractKernel blockSize |> Compiler.DefineKernel
+        let! scalarMultiplyKernel = scalarMultiplyKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
@@ -55,6 +58,9 @@ module CudaTemplates =
             let activateFirstRowKernel = program.Apply activateFirstRowKernel
             let activateFirstColumnKernel = program.Apply activateFirstColumnKernel
             let activateKernel = program.Apply activateKernel
+            let addKernel = program.Apply addKernel
+            let subtractKernel = program.Apply subtractKernel
+            let scalarMultiplyKernel = program.Apply scalarMultiplyKernel
 
             // Copy pre-calculated bit-matrices, needed for jump-ahead
             // calculations, to the device memory.
@@ -113,6 +119,7 @@ module CudaTemplates =
                 let activateFirstRowLp = createActivateFirstRowLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                 let activateFirstColumnLp = createActivateFirstColumnLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                 let computeCValueLp = createMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                let simpleWeightsLp = createSimpleMatrixOperationLp blockSize heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
 
                 let rngNumStreams = 1024
                 let rngBlockSize = dim3(32, 8)
@@ -121,6 +128,7 @@ module CudaTemplates =
                 let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
                 let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
 
+                let weightedAlpha = alpha / (float32 samples.Length)
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
                 let numRuns = 3 * samples.Length
@@ -145,8 +153,23 @@ module CudaTemplates =
                     activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                     activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr widthOfHiddenUnitMatrix nRows
 
-                    // Compute c1 and c2
+                    // Compute c1 = h1 * v1 and c2 = h2 * v2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                alpha
+
+                    // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedAlpha * (c1 - c2)
+                    subtractKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                    scalarMultiplyKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                    scalarMultiplyKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                    addKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+
+                    // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
+                    addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+
+                let wb = weightsAndBiases.Gather()
+                let dwb = dWeightsAndBiases.Gather()
+                let wbNans = wb |> Array.filter Single.IsNaN
+                let weightsAndBiases = wb |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+                DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
         ) }
