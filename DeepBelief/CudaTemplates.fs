@@ -166,10 +166,10 @@ module CudaTemplates =
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
                     addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
 
-                let wb = weightsAndBiases.Gather()
-                let dwb = dWeightsAndBiases.Gather()
-                let wbNans = wb |> Array.filter Single.IsNaN
-                let weightsAndBiases = wb |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+// DEBUGGING CODE let wb = weightsAndBiases.Gather()
+//                let dwb = dWeightsAndBiases.Gather()
+// LEAVE FOR NOW  let wbNans = wb |> Array.filter Single.IsNaN
+                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
                 let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
                 DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
         ) }
