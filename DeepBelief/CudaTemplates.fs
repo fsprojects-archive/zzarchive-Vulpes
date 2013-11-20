@@ -38,7 +38,7 @@ module CudaTemplates =
         LaunchParam(grid, threads)
 
     let runDbnEpochTemplate (blockSize:int) = cuda {
-        let! multplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! multiplyByTransposeKernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
@@ -49,6 +49,7 @@ module CudaTemplates =
         return Entry(fun program ->
             let worker = program.Worker
             let rngKernel = program.Apply rngKernel
+            let multiplyKernel = program.Apply multiplyKernel
             let multiplyByTransposeKernel = program.Apply multiplyByTransposeKernel
             let transposeAndMultiplyKernel = program.Apply transposeAndMultiplyKernel
             let activateFirstRowKernel = program.Apply activateFirstRowKernel
@@ -111,6 +112,7 @@ module CudaTemplates =
                 let activateVisibleLp = createActivateLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
                 let activateFirstRowLp = createActivateFirstRowLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                 let activateFirstColumnLp = createActivateFirstColumnLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                let computeCValueLp = createMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
 
                 let rngNumStreams = 1024
                 let rngBlockSize = dim3(32, 8)
@@ -142,5 +144,16 @@ module CudaTemplates =
                     rngKernel.Launch rngLp numRuns (i + 2 * samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
                     activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                     activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr widthOfHiddenUnitMatrix nRows
+
+                    // Compute c1 and c2
+                    multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+
+                    let x = c1.Gather()
+                    let y = c2.Gather()
+
+                    let xNan = x |> Array.filter Single.IsNaN
+                    let yNan = y |> Array.filter Single.IsNaN
+                    x.[0] <- x.[0]
                 alpha
         ) }
