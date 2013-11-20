@@ -26,10 +26,10 @@ module MnistClassification =
 
     let rbmProps = 
         mnistDbn 
-        |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, sigmoid))
+        |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, sigmoidFunction))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
 
-    let props = { Weights = List.concat [|rbmProps.Weights; [initGaussianWeights 10 50 |> prependColumn (Array.zeroCreate 10)]|]; Activations = sigmoid :: rbmProps.Activations }
+    let props = { Weights = List.concat [|rbmProps.Weights; [initGaussianWeights 10 50 |> prependColumn (Array.zeroCreate 10)]|]; Activations = sigmoidFunction :: rbmProps.Activations }
 
     let trainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
     let testSet = Array.zip (toArray mnistTestImages) mnistTestLabels

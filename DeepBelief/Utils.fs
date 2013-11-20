@@ -122,7 +122,8 @@ module Utils =
 
     let rand = new MersenneTwister()
 
-    let sigmoid x = 1.0f / (1.0f + exp(-x))
+    let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
+    let logitFunction x = log x - log (1.0f - x)
 
     let toList M =
         let h = height M

@@ -97,11 +97,11 @@ type ``Given a single RBM``()=
 
     [<Fact>] member test.
         ``The activation function converts a matrix into a matrix of the same size.``()=
-        activate rand sigmoid batch |> (fun x -> (height x, width x)) |> should equal (10, 784)
+        activate rand sigmoidFunction batch |> (fun x -> (height x, width x)) |> should equal (10, 784)
 
     [<Fact>] member test.
         ``The activation function converts a matrix into a matrix containing ones and zeroes.``()=
-        activate rand sigmoid batch |> allElementsOfMatrix (fun x -> x * (x - 1.0f) = 0.0f) |> should equal true
+        activate rand sigmoidFunction batch |> allElementsOfMatrix (fun x -> x * (x - 1.0f) = 0.0f) |> should equal true
 
     [<Fact>] member test.
         ``The first epoch gives a positive visible error.``()=
@@ -121,7 +121,7 @@ type ``Given a single RBM``()=
 
     [<Fact>] member test.
         ``The backward iteration of the RBM converts ten samples of length 500 into ten samples of length 784.``()=
-         batch |> prependColumnOfOnes |> forward (toWeightsAndBiases rbm) |> activate rand sigmoid |> backward (toWeightsAndBiases rbm) |> (fun x -> (height x, width x)) |> should equal (10, 785)
+         batch |> prependColumnOfOnes |> forward (toWeightsAndBiases rbm) |> activate rand sigmoidFunction |> backward (toWeightsAndBiases rbm) |> (fun x -> (height x, width x)) |> should equal (10, 785)
 
     [<Fact>] member test.
         ``Training 50 epochs of the RBM gives an RBM with non-zero weights.``()=

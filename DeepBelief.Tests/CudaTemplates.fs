@@ -6,6 +6,7 @@ open Xunit
 open FsUnit.Xunit
 open DeepBelief.DeepBeliefNet
 open DeepBelief.CudaTemplates
+open DeepBelief.Kernels
 open DeepBelief.Utils
 
 type ``CUDA Matrix Multiplication``()=
@@ -47,13 +48,160 @@ type ``CUDA Matrix Multiplication``()=
         let aToN = pown a n
         array2D [ [aToN; (float32 n) * pown a (n - 1) * b]; [0.0f; aToN] ]
 
+    let loadAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
+        fun (A:Matrix) (B:Matrix) ->
+
+            let finalHeight = height A
+            let finalWidth = width B
+
+            let A = padToMultiplesOf blockSize A
+            let B = padToMultiplesOf blockSize B
+
+            let hA = height A
+            let wA = width A
+            let hB = height B
+            let wB = width B
+            let wC = wB
+            let hC = height A
+
+            let A = flattenMatrix A
+            let B = flattenMatrix B
+
+            use A = worker.Malloc(A)
+            use B = worker.Malloc(B)
+            use C = worker.Malloc<float32>(wC * hC)
+
+            let lp = createMultiplyLp blockSize hA wA hB wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
+            let result = C.Gather()
+            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+
+    let loadAndMultiplyByTranspose (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
+        fun (A:Matrix) (B:Matrix) ->
+
+            let finalHeight = height A
+            let finalWidth = height B
+
+            let A = padToMultiplesOf blockSize A
+            let B = padToMultiplesOf blockSize B
+
+            let hA = height A
+            let wA = width A
+            let hB = height B
+            let wB = width B
+            let wC = hB
+            let hC = height A
+
+            let A = flattenMatrix A
+            let B = flattenMatrix B
+
+            use A = worker.Malloc(A)
+            use B = worker.Malloc(B)
+            use C = worker.Malloc<float32>(wC * hC)
+
+            let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
+            let result = C.Gather()
+            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+
+    let loadTransposeAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
+        fun (A:Matrix) (B:Matrix) ->
+
+            let finalHeight = width A
+            let finalWidth = width B
+
+            let A = padToMultiplesOf blockSize A
+            let B = padToMultiplesOf blockSize B
+
+            let hA = height A
+            let wA = width A
+            let hB = height B
+            let wB = width B
+            let wC = wB
+            let hC = width A
+
+            let A = flattenMatrix A
+            let B = flattenMatrix B
+
+            use A = worker.Malloc(A)
+            use B = worker.Malloc(B)
+            use C = worker.Malloc<float32>(wC * hC)
+
+            let lp = createTransposeAndMultiplyLp blockSize hA wA hB wB
+            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
+            let result = C.Gather()
+            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+
+    let loadAndMultiplyTemplate (blockSize:int) = cuda {
+        let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (B : Matrix) ->
+                loadAndMultiply blockSize worker kernel A B
+            ) }
+
+    let loadAndMultiplyByTransposeTemplate (blockSize:int) = cuda {
+        let! kernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (B : Matrix) ->
+                loadAndMultiplyByTranspose blockSize worker kernel A B
+            ) }
+
+    let loadTransposeAndMultiplyTemplate (blockSize:int) = cuda {
+        let! kernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (B : Matrix) ->
+                loadTransposeAndMultiply blockSize worker kernel A B
+            ) }
+
+    // This template, which finds the n-th power of a square matrix,
+    // shows how launch logic can be reused within the CUDA monad.
+    // The same launch parameters are used in each iteration, and the
+    // inputs of the launcher are addresses in the GPU memory.  This
+    // means that there is no copying of data from the CPU to the GPU
+    // throughout the loop.
+    let powerOfNTemplate (blockSize : int) = cuda {
+        let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) n ->
+                let originalSize = width A
+                let A = padToMultiplesOf blockSize A
+                let paddedSize = width A
+                let A = flattenMatrix A
+                let Ai = identityMatrix paddedSize |> flattenMatrix
+
+                use A = worker.Malloc(A)
+                use Ai = worker.Malloc(Ai)
+
+                let threads = dim3(blockSize, blockSize)
+                let grid = dim3(paddedSize / threads.x |> max 1, paddedSize / threads.y |> max 1)
+                let lp = LaunchParam(grid, threads)
+
+                for i = 1 to n do
+                    kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize paddedSize paddedSize
+                Ai.Gather() |> rebuildMatrix paddedSize |> topLeftSubmatrix originalSize originalSize
+            ) }
+
     let loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
     let loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
     let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
     let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
-
-    let temp = loadTransposeAndMultiplyProgram.Run Dt E
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
@@ -94,6 +242,157 @@ type ``CUDA Matrix Multiplication``()=
     [<Fact>] member test.
         ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``() =
             loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
+
+type ``CUDA Matrix Activation``()=
+    
+    let A2By2 = array2D [ [0.1f; 0.2f];
+                          [0.3f; 0.4f] ]
+                          |> mapMatrix logitFunction
+    let rnd2By2 = array2D [ [0.05f; 0.25f];
+                            [0.42f; 0.38f] ]
+    let res2By2 = array2D [ [1.0f; 0.0f];
+                            [0.0f; 1.0f] ]
+
+    let A2By4 = array2D [ [0.1f; 0.2f; 0.3f; 0.4f];
+                          [0.5f; 0.6f; 0.7f; 0.8f] ]
+                          |> mapMatrix logitFunction
+    let rnd2By4 = array2D [ [0.05f; 0.67f; 0.12f; 0.75f];
+                            [0.95f; 0.37f; 0.65f; 0.12f] ]
+    let res2By4 = array2D [ [1.0f; 0.0f; 1.0f; 0.0f];
+                            [0.0f; 1.0f; 1.0f; 1.0f] ]
+
+    let A4By2 = array2D [ [0.1f; 0.5f];
+                          [0.2f; 0.6f];
+                          [0.3f; 0.7f];
+                          [0.4f; 0.8f] ]
+                          |> mapMatrix logitFunction
+    let rnd4By2 = array2D [ [0.05f; 0.95f];
+                            [0.67f; 0.37f];
+                            [0.12f; 0.65f];
+                            [0.75f; 0.12f] ]
+    let res4By2 = array2D [ [1.0f; 0.0f];
+                            [0.0f; 1.0f];
+                            [1.0f; 1.0f];
+                            [0.0f; 1.0f] ]
+
+    let rnd2By4With3FirstRowActivations = array2D [ [1.00f; 1.00f; 1.00f; 0.00f];
+                                                    [0.95f; 0.37f; 0.65f; 0.12f] ]
+    let rnd4By2With3FirstRowActivations = array2D [ [1.00f; 1.00f];
+                                                    [0.67f; 0.37f];
+                                                    [0.12f; 0.65f];
+                                                    [0.75f; 0.12f] ]
+
+    let rnd2By4With3FirstColumnActivations = array2D [ [1.00f; 0.67f; 0.12f; 0.75f];
+                                                       [1.00f; 0.37f; 0.65f; 0.12f] ]
+    let rnd4By2With3FirstColumnActivations = array2D [ [1.00f; 0.95f];
+                                                       [1.00f; 0.37f];
+                                                       [1.00f; 0.65f];
+                                                       [0.00f; 0.12f] ]
+
+    let activateFirstRowTemplate (blockSize : int) (nActivations : int) = cuda {
+        let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let activateFirstRowKernel = program.Apply activateFirstRowKernel
+
+            fun (A : Matrix) ->
+                let hA = height A
+                let wA = width A
+                let paddedA = padToMultiplesOf blockSize A
+                let hPaddedA = height paddedA
+                let wPaddedA = width paddedA
+                let flattenedA = flattenMatrix paddedA
+
+                use flattenedA = worker.Malloc flattenedA
+                let lp = createActivateFirstRowLp blockSize hPaddedA wPaddedA
+                activateFirstRowKernel.Launch lp flattenedA.Ptr wPaddedA nActivations
+
+                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+        )
+    }
+
+    let activateFirstColumnTemplate (blockSize : int) (nActivations : int) = cuda {
+        let! activateFirstColumnKernel = activateFirstColumnKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let activateFirstColumnKernel = program.Apply activateFirstColumnKernel
+
+            fun (A : Matrix) ->
+                let hA = height A
+                let wA = width A
+                let paddedA = padToMultiplesOf blockSize A
+                let hPaddedA = height paddedA
+                let wPaddedA = width paddedA
+                let flattenedA = flattenMatrix paddedA
+
+                use flattenedA = worker.Malloc flattenedA
+                let lp = createActivateFirstColumnLp blockSize hPaddedA wPaddedA
+                activateFirstColumnKernel.Launch lp flattenedA.Ptr hPaddedA wPaddedA nActivations
+
+                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+        )
+    }
+
+    let activateTemplate (blockSize : int) = cuda {
+        let! activateKernel =  <@ sigmoid @> |> activateKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let activateKernel = program.Apply activateKernel
+
+            fun (A : Matrix) (rnd : Matrix) ->
+                let hA = height A
+                let wA = width A
+                let paddedA = padToMultiplesOf blockSize A
+                let paddedRnd = padToMultiplesOf blockSize rnd
+                let hPaddedA = height paddedA
+                let wPaddedA = width paddedA
+                let flattenedA = flattenMatrix paddedA
+                let flattenedRnd = flattenMatrix paddedRnd
+
+                use flattenedA = worker.Malloc flattenedA
+                use flattenedRnd = worker.Malloc flattenedRnd
+
+                let lp = createMultiplyLp blockSize hPaddedA wPaddedA hPaddedA wPaddedA
+                activateKernel.Launch lp flattenedA.Ptr flattenedRnd.Ptr hPaddedA wPaddedA
+
+                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+        )
+    }
+
+    let activateProgram = 2 |> activateTemplate |> Compiler.load Worker.Default
+    let activateFirstRowProgram = activateFirstRowTemplate 3 3 |> Compiler.load Worker.Default
+    let activateFirstColumnProgram = activateFirstColumnTemplate 3 3 |> Compiler.load Worker.Default
+
+    [<Fact>] member test.
+        ``The activate template activates the 2 by 2 matrix correctly.``()=
+            activateProgram.Run A2By2 rnd2By2 |> should equal res2By2
+
+    [<Fact>] member test.
+        ``The activate template activates the 2 by 4 matrix correctly.``()=
+            activateProgram.Run A2By4 rnd2By4 |> should equal res2By4
+
+    [<Fact>] member test.
+        ``The activate template activates the 4 by 2 matrix correctly.``()=
+            activateProgram.Run A4By2 rnd4By2 |> should equal res4By2
+
+    [<Fact>] member test.
+        ``The activateFirstRow template activates the top row of a 2 by 4 matrix correctly.``()=
+            activateFirstRowProgram.Run rnd2By4 |> should equal rnd2By4With3FirstRowActivations
+
+    [<Fact>] member test.
+        ``The activateFirstRow template activates the top row of a 4 by 2 matrix correctly.``()=
+            activateFirstRowProgram.Run rnd4By2 |> should equal rnd4By2With3FirstRowActivations
+
+    [<Fact>] member test.
+        ``The activateFirstColumn template activates the left column of a 2 by 4 matrix correctly.``()=
+            activateFirstColumnProgram.Run rnd2By4 |> should equal rnd2By4With3FirstColumnActivations
+
+    [<Fact>] member test.
+        ``The activateFirstColumn template activates the left column of a 4 by 2 matrix correctly.``()=
+            activateFirstColumnProgram.Run rnd4By2 |> should equal rnd4By2With3FirstColumnActivations
 
 type ``CUDA DBN Epoch``() =
 

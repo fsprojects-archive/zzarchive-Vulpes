@@ -100,22 +100,6 @@ module Kernels =
             CUpdate = cUpdate
         }
 
-    let activateFirstRowKernel (blockSize:int) =
-        <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
-            // Block index
-            let bx = blockIdx.x
-            let by = blockIdx.y
-
-            // Thread index
-            let tx = threadIdx.x
-            let ty = threadIdx.y
-
-            let start = wM * blockSize * by
-            for i = 0 to blockSize - 1 do
-                let index = start + i
-                M.[index] <- if index < nActivations then 1.0f else 0.0f
-            @>
-
     let matrixMulKernel (blockSize:int) (strategy:Strategy) =
         <@ fun (C:deviceptr<float32>) (A:deviceptr<float32>) (B:deviceptr<float32>) (hA:int) (wA:int) (hB:int) (wB:int) ->
 
@@ -129,24 +113,6 @@ module Kernels =
 
             let aBegin, aEnd, aStep = (%strategy.AIteration) hA wA by
             let bBegin, bEnd, bStep = (%strategy.BIteration) hB wB bx
-
-            // Index of the first sub-matrix of A processed by the block
-            let aBegin = aBegin
-
-            // Index of the last sub-matrix of A processed by the block
-            let aEnd = aEnd
-
-            // Step size used to iterate through the sub-matrices of A
-            let aStep = aStep
-
-            // Index of the first sub-matrix of B processed by the block
-            let bBegin = bBegin
-
-            // Index of the last sub-matrix of B processed by the block
-            let bEnd = bEnd
-
-            // Step size used to iterate through the sub-matrices of B
-            let bStep = bStep
 
             // Csub is used to store the element of the block sub-matrix
             // that is computed by the thread
@@ -372,8 +338,53 @@ module Kernels =
                 results.[index] <- (%convertExpr) (rng.Next())
                 index <- index + numThreads @>
 
-    type RunEpochKernelSignature = int -> int-> deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
+    let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
 
-    let runEpochKernel =
-        <@ fun (nVisible : int) (nHidden : int) (rbmIn : deviceptr<float32>) (batch : deviceptr<float32>) (rbmOut : deviceptr<float32>) ->
-        rbmOut.[0] <- 1.0f @>
+    type ActivationFunction = Expr<float32 -> float32>
+
+    let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) (hA : int) (wA : int) ->
+            
+            // Block index
+            let bx = blockIdx.x
+            let by = blockIdx.y
+
+            // Thread index
+            let tx = threadIdx.x
+            let ty = threadIdx.y
+
+            let b, e, s = (%strategy.AIteration) hA wA by
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * ty + a + tx
+                A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
+                __syncthreads()
+                a <- a + s
+            @>
+
+    let activateFirstRowKernel (blockSize:int) =
+        <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
+            // Block index
+            let bx = blockIdx.x
+            // Thread index
+            let tx = threadIdx.x
+
+            let start = blockSize * bx
+            let i = start + tx
+            M.[i] <- if i < nActivations then 1.0f else 0.0f
+            @>
+
+    let activateFirstColumnKernel (blockSize:int) =
+        <@ fun (M:deviceptr<float32>) (hM:int) (wM:int) (nActivations:int) -> 
+            // Block index
+            let bx = blockIdx.x
+            // Thread index
+            let tx = threadIdx.x
+
+            let start = wM * blockSize * bx
+            let i = start + wM * tx
+            let max = nActivations * wM
+            M.[i] <- if i < max then 1.0f else 0.0f
+            @>

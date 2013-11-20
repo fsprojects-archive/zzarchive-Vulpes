@@ -24,154 +24,18 @@ module CudaTemplates =
         let grid = dim3(wB / threads.x, wA / threads.y)
         LaunchParam(grid, threads)
 
-    let loadAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
-        fun (A:Utils.Matrix) (B:Utils.Matrix) ->
+    let createActivateLp blockSize hA wA =
+        createMultiplyLp blockSize hA wA hA wA
 
-            let finalHeight = Utils.height A
-            let finalWidth = Utils.width B
+    let createActivateFirstRowLp blockSize hM wM =
+        let threads = dim3(blockSize)
+        let grid = dim3(wM / threads.x)
+        LaunchParam(grid, threads)
 
-            let A = Utils.padToMultiplesOf blockSize A
-            let B = Utils.padToMultiplesOf blockSize B
-
-            let hA = Utils.height A
-            let wA = Utils.width A
-            let hB = Utils.height B
-            let wB = Utils.width B
-            let wC = wB
-            let hC = Utils.height A
-
-            let A = Utils.flattenMatrix A
-            let B = Utils.flattenMatrix B
-
-            use A = worker.Malloc(A)
-            use B = worker.Malloc(B)
-            use C = worker.Malloc<float32>(wC * hC)
-
-            let lp = createMultiplyLp blockSize hA wA hB wB
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-            let result = C.Gather()
-            Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
-
-    let loadAndMultiplyByTranspose (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
-        fun (A:Utils.Matrix) (B:Utils.Matrix) ->
-
-            let finalHeight = Utils.height A
-            let finalWidth = Utils.height B
-
-            let A = Utils.padToMultiplesOf blockSize A
-            let B = Utils.padToMultiplesOf blockSize B
-
-            let hA = Utils.height A
-            let wA = Utils.width A
-            let hB = Utils.height B
-            let wB = Utils.width B
-            let wC = hB
-            let hC = Utils.height A
-
-            let A = Utils.flattenMatrix A
-            let B = Utils.flattenMatrix B
-
-            use A = worker.Malloc(A)
-            use B = worker.Malloc(B)
-            use C = worker.Malloc<float32>(wC * hC)
-
-            let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-            let result = C.Gather()
-            Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
-
-    let loadTransposeAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
-        fun (A:Utils.Matrix) (B:Utils.Matrix) ->
-
-            let finalHeight = Utils.width A
-            let finalWidth = Utils.width B
-
-            let A = Utils.padToMultiplesOf blockSize A
-            let B = Utils.padToMultiplesOf blockSize B
-
-            let hA = Utils.height A
-            let wA = Utils.width A
-            let hB = Utils.height B
-            let wB = Utils.width B
-            let wC = wB
-            let hC = Utils.width A
-
-            let A = Utils.flattenMatrix A
-            let B = Utils.flattenMatrix B
-
-            use A = worker.Malloc(A)
-            use B = worker.Malloc(B)
-            use C = worker.Malloc<float32>(wC * hC)
-
-            let lp = createTransposeAndMultiplyLp blockSize hA wA hB wB
-            kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-            let result = C.Gather()
-            Utils.rebuildMatrix wC result |> Utils.topLeftSubmatrix finalHeight finalWidth
-
-    let loadAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
-
-        return Entry(fun (program:Program) ->
-            let worker = program.Worker
-            let kernel = program.Apply(kernel)
-
-            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
-                loadAndMultiply blockSize worker kernel A B
-            ) }
-
-    let loadAndMultiplyByTransposeTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
-
-        return Entry(fun (program:Program) ->
-            let worker = program.Worker
-            let kernel = program.Apply(kernel)
-
-            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
-                loadAndMultiplyByTranspose blockSize worker kernel A B
-            ) }
-
-    let loadTransposeAndMultiplyTemplate (blockSize:int) = cuda {
-        let! kernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
-
-        return Entry(fun (program:Program) ->
-            let worker = program.Worker
-            let kernel = program.Apply(kernel)
-
-            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
-                loadTransposeAndMultiply blockSize worker kernel A B
-            ) }
-
-    // This template, which finds the n-th power of a square matrix,
-    // shows how launch logic can be reused within the CUDA monad.
-    // The same launch parameters are used in each iteration, and the
-    // inputs of the launcher are addresses in the GPU memory.  This
-    // means that there is no copying of data from the CPU to the GPU
-    // throughout the loop.
-    let powerOfNTemplate (blockSize : int) = cuda {
-        let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
-
-        return Entry(fun (program : Program) ->
-            let worker = program.Worker
-            let kernel = program.Apply(kernel)
-
-            fun (A : Utils.Matrix) n ->
-                let originalSize = Utils.width A
-                let A = Utils.padToMultiplesOf blockSize A
-                let paddedSize = Utils.width A
-                let A = Utils.flattenMatrix A
-                let Ai = Utils.identityMatrix paddedSize |> Utils.flattenMatrix
-
-                use A = worker.Malloc(A)
-                use Ai = worker.Malloc(Ai)
-
-                let threads = dim3(blockSize, blockSize)
-                let grid = dim3(paddedSize / threads.x |> max 1, paddedSize / threads.y |> max 1)
-                let lp = LaunchParam(grid, threads)
-
-                for i = 1 to n do
-                    kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize paddedSize paddedSize
-                Ai.Gather() |> Utils.rebuildMatrix paddedSize |> Utils.topLeftSubmatrix originalSize originalSize
-            ) }
+    let createActivateFirstColumnLp blockSize hM wM =
+        let threads = dim3(blockSize)
+        let grid = dim3(hM / threads.x)
+        LaunchParam(grid, threads)
 
     let runDbnEpochTemplate (blockSize:int) = cuda {
         let! multplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
@@ -179,12 +43,17 @@ module CudaTemplates =
         let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
         let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
+        let! activateFirstColumnKernel = activateFirstColumnKernel blockSize |> Compiler.DefineKernel
+        let! activateKernel = <@ sigmoid @> |> activateKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
             let rngKernel = program.Apply rngKernel
             let multiplyByTransposeKernel = program.Apply multiplyByTransposeKernel
+            let transposeAndMultiplyKernel = program.Apply transposeAndMultiplyKernel
             let activateFirstRowKernel = program.Apply activateFirstRowKernel
+            let activateFirstColumnKernel = program.Apply activateFirstColumnKernel
+            let activateKernel = program.Apply activateKernel
 
             // Copy pre-calculated bit-matrices, needed for jump-ahead
             // calculations, to the device memory.
@@ -237,9 +106,11 @@ module CudaTemplates =
                 let threads = dim3(blockSize, blockSize)
 
                 let forwardMatrixLp = createMultiplyByTransposeLp blockSize weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-
-                let activateFirstRowGrid = dim3(heightOfHiddenUnitMatrix / threads.x |> max 1, widthOfHiddenUnitMatrix / threads.y |> max 1)
-                let activateFirstRowLp = LaunchParam(activateFirstRowGrid, threads)
+                let backwardMatrixLp = createTransposeAndMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
+                let activateHiddenLp = createActivateLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
+                let activateVisibleLp = createActivateLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                let activateFirstRowLp = createActivateFirstRowLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
+                let activateFirstColumnLp = createActivateFirstColumnLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
 
                 let rngNumStreams = 1024
                 let rngBlockSize = dim3(32, 8)
@@ -250,13 +121,26 @@ module CudaTemplates =
 
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
+                let numRuns = 3 * samples.Length
                 for i in 0..samples.Length - 1 do
                     
                     use v1 = samples.[0]
                     // Perform the forward iteration to populate h1
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                    rngKernel.Launch rngLp samples.Length i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    rngKernel.Launch rngLp numRuns i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    activateKernel.Launch activateHiddenLp h1.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
                     activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr widthOfHiddenUnitMatrix nRows
 
+                    // Perform the backward iteration to populate v2
+                    transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
+                    rngKernel.Launch rngLp numRuns (i + samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimVisibleUnits / rngNumStreams) visibleRandoms.Ptr
+                    activateKernel.Launch activateVisibleLp v2.Ptr visibleRandoms.Ptr heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix nCols
+
+                    // Perform the forward iteration to populate h2
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    rngKernel.Launch rngLp numRuns (i + 2 * samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
+                    activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr widthOfHiddenUnitMatrix nRows
                 alpha
         ) }

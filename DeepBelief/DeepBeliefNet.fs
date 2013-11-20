@@ -63,13 +63,11 @@ module DeepBeliefNet =
             (width xInputs, [])
             |> snd |> List.rev
 
-    let forward weightsAndBiases v = 
-        let product = multiplyByTranspose weightsAndBiases v
-        product.[1..,0..] |> prependRowOfOnes
+    let activateFirstRow (v:Matrix) = v.[1..,0..] |> prependRowOfOnes
+    let activateFirstColumn (h:Matrix) = h.[0..,1..] |> prependColumnOfOnes
 
-    let backward weightsAndBiases h = 
-        let product = transposeAndMultiply h weightsAndBiases
-        product.[0..,1..] |> prependColumnOfOnes
+    let forward weightsAndBiases v = multiplyByTranspose weightsAndBiases v
+    let backward weightsAndBiases h = transposeAndMultiply h weightsAndBiases
 
     let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
         xInputs |> mapMatrix (fun x -> activation x > float32 (rnd.NextDouble()) |> Convert.ToInt32 |> float32)
@@ -81,9 +79,9 @@ module DeepBeliefNet =
         let dWeightsAndBiases = toDWeightsAndBiases rbm
 
         let v1 = batch
-        let h1 = v1 |> forward weightsAndBiases  |> activate rnd sigmoid
-        let v2 = h1 |> backward weightsAndBiases |> activate rnd sigmoid
-        let h2 = v2 |> forward weightsAndBiases  |> activate rnd sigmoid
+        let h1 = v1 |> forward weightsAndBiases  |> activate rnd sigmoidFunction |> activateFirstRow
+        let v2 = h1 |> backward weightsAndBiases |> activate rnd sigmoidFunction |> activateFirstColumn
+        let h2 = v2 |> forward weightsAndBiases  |> activate rnd sigmoidFunction |> activateFirstRow
 
         let visibleError = (subtractMatrices v1 v2 |> sumOfSquaresMatrix) / batchSize
         let hiddenError = (subtractMatrices h1 h2 |> sumOfSquaresMatrix) / batchSize
@@ -128,7 +126,7 @@ module DeepBeliefNet =
         let start = rbmTrain rnd alpha momentum batchSize epochs (List.head rbms) prependedInputs
         rbms.Tail |> List.fold(fun acc element -> 
             let currentTuple = List.head acc
-            let x = rbmUp (fst currentTuple |> toWeightsAndBiases) sigmoid (snd currentTuple)
+            let x = rbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
             let nextRbm = rbmTrain rnd alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
             |> List.map fst |> List.rev
