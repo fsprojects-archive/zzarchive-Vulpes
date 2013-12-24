@@ -8,6 +8,7 @@ open DeepBelief.DeepBeliefNet
 open DeepBelief.CudaTemplates
 open DeepBelief.Kernels
 open DeepBelief.Utils
+open System
 
 module Common =
     type SimpleMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> int -> int -> unit
@@ -474,9 +475,17 @@ type ``CUDA DBN Epoch``() =
     let layeredDbn = dbn sizes xInputs
     let firstRbm = layeredDbn.[0]
 
-    let cudaDbnEpochProgram = 32 |> runDbnEpochTemplate |> Compiler.load Worker.Default
-    let result = [1..5] |> List.fold (fun acc element -> cudaDbnEpochProgram.Run alpha momentum 10 acc xInputs) firstRbm
+    let runEpoch rbm =
+        use cudaDbnEpochProgram = 32 |> runDbnEpochTemplate |> Compiler.load Worker.Default
+        cudaDbnEpochProgram.Run alpha momentum 100 rbm xInputs
+
+    let result = [1..5] |> List.fold (fun acc element -> runEpoch acc) firstRbm
 
     [<Fact>] member test.
-        ``The DBN Epoch template runs an epoch on the GPU.``()=
+        ``The DBN Epoch template runs 5 epochs on the GPU.``()=
             (height result.Weights, width result.Weights) |> should equal (500, 784)
+
+    [<Fact>] member test.
+        ``The output of the 5 Epoch run is valid.``()=
+            result.Weights |> flattenMatrix |> Array.filter Single.IsNaN |> Array.length |> should equal 0
+

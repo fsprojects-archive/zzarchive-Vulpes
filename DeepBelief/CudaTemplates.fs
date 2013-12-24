@@ -7,8 +7,6 @@ module CudaTemplates =
     open Alea.CUDA.Utilities
     open Kernels
 
-    let max i (j : int) = Math.Max(i, j)
-
     let createMultiplyLp blockSize hA wA hB wB =
         let threads = dim3(blockSize, blockSize)
         let grid = dim3(wB / threads.x, hA / threads.y)
@@ -82,14 +80,14 @@ module CudaTemplates =
                 let nHidden = DeepBeliefNet.numberOfHiddenUnits rbm
                 let nVisible = DeepBeliefNet.numberOfVisibleUnits rbm
                 
-                let heightOfVisibleUnitMatrix = paddedSampleHeight
-                let widthOfVisibleUnitMatrix = paddedSampleWidth
+                let hVisibleUnitMatrix = paddedSampleHeight
+                let wVisibleUnitMatrix = paddedSampleWidth
 
-                let widthOfHiddenUnitMatrix = heightOfVisibleUnitMatrix
-                let heightOfHiddenUnitMatrix = 1 + nHidden |> Utils.nextMultipleOf blockSize
+                let wHiddenUnitMatrix = hVisibleUnitMatrix
+                let hHiddenUnitMatrix = 1 + nHidden |> Utils.nextMultipleOf blockSize
 
-                let dimVisibleUnits = heightOfVisibleUnitMatrix * widthOfVisibleUnitMatrix
-                let dimHiddenUnits = heightOfHiddenUnitMatrix * widthOfHiddenUnitMatrix
+                let dimVisibleUnits = hVisibleUnitMatrix * wVisibleUnitMatrix
+                let dimHiddenUnits = hHiddenUnitMatrix * wHiddenUnitMatrix
 
                 let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize 
                 let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize
@@ -112,14 +110,14 @@ module CudaTemplates =
 
                 let threads = dim3(blockSize, blockSize)
 
-                let forwardMatrixLp = createMultiplyByTransposeLp blockSize weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                let backwardMatrixLp = createTransposeAndMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
-                let activateHiddenLp = createSimpleMatrixOperationLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
-                let activateVisibleLp = createSimpleMatrixOperationLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                let activateFirstRowLp = createActivateFirstRowLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
-                let activateFirstColumnLp = createActivateFirstColumnLp blockSize heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                let computeCValueLp = createMultiplyLp blockSize heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                let simpleWeightsLp = createSimpleMatrixOperationLp blockSize heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                let forwardMatrixLp = createMultiplyByTransposeLp blockSize weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
+                let backwardMatrixLp = createTransposeAndMultiplyLp blockSize hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
+                let activateHiddenLp = createSimpleMatrixOperationLp blockSize hHiddenUnitMatrix wHiddenUnitMatrix
+                let activateVisibleLp = createSimpleMatrixOperationLp blockSize hVisibleUnitMatrix wVisibleUnitMatrix
+                let activateFirstRowLp = createActivateFirstRowLp blockSize hHiddenUnitMatrix wHiddenUnitMatrix
+                let activateFirstColumnLp = createActivateFirstColumnLp blockSize hVisibleUnitMatrix wVisibleUnitMatrix
+                let computeCValueLp = createMultiplyLp blockSize hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
+                let simpleWeightsLp = createSimpleMatrixOperationLp blockSize hHiddenUnitMatrix wVisibleUnitMatrix
 
                 let rngNumStreams = 1024
                 let rngBlockSize = dim3(32, 8)
@@ -134,42 +132,40 @@ module CudaTemplates =
                 let numRuns = 3 * samples.Length
                 for i in 0..samples.Length - 1 do
                     
-                    use v1 = samples.[0]
+                    use v1 = samples.[i]
+
                     // Perform the forward iteration to populate h1
-                    multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     rngKernel.Launch rngLp numRuns i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
-                    activateKernel.Launch activateHiddenLp h1.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
-                    activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr widthOfHiddenUnitMatrix nRows
+                    activateKernel.Launch activateHiddenLp h1.Ptr hiddenRandoms.Ptr hHiddenUnitMatrix wHiddenUnitMatrix
+                    activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr wHiddenUnitMatrix nRows
 
                     // Perform the backward iteration to populate v2
-                    transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
+                    transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
                     rngKernel.Launch rngLp numRuns (i + samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimVisibleUnits / rngNumStreams) visibleRandoms.Ptr
-                    activateKernel.Launch activateVisibleLp v2.Ptr visibleRandoms.Ptr heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                    activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix nCols
+                    activateKernel.Launch activateVisibleLp v2.Ptr visibleRandoms.Ptr hVisibleUnitMatrix wVisibleUnitMatrix
+                    activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
 
                     // Perform the forward iteration to populate h2
-                    multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     rngKernel.Launch rngLp numRuns (i + 2 * samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
-                    activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix
-                    activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr widthOfHiddenUnitMatrix nRows
+                    activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr hHiddenUnitMatrix wHiddenUnitMatrix
+                    activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr wHiddenUnitMatrix nRows
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
-                    multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
-                    multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr heightOfHiddenUnitMatrix widthOfHiddenUnitMatrix heightOfVisibleUnitMatrix widthOfVisibleUnitMatrix
+                    multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
+                    multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
 
                     // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedAlpha * (c1 - c2)
-                    subtractKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
-                    scalarMultiplyKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
-                    scalarMultiplyKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
-                    addKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                    subtractKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    scalarMultiplyKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha hHiddenUnitMatrix wVisibleUnitMatrix
+                    scalarMultiplyKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum hHiddenUnitMatrix wVisibleUnitMatrix
+                    addKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
 
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
-                    addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr heightOfHiddenUnitMatrix widthOfVisibleUnitMatrix
+                    addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
 
-// DEBUGGING CODE let wb = weightsAndBiases.Gather()
-//                let dwb = dWeightsAndBiases.Gather()
-// LEAVE FOR NOW  let wbNans = wb |> Array.filter Single.IsNaN
-                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
-                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix widthOfVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
                 DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
         ) }

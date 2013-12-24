@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
-      <HintPath>..\packages\Alea.cuBase.1.2.680\lib\net40\Alea.CUDA.dll</HintPath>
+      <HintPath>..\packages\Alea.cuBase.1.2.723\lib\net40\Alea.CUDA.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Core, Version=4.3.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
