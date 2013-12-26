@@ -89,9 +89,9 @@ module NeuralNet =
         let rec loop Ws Ds i =
             match i < (epochs * count) with
             | true -> 
-                let inp, trg = samples.[rnd.Next(count)]
+                let input, target = samples.[rnd.Next(count)]
                 let netProps = { Weights = Ws; Activations = fs }
-                let ws, ds = List.unzip (step netProps Ds inp trg)
+                let ws, ds = List.unzip (step netProps Ds input target)
                 loop ws ds (i + 1)
             | _    -> Ws
         let Ws' = loop Ws (initDeltaWeights Ws) 0

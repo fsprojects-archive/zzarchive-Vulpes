@@ -6,6 +6,7 @@ module CudaTemplates =
     open Alea.CUDA
     open Alea.CUDA.Utilities
     open Kernels
+    open NeuralNet
 
     let createMultiplyLp blockSize hA wA hB wB =
         let threads = dim3(blockSize, blockSize)
@@ -168,4 +169,24 @@ module CudaTemplates =
                 let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
                 let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
                 DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
+        ) }
+
+    let runTrainNeuralNetEpoch (blockSize:int) = cuda {
+        let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+        let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let rngKernel = program.Apply rngKernel
+            let multiplyKernel = program.Apply multiplyKernel
+
+            fun (alpha:float32) dbn (netProps : NnetProperties) trainingSet -> 
+                let weights = netProps.Weights |> List.map (Utils.flattenMatrix >> worker.Malloc)
+                let inputs = netProps.Weights |> List.map (fun w -> worker.Malloc<float32>(1 + Utils.height w)) 
+                let dInputs = netProps.Weights |> List.map (fun w -> worker.Malloc<float32>(1 + Utils.height w)) 
+
+                for i in 0..Array.length trainingSet do
+                    use inputs0 = fst trainingSet.[i] |> (fun (x : float32[]) -> worker.Malloc x)
+                    (fst trainingSet.[0]).[0] = 0.0f |> ignore
+                netProps
         ) }

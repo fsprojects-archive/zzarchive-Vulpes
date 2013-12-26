@@ -57,7 +57,7 @@ module MnistDataLoad =
         let nImages = readInt(reader)
         let nRows = readInt(reader)
         let nCols = readInt(reader)
-        Array2D.init nImages (nRows * nCols) (fun _ _ -> readImage reader)
+        Array2D.init nImages (nRows * nCols) (fun _ _ -> readImage reader) |> Utils.prependColumnOfOnes
 
     // TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
     // [offset] [type]          [value]          [description] 
