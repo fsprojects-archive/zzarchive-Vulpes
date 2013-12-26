@@ -53,11 +53,12 @@
     <None Include="packages.config" />
     <Compile Include="Data.fs" />
     <Compile Include="Utils.fs" />
-    <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="NeuralNet.fs" />
-    <Compile Include="MnistDataLoad.fs" />
     <Compile Include="Kernels.fs" />
+    <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="CudaTemplates.fs" />
+    <Compile Include="NeuralNet.fs" />
+    <Compile Include="CudaDeepBeliefNet.fs" />
+    <Compile Include="MnistDataLoad.fs" />
     <Compile Include="MnistClassification.fs" />
     <None Include="Regression.fsx" />
     <None Include="DeepBeliefNet.fsx" />

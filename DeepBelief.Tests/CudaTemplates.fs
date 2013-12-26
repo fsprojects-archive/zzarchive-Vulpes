@@ -471,13 +471,13 @@ type ``CUDA DBN Epoch``() =
     let sizes = [500; 250; 100; 50]
     let alpha = 0.5f
     let momentum = 0.9f
-    let xInputs = Array2D.init 100 784 (fun _ _ -> rand.NextDouble() |> float32)
+    let xInputs = Array2D.init 3000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let layeredDbn = dbn sizes xInputs
     let firstRbm = layeredDbn.[0]
 
     let runEpoch rbm =
-        use cudaDbnEpochProgram = 32 |> runDbnEpochTemplate |> Compiler.load Worker.Default
-        cudaDbnEpochProgram.Run alpha momentum 100 rbm xInputs
+        use cudaRbmEpochProgram = 32 |> runRbmEpochTemplate |> Compiler.load Worker.Default
+        cudaRbmEpochProgram.Run alpha momentum 1000 rbm xInputs
 
     let result = [1..5] |> List.fold (fun acc element -> runEpoch acc) firstRbm
 

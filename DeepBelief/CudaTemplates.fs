@@ -35,7 +35,7 @@ module CudaTemplates =
         let grid = dim3(hM / threads.x)
         LaunchParam(grid, threads)
 
-    let runDbnEpochTemplate (blockSize:int) = cuda {
+    let runRbmEpochTemplate (blockSize:int) = cuda {
         let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! multiplyByTransposeKernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel

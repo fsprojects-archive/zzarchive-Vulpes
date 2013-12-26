@@ -1,9 +1,11 @@
 ﻿// Learn more about F# at http://fsharp.net. See the 'F# Tutorial' project
 // for more guidance on F# programming.
 
-#r "../packages/MathNet.Numerics.2.6.1/lib/net40/MathNet.Numerics.dll"
+#r "../packages/MathNet.Numerics.2.6.2/lib/net40/MathNet.Numerics.dll"
 #r "../packages/MathNet.Numerics.FSharp.2.6.0/lib/net40/MathNet.Numerics.FSharp.dll"
+#r "../packages/Alea.cuBase.1.2.723/lib/net40/Alea.CUDA.dll"
 
+#load "Utils.fs"
 #load "NeuralNet.fs"
 
 open DeepBelief
@@ -15,7 +17,7 @@ open NeuralNet
 
 fsi.ShowDeclarationValues <- false
 
-let sigmoid x = 1.0 / (1.0 + exp(-x))
+let sigmoid x = 1.0f / (1.0f + exp(-x))
 
 /// returns the output vector from a given list of layer outputs
 let netoutput (layeroutputs : ('a * 'a) list) = 
@@ -30,27 +32,26 @@ let error (target : Vector<_>) (output : Vector<_>) =
         |> Array.sum) / 2.0
 
 let initWeights rows cols f =
-    DenseMatrix.OfArray(Array2D.init rows cols (fun _ _ -> f())) 
-        :> Matrix<float>
+    Array2D.init rows cols (fun _ _ -> f())
 
-let targetFun = fun x -> sin (6.0 * x)
+let targetFun = fun x -> sin (6.0f * x)
 
 let computeResults netProps trainingset epochs = 
     let netProps' = nnetTrain netProps trainingset epochs
-    let setSize = trainingset.Length
+    let setSize = trainingset.Weights.Length
 
     let error = 
         trainingset 
         |> Array.fold (fun E (x, t) -> 
-            let outs = feedforward netProps' x
+            let outs = feedForward netProps' x
             let En = error t (netoutput outs)
-            E + En) 0.0
+            E + En) 0.0f
 
     let outputs = 
-        [-0.5 .. 0.01 .. 0.5]
+        [-0.5f .. 0.01f .. 0.5f]
         |> List.fold (fun outs x -> 
             let layeroutputs = 
-                feedforward netProps' (vector [x])
+                feedForward netProps' (vector [x])
             let o = (netoutput layeroutputs).At 0
             (x,o) :: outs) []
         |> List.rev
@@ -59,12 +60,12 @@ let computeResults netProps trainingset epochs =
 
 let experimentSetting() = 
     let rnd = new MersenneTwister()
-    let randZ() = rnd.NextDouble() - 0.5
+    let randZ() = (rnd.NextDouble() |> float32) - 0.5f
 
     let samples = 
         [| for i in 1 .. 25 -> randZ() |] 
         |> Array.map(fun x -> 
-            x, targetFun(x) + 0.15 * randZ())
+            x, targetFun(x) + 0.15f * randZ())
 
     let trainingSet = 
         samples 

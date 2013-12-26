@@ -8,6 +8,7 @@ module MnistClassification =
     open Utils
     open MnistDataLoad
     open DeepBeliefNet
+    open CudaDeepBeliefNet
     open CudaTemplates
 
     let mnistTrainingImages = loadMnistImage MnistTrainingImageData
@@ -16,13 +17,12 @@ module MnistClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData
     let mnistTestLabels = loadMnistLabel MnistTestLabelData
 
-    let dbnSizes = [500; 250; 100; 50]
+    let dbnSizes = [500; 300; 10]
     let alpha = 0.5f
     let momentum = 0.9f
 
     let mnistDbn = dbn dbnSizes mnistTrainingImages
-    //let trainedDbn = dbnTrain rand 100 10 mnistDbn mnistTrainingImages
-    let trainedDbn = dbnTrain rand alpha momentum 100 2 mnistDbn mnistTrainingImages
+    let trainedDbn = gpuDbnTrain alpha momentum 500 30 mnistDbn mnistTrainingImages
 
     let rbmProps = 
         mnistDbn 

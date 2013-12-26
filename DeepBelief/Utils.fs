@@ -28,6 +28,9 @@ module Utils =
     /// on the interval [0,1] by dividing by 2^32-1
     let [<ReflectedDefinition>] toFloat64 (x:uint32) = float(x) * 2.328306437080797e-10   
 
+    /// compute the derivative of a function, midpoint rule
+    let [<ReflectedDefinition>] derivative eps f = 
+        fun x -> ((f (x + eps/2.0f) - f (x - eps/2.0f)) / eps)
 
     /// Density of normal with mean mu and standard deviation sigma. 
     let inline normpdf (mu:'T) (sigma:'T) : Expr<'T -> 'T> =

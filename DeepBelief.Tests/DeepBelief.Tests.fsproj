@@ -78,6 +78,7 @@
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="CudaTemplates.fs" />
     <Compile Include="Utils.fs" />
+    <Compile Include="CudaDeepBeliefNet.fs" />
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>

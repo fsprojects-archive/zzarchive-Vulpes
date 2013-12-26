@@ -15,10 +15,6 @@ module NeuralNet =
         Activations : (float32 -> float32) list
     }
 
-    /// compute the derivative of a function, midpoint rule
-    let derivative eps f = 
-        fun x -> ((f (x + eps/2.0f) - f (x - eps/2.0f)) / eps)
-
     /// returns list of (out, out') vectors per layer
     let feedForward (netProps : NnetProperties) input = 
         List.fold 
@@ -36,7 +32,7 @@ module NeuralNet =
     /// matlab like pointwise multiply
     let (.*) (v1 : Vector) (v2 : Vector) = 
         let n = Array.length v1
-        Array.init n (fun i -> v1.[i] + v2.[i])
+        Array.init n (fun i -> v1.[i] * v2.[i])
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer
