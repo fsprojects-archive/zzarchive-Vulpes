@@ -339,8 +339,12 @@ module Kernels =
                 index <- index + numThreads @>
 
     let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
+    let [<ReflectedDefinition>] dSigmoid x = 
+        let s = 1.0f / (1.0f + exp(-x))
+        s * (1.0f - s)
 
     type ActivationFunction = Expr<float32 -> float32>
+    type TransformationFunction = Expr<float32 -> float32>
 
     let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
         let strategy = multiplyStrategy blockSize
@@ -352,6 +356,20 @@ module Kernels =
             while a <= e do
                 let i = wA * threadIdx.y + a + threadIdx.x
                 A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
+                __syncthreads()
+                a <- a + s
+            @>
+
+    let transformKernel (blockSize : int) (transformationFunction : TransformationFunction) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) (hA : int) (wA : int) ->
+
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * threadIdx.y + a + threadIdx.x
+                A.[i] <- (%transformationFunction) A.[i]
                 __syncthreads()
                 a <- a + s
             @>

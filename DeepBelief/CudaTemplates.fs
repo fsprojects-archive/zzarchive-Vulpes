@@ -174,6 +174,8 @@ module CudaTemplates =
     let runTrainNeuralNetEpoch (blockSize:int) = cuda {
         let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
+        let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
+        let! dSigmoidKernel = <@ dSigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
@@ -182,11 +184,16 @@ module CudaTemplates =
 
             fun (alpha:float32) dbn (netProps : NnetProperties) trainingSet -> 
                 let weights = netProps.Weights |> List.map (Utils.flattenMatrix >> worker.Malloc)
-                let inputs = netProps.Weights |> List.map (fun w -> worker.Malloc<float32>(1 + Utils.height w)) 
-                let dInputs = netProps.Weights |> List.map (fun w -> worker.Malloc<float32>(1 + Utils.height w)) 
+                let forwardLp = netProps.Weights |> List.map (fun w -> createMultiplyLp blockSize (Utils.height w) (Utils.width w) (Utils.width w) 1)
+                let inputs0 = worker.Malloc<float32>(Utils.width netProps.Weights.[0])
+                let outputs = netProps.Weights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w + 1))
 
-                for i in 0..Array.length trainingSet do
-                    use inputs0 = fst trainingSet.[i] |> (fun (x : float32[]) -> worker.Malloc x)
+                for i in 0..Array.length trainingSet - 1 do
+                    inputs0.Scatter(fst trainingSet.[i])
+                    for j in 0..weights.Length - 1 do
+                        let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
+                        multiplyKernel.Launch forwardLp.[j] weights.[j].Ptr lastOutput.Ptr (outputs.[j].Ptr + 1) (Utils.height netProps.Weights.[j]) (Utils.width netProps.Weights.[j]) (Utils.width netProps.Weights.[j]) 1
+                        outputs.[j].Ptr.[0] <- 1.0f
                     (fst trainingSet.[0]).[0] = 0.0f |> ignore
                 netProps
         ) }
