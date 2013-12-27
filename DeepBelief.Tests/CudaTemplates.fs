@@ -35,6 +35,8 @@ type ``CUDA Matrix Multiplication``()=
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
     let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
+    let x = [|7.0f; 8.0f; 9.0f|]
+    let y = [|50.0f; 122.0f|]
     
     let D = array2D [ [1.0f; 2.0f;]
                       [3.0f; 4.0f;] 
@@ -189,6 +191,32 @@ type ``CUDA Matrix Multiplication``()=
                 loadTransposeAndMultiply blockSize worker kernel A B
             ) }
 
+    let multiplyVectorByMatrixTemplate (blockSize:int) = cuda {
+        let! kernel = multiplyVectorByMatrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (x : Vector) ->
+                let size = height A
+
+                let A = padToMultiplesOf blockSize A
+                let x = padToMultipleOf blockSize x
+
+                let hA = height A
+                let wA = width A
+
+                use A = A |> flattenMatrix |> worker.Malloc
+                use x = x |> worker.Malloc
+                use y = worker.Malloc<float32>(hA)
+
+                let lp = createMultiplyVectorByMatrixLp blockSize hA wA
+                kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
+
+                y.Gather() |> subvector size
+            ) }
+
     // This template, which finds the n-th power of a square matrix,
     // shows how launch logic can be reused within the CUDA monad.
     // The same launch parameters are used in each iteration, and the
@@ -277,6 +305,21 @@ type ``CUDA Matrix Multiplication``()=
     let addProgram = 2 |> addTemplate |> Compiler.load Worker.Default
     let subtractProgram = 2 |> subtractTemplate |> Compiler.load Worker.Default
     let scalarMultiplyProgram = 2 |> scalarMultiplyTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixBlock32Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
+
+    let temp1 = multiplyVectorByMatrixBlock1Program.Run A x
+    let temp2 = multiplyVectorByMatrixBlock32Program.Run A x
+
+    [<Fact>] member test.
+        ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 1.``() =
+            temp1 |> should equal y
+            //multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
+
+    [<Fact>] member test.
+        ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 32.``() =
+            temp2 |> should equal y
+            //multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =

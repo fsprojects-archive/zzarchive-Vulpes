@@ -159,6 +159,34 @@ module Kernels =
             // each thread writes one element
             C.[(%strategy.CUpdate) hB wB blockSize by ty bx tx] <- Csub @>
 
+    let multiplyVectorByMatrixMulKernel (blockSize:int) =
+        <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
+
+            // Block index
+            let bx = blockIdx.x
+
+            // Thread index
+            let tx = threadIdx.x
+
+            let row = bx * blockSize + tx;
+
+            // ysub is used to store the element of the block sub-vector
+            // that is computed by the thread
+            let mutable value = 0.0f
+
+            // Loop over all the sub-matrices of A and sub-vectors of x
+            // required to compute the block sub-matrix
+            let mutable k = 0
+            while k < wA do
+                value <- value + A.[wA * row + k] * x.[k]
+                k <- k + 1
+
+            __syncthreads()
+            // Write the block sub-matrix to device memory;
+            // each thread writes one element
+            y.[row] <- value
+            __syncthreads() @>
+
     [<ReflectedDefinition>]
     let jumpAhead (numThreads:int) (threadRank:int)
                   (stateStart:deviceptr<uint32>) (jumpAheadMatrices:deviceptr<uint32>)
@@ -339,9 +367,7 @@ module Kernels =
                 index <- index + numThreads @>
 
     let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
-    let [<ReflectedDefinition>] dSigmoid x = 
-        let s = 1.0f / (1.0f + exp(-x))
-        s * (1.0f - s)
+    let [<ReflectedDefinition>] dSigmoid s = s * (1.0f - s)
 
     type ActivationFunction = Expr<float32 -> float32>
     type TransformationFunction = Expr<float32 -> float32>

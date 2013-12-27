@@ -31,3 +31,18 @@ module CudaDeepBeliefNet =
             let nextRbm = gpuRbmTrain alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
             |> List.map fst |> List.rev
+
+    let gpuComputeResults netProps trainingSet testSet epochs = 
+        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate |> Compiler.load Worker.Default
+        runTrainNeuralNetEpochProgram.Run netProps testSet
+//        let netProps' = nnetTrain rnd netProps trainingSet epochs
+//        let setSize = trainingSet.Length
+//
+//        let testError = 
+//            testSet 
+//            |> Array.fold (fun E (x, t) -> 
+//                let outs = feedForward netProps' x
+//                let En = error t (netoutput outs)
+//                E + En) 0.0f
+//
+//        testError / (float32 setSize)

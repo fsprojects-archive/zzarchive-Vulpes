@@ -61,8 +61,17 @@ module Utils =
         Array2D.init paddedHeight paddedWidth 
             (fun i j -> if i < h && j < w then M.[i, j] else 0.0f)
 
+    let padToMultipleOf n x =
+        let size = Array.length x
+        let paddedSize = nextMultipleOf n size
+        Array.init paddedSize 
+            (fun i -> if i < size then x.[i] else 0.0f)
+
     let topLeftSubmatrix h w (M : float32[,]) =
         Array2D.init h w (fun i j -> M.[i, j])
+
+    let subvector size (x : float32[]) =
+        Array.init size (fun i -> x.[i])
 
     let height = Array2D.length1
     let width = Array2D.length2
@@ -164,6 +173,9 @@ module Utils =
 
     let prependRowOfOnes M =
         M |> prependRow (Array.init (width M) (fun _ -> 1.0f))
+
+    let prependRowOfZeroes M =
+        M |> prependRow (Array.init (width M) (fun _ -> 0.0f))
 
     let prependColumnOfOnes M =
         M |> prependColumn (Array.init (height M) (fun _ -> 1.0f))

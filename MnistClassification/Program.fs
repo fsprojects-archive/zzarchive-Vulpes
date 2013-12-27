@@ -6,11 +6,12 @@ module Main =
 
     open DeepBelief
     open DeepBeliefNet
+    open CudaDeepBeliefNet
     open NeuralNet
     open MnistClassification
     open Utils
 
     [<EntryPoint>]
     let main argv = 
-        printfn "%A" (computeResults rand props trainingSet testSet 10)
+        printfn "%A" (gpuComputeResults props trainingSet testSet 10)
         0 // return an integer exit code

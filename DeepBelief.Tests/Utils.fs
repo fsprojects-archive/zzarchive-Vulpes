@@ -23,6 +23,8 @@ type ``Numerical Utilities``() =
     let v = [|1.0f; 2.0f; 3.0f|]
     let w = [|4.0f; 5.0f; 6.0f|]
     
+    let vPaddedTo5 = [|1.0f; 2.0f; 3.0f; 0.0f; 0.0f|]
+
     let vb = [| 3.0f; 2.0f; 1.0f |]
     let hb = [| 2.0f; 1.0f |]
 
@@ -106,6 +108,14 @@ type ``Numerical Utilities``() =
     [<Fact>] member test.
         ``The prependColumn function maps M and hb to MWithHiddenBiases.``()=
             prependColumn hb M |> should equal MWithHiddenBiases
+
+    [<Fact>] member test.
+        ``v is padded out to multiples of 5 correctly.``() =
+            padToMultipleOf 5 v |> should equal vPaddedTo5
+
+    [<Fact>] member test.
+        ``v is padded out to multiples of 1 correctly.``() =
+            padToMultipleOf 1 v |> should equal v
 
     [<Fact>] member test.
         ``M is padded out to multiples of 5 correctly.``() =
