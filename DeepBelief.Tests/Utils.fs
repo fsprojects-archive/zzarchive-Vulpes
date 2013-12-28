@@ -79,7 +79,7 @@ type ``Numerical Utilities``() =
 
     [<Fact>] member test.
         ``The 1 to 6 array stacks up to M.``() =
-            rebuildMatrix 3 X |> should equal M
+            rebuildMatrix 3 2 3 X |> should equal M
 
     [<Fact>] member test.
         ``6 padded out to a multiple of 1 is 6.``() =

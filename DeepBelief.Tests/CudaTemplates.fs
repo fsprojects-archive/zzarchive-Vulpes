@@ -456,7 +456,8 @@ type ``CUDA Matrix Activation``()=
                 let lp = createActivateFirstColumnLp blockSize hPaddedA wPaddedA
                 activateFirstColumnKernel.Launch lp flattenedA.Ptr hPaddedA wPaddedA nActivations
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+                let result = flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+                result
         )
     }
 
