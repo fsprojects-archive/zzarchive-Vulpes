@@ -25,7 +25,7 @@ module MnistClassification =
     let trainedDbn = gpuDbnTrain alpha momentum 500 3 mnistDbn mnistTrainingImages
 
     let rbmProps = 
-        mnistDbn 
+        trainedDbn 
         |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, sigmoidFunction))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
 

@@ -45,9 +45,9 @@ module Utils =
         samples |> Array.map flattenMatrix
         |> Array.fold (fun acc element -> Array.concat [acc; element]) [| |]
 
-    let rebuildMatrix w X =
-        let h = Array.length X / w
-        Array2D.init h w (fun i j -> X.[i * w + j])
+    let rebuildMatrix wFull h w X =
+        let h = Array.length X / wFull
+        Array2D.init h w (fun i j -> X.[i * wFull + j])
 
     let nextMultipleOf n i =
         let r = i % n

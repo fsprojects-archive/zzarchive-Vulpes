@@ -28,7 +28,7 @@ module Common =
         let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
         kernel.Launch lp flattenedA.Ptr flattenedB.Ptr hPaddedA wPaddedA
 
-        flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+        flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
 
 type ``CUDA Matrix Multiplication``()=
 
@@ -100,7 +100,7 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createMultiplyLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+            result |> rebuildMatrix wC finalHeight finalWidth
 
     let loadAndMultiplyByTranspose (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
@@ -128,7 +128,7 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+            result |> rebuildMatrix wC finalHeight finalWidth
 
     let loadTransposeAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
@@ -156,7 +156,7 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createTransposeAndMultiplyLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            rebuildMatrix wC result |> topLeftSubmatrix finalHeight finalWidth
+            result |> rebuildMatrix wC finalHeight finalWidth
 
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
         let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
@@ -246,7 +246,7 @@ type ``CUDA Matrix Multiplication``()=
 
                 for i = 1 to n do
                     kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize paddedSize paddedSize
-                Ai.Gather() |> rebuildMatrix paddedSize |> topLeftSubmatrix originalSize originalSize
+                Ai.Gather() |> rebuildMatrix paddedSize originalSize originalSize
             ) }
 
     let addTemplate (blockSize : int) = cuda {
@@ -293,7 +293,7 @@ type ``CUDA Matrix Multiplication``()=
                 let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
                 scalarMultiplyKernel.Launch lp flattenedA.Ptr lambda hPaddedA wPaddedA
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
         )
     }
 
@@ -433,7 +433,7 @@ type ``CUDA Matrix Activation``()=
                 let lp = createActivateFirstRowLp blockSize hPaddedA wPaddedA
                 activateFirstRowKernel.Launch lp flattenedA.Ptr wPaddedA nActivations
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
         )
     }
 
@@ -456,7 +456,7 @@ type ``CUDA Matrix Activation``()=
                 let lp = createActivateFirstColumnLp blockSize hPaddedA wPaddedA
                 activateFirstColumnKernel.Launch lp flattenedA.Ptr hPaddedA wPaddedA nActivations
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA |> topLeftSubmatrix hA wA
+                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
         )
     }
 

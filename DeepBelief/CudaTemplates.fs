@@ -50,6 +50,75 @@ module CudaTemplates =
         let threads = dim3(blockSize)
         let grid = dim3(hM / threads.x)
         LaunchParam(grid, threads)
+        
+    let multiplyTemplate (blockSize:int) = cuda {
+        let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
+                let finalHeight = Utils.height A
+                let finalWidth = Utils.width B
+
+                let A = Utils.padToMultiplesOf blockSize A
+                let B = Utils.padToMultiplesOf blockSize B
+
+                let hA = Utils.height A
+                let wA = Utils.width A
+                let hB = Utils.height B
+                let wB = Utils.width B
+                let wC = wB
+                let hC = Utils.height A
+
+                let A = Utils.flattenMatrix A
+                let B = Utils.flattenMatrix B
+
+                use A = worker.Malloc(A)
+                use B = worker.Malloc(B)
+                use C = worker.Malloc<float32>(wC * hC)
+
+                let lp = createMultiplyLp blockSize hA wA hB wB
+                kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
+                worker.Synchronize()
+                let result = C.Gather()
+                result |> Utils.rebuildMatrix wC finalHeight finalWidth
+            ) }
+
+    let multiplyByTransposeTemplate (blockSize:int) = cuda {
+        let! multiplyByTransposeKernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let multiplyByTransposeKernel = program.Apply(multiplyByTransposeKernel)
+
+            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
+                let finalHeight = Utils.height A
+                let finalWidth = Utils.height B
+
+                let A = Utils.padToMultiplesOf blockSize A
+                let B = Utils.padToMultiplesOf blockSize B
+
+                let hA = Utils.height A
+                let wA = Utils.width A
+                let hB = Utils.height B
+                let wB = Utils.width B
+                let wC = hB
+                let hC = Utils.height A
+
+                let A = Utils.flattenMatrix A
+                let B = Utils.flattenMatrix B
+
+                use A = worker.Malloc(A)
+                use B = worker.Malloc(B)
+                use C = worker.Malloc<float32>(wC * hC)
+
+                let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
+                multiplyByTransposeKernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
+                let result = C.Gather()
+                result |> Utils.rebuildMatrix wC finalHeight finalWidth
+            ) }
 
     let runRbmEpochTemplate (blockSize:int) = cuda {
         let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
@@ -181,8 +250,8 @@ module CudaTemplates =
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
                     addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
 
-                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
-                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix |> Utils.topLeftSubmatrix (nHidden + 1) (nVisible + 1)
+                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
+                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
                 DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
         ) }
 

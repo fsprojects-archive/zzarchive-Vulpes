@@ -8,6 +8,10 @@ module CudaDeepBeliefNet =
     open Alea.CUDA.Utilities
     open Utils
 
+    let gpuRbmUp weightsAndBiases activation xInputs =
+        use multiplyProgram = 32 |> multiplyTemplate |> Compiler.load Worker.Default
+        multiplyProgram.Run xInputs (transpose weightsAndBiases) |> mapMatrix activation
+
     let gpuRbmTrain alpha momentum batchSize epochs rbm (xInputs : Matrix) =
         use cudaRbmEpochProgram = 32 |> runRbmEpochTemplate |> Compiler.load Worker.Default
         let initialisedRbm =
@@ -27,7 +31,7 @@ module CudaDeepBeliefNet =
         let start = gpuRbmTrain alpha momentum batchSize epochs (List.head rbms) prependedInputs
         rbms.Tail |> List.fold(fun acc element -> 
             let currentTuple = List.head acc
-            let x = rbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
+            let x = gpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
             let nextRbm = gpuRbmTrain alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
             |> List.map fst |> List.rev

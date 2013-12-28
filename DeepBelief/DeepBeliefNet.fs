@@ -105,7 +105,7 @@ module DeepBeliefNet =
             let cumulativeErrors = fst acc
             ((fst cumulativeErrors + fst resultErrors, snd cumulativeErrors + snd resultErrors), snd result)) ((0.0f, 0.0f), rbm)
 
-    let rbmUp rbm activation xInputs =
+    let cpuRbmUp rbm activation xInputs =
         forward rbm xInputs |> mapMatrix activation |> transpose
 
     let cpuRbmTrain rnd alpha momentum batchSize epochs rbm (xInputs : Matrix) =
@@ -126,7 +126,7 @@ module DeepBeliefNet =
         let start = cpuRbmTrain rnd alpha momentum batchSize epochs (List.head rbms) prependedInputs
         rbms.Tail |> List.fold(fun acc element -> 
             let currentTuple = List.head acc
-            let x = rbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
+            let x = cpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
             let nextRbm = cpuRbmTrain rnd alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
             |> List.map fst |> List.rev
