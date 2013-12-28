@@ -387,18 +387,26 @@ module Kernels =
             @>
 
     let transformKernel (blockSize : int) (transformationFunction : TransformationFunction) =
-        let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) (hA : int) (wA : int) ->
+        <@ fun (tX : deviceptr<float32>) (X : deviceptr<float32>) (size : int) ->
 
-            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+            // Block index
+            let bx = blockIdx.x
 
-            let mutable a = b
-            while a <= e do
-                let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- (%transformationFunction) A.[i]
-                __syncthreads()
-                a <- a + s
-            @>
+            // Thread index
+            let tx = threadIdx.x
+
+            let i = bx * blockSize + tx;
+
+            // Write the block sub-matrix to device memory;
+            // each thread writes one element
+            tX.[i] <- (%transformationFunction) X.[i]
+            __syncthreads() @>
+
+    let coerceKernel =
+        <@ fun (X : deviceptr<float32>) (index : int) (value:float32) ->
+
+            X.[index] <- value
+            __syncthreads() @>
 
     let activateFirstRowKernel (blockSize:int) =
         <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 

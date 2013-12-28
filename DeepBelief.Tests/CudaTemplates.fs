@@ -308,18 +308,13 @@ type ``CUDA Matrix Multiplication``()=
     let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock32Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
 
-    let temp1 = multiplyVectorByMatrixBlock1Program.Run A x
-    let temp2 = multiplyVectorByMatrixBlock32Program.Run A x
-
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 1.``() =
-            temp1 |> should equal y
-            //multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
+            multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
 
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 32.``() =
-            temp2 |> should equal y
-            //multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
+            multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
