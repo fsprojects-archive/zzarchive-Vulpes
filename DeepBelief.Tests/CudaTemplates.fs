@@ -11,7 +11,7 @@ open DeepBelief.Utils
 open System
 
 module Common =
-    type SimpleMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> int -> int -> unit
+    type SimpleMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> unit
     let simpleMatrixOperation blockSize A B (kernel : Kernel<SimpleMatrixOperationKernelSignature>) (worker : Worker) =
         let hA = height A
         let wA = width A
@@ -26,7 +26,7 @@ module Common =
         use flattenedB = worker.Malloc flattenedB
 
         let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
-        kernel.Launch lp flattenedA.Ptr flattenedB.Ptr hPaddedA wPaddedA
+        kernel.Launch lp flattenedA.Ptr flattenedB.Ptr
 
         flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
 
@@ -408,7 +408,7 @@ type ``CUDA Matrix Multiplication``()=
                 use flattenedA = worker.Malloc flattenedA
 
                 let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
-                scalarMultiplyMatrixKernel.Launch lp flattenedA.Ptr lambda hPaddedA wPaddedA
+                scalarMultiplyMatrixKernel.Launch lp flattenedA.Ptr lambda
 
                 flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
         )

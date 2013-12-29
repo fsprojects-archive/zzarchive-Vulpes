@@ -44,7 +44,9 @@ module CudaTemplates =
         LaunchParam(grid, threads)
 
     let createSimpleMatrixOperationLp blockSize hA wA =
-        createMultiplyLp blockSize hA wA hA wA
+        let threads = dim3(blockSize)
+        let grid = dim3(hA * wA / threads.x)
+        LaunchParam(grid, threads)
 
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
@@ -227,19 +229,19 @@ module CudaTemplates =
                     // Perform the forward iteration to populate h1
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     rngKernel.Launch rngLp numRuns i state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
-                    activateKernel.Launch activateHiddenLp h1.Ptr hiddenRandoms.Ptr hHiddenUnitMatrix wHiddenUnitMatrix
+                    activateKernel.Launch activateHiddenLp h1.Ptr hiddenRandoms.Ptr
                     activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr wHiddenUnitMatrix nRows
 
                     // Perform the backward iteration to populate v2
                     transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
                     rngKernel.Launch rngLp numRuns (i + samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimVisibleUnits / rngNumStreams) visibleRandoms.Ptr
-                    activateKernel.Launch activateVisibleLp v2.Ptr visibleRandoms.Ptr hVisibleUnitMatrix wVisibleUnitMatrix
+                    activateKernel.Launch activateVisibleLp v2.Ptr visibleRandoms.Ptr
                     activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
 
                     // Perform the forward iteration to populate h2
                     multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     rngKernel.Launch rngLp numRuns (i + 2 * samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
-                    activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr hHiddenUnitMatrix wHiddenUnitMatrix
+                    activateKernel.Launch activateHiddenLp h2.Ptr hiddenRandoms.Ptr
                     activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr wHiddenUnitMatrix nRows
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
@@ -247,20 +249,20 @@ module CudaTemplates =
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
 
                     // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedAlpha * (c1 - c2)
-                    subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
-                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha hHiddenUnitMatrix wVisibleUnitMatrix
-                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum hHiddenUnitMatrix wVisibleUnitMatrix
-                    addMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum
+                    addMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr
 
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
-                    addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr
 
                 let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
                 let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
                 DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
         ) }
 
-    let runTrainNeuralNetEpochTemplate (blockSize:int) = cuda {
+    let runTrainNeuralNetEpochTemplate (eta : float32) (alpha : float32) (blockSize:int) = cuda {
         let! multiplyVectorByMatrixKernel = multiplyVectorByMatrixKernel blockSize |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
@@ -271,6 +273,8 @@ module CudaTemplates =
         let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
         let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
         let! outerProductKernel = outerProductKernel blockSize |> Compiler.DefineKernel
+        let! scalarMultiplyMatrixKernel = scalarMultiplyMatrixKernel blockSize |> Compiler.DefineKernel
+        let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
@@ -284,23 +288,29 @@ module CudaTemplates =
             let subtractVectorKernel = program.Apply subtractVectorKernel
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
             let outerProductKernel = program.Apply outerProductKernel
+            let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
+            let addMatrixKernel = program.Apply addMatrixKernel
 
             fun (netProps : NnetProperties) trainingSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
-                let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
-                let grads = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w * Utils.width w))
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
-                let outerProductLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (Utils.height w) (Utils.width w))
+                let simpleMatrixLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (Utils.height w) (Utils.width w))
+
                 let inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+
+                // The contents of these lists will need to be disposed at the end of the run.
+                let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
+                let prevDWeights = paddedWeights |> List.map (fun w -> Array2D.zeroCreate (Utils.height w) (Utils.width w) |> Utils.flattenMatrix |> worker.Malloc)
+                let grads = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w * Utils.width w))
+                let inputs = inputs0 :: outputs
                 let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
-                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.width w))
+                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                
                 let N = weights.Length - 1
-                let diffN = worker.Malloc<float32>(Utils.height paddedWeights.[N])
-                let errorSignalN = worker.Malloc<float32>(Utils.height paddedWeights.[N])
 
                 for i in 0..Array.length trainingSet - 1 do
                     inputs0.Scatter(fst trainingSet.[i] |> Utils.padToMultipleOf blockSize)
@@ -318,9 +328,26 @@ module CudaTemplates =
                     for j in N..(-1)..0 do
                         if j < N then 
                             multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
-                        pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr (Utils.height paddedWeights.[N])
-                        //outerProductKernel.Launch outerProductLp.[j] grads.[j] 
+                        let hW = Utils.height paddedWeights.[j]
+                        let wW = Utils.width paddedWeights.[j]
+                        pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr hW
+                        outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr hW wW
+                        let grad0 = grads.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
+                        worker.Synchronize()
+                        let grad1 = grads.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        let prevDWeights0 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
+                        let prevDWeights1 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        addMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr grads.[j].Ptr
+                        let prevDWeights2 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        let weights0 = weights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        addMatrixKernel.Launch simpleMatrixLp.[j] weights.[j].Ptr prevDWeights.[j].Ptr
+                        let weights1 = weights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
 
+                        let err = errorSignals.[j].Gather()
+
+                        grad0 |> ignore
                         
                 netProps
         ) }

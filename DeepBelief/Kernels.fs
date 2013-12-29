@@ -393,17 +393,17 @@ module Kernels =
 
     let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
         let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) (hA : int) (wA : int) ->
+        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) ->
 
-            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+            // Block index
+            let bx = blockIdx.x
 
-            let mutable a = b
-            while a <= e do
-                let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
-                __syncthreads()
-                a <- a + s
-            @>
+            // Thread index
+            let tx = threadIdx.x
+
+            let i = bx * blockSize + tx;
+            A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
+            __syncthreads() @>
 
     let transformKernel (blockSize : int) (transformationFunction : TransformationFunction) =
         <@ fun (tX : deviceptr<float32>) (X : deviceptr<float32>) (startIndex : int) (size : int) ->
@@ -486,29 +486,34 @@ module Kernels =
             @>
 
     let pointwiseMatrixOperationKernel (blockSize : int) (operation : PointwiseOperation) =
-        let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
+        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) ->
             
-            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+            // Block index
+            let bx = blockIdx.x
 
-            let mutable a = b
-            while a <= e do
-                let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- (%operation) A.[i] B.[i]
-                __syncthreads()
-                a <- a + s
-            @>
+            // Thread index
+            let tx = threadIdx.x
+
+            let i = bx * blockSize + tx;
+
+            // Write the block sub-matrix to device memory;
+            // each thread writes one element
+            A.[i] <- (%operation) A.[i] B.[i]
+            __syncthreads() @>
 
     let scalarMultiplyMatrixKernel (blockSize : int) =
         let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (lambda : float32) (hA : int) (wA : int) ->
+        <@ fun (A : deviceptr<float32>) (lambda : float32) ->
             
-            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+            // Block index
+            let bx = blockIdx.x
 
-            let mutable a = b
-            while a <= e do
-                let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- A.[i] * lambda
-                __syncthreads()
-                a <- a + s
-            @>
+            // Thread index
+            let tx = threadIdx.x
+
+            let i = bx * blockSize + tx;
+
+            // Write the block sub-matrix to device memory;
+            // each thread writes one element
+            A.[i] <- A.[i] * lambda
+            __syncthreads() @>
