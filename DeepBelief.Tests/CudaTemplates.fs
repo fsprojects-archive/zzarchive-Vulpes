@@ -30,6 +30,22 @@ module Common =
 
         flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
 
+    type SimpleVectorOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> unit
+    let simpleVectorOperation blockSize x y (kernel : Kernel<SimpleVectorOperationKernelSignature>) (worker : Worker) =
+        let size = Array.length x
+        let paddedX = padToMultipleOf blockSize x
+        let paddedY = padToMultipleOf blockSize y
+
+        use paddedX = worker.Malloc paddedX
+        use paddedY = worker.Malloc paddedY
+        use result = worker.Malloc<float32> paddedX.Length
+
+        let lp = createSimpleVectorOperationLp blockSize paddedX.Length
+        kernel.Launch lp result.Ptr paddedX.Ptr paddedY.Ptr paddedX.Length
+
+        let result = result.Gather() 
+        Array.sub result 0 size
+
 type ``CUDA Matrix Multiplication``()=
 
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
@@ -38,6 +54,12 @@ type ``CUDA Matrix Multiplication``()=
     let x = [|7.0f; 8.0f; 9.0f|]
     let y = [|50.0f; 122.0f|]
     
+    let a = [|1.0f; 2.0f; 3.0f|]
+    let b = [|4.0f; 5.0f; 6.0f|]
+    let aPlusb = [|5.0f; 7.0f; 9.0f|]
+    let bMinusa = [|3.0f; 3.0f; 3.0f|]
+    let aPointwiseTimesb = [|4.0f; 10.0f; 18.0f|]
+
     let D = array2D [ [1.0f; 2.0f;]
                       [3.0f; 4.0f;] 
                       [5.0f; 6.0f;] ];
@@ -192,7 +214,7 @@ type ``CUDA Matrix Multiplication``()=
             ) }
 
     let multiplyVectorByMatrixTemplate (blockSize:int) = cuda {
-        let! kernel = multiplyVectorByMatrixMulKernel blockSize |> Compiler.DefineKernel
+        let! kernel = multiplyVectorByMatrixKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program:Program) ->
             let worker = program.Worker
@@ -212,6 +234,32 @@ type ``CUDA Matrix Multiplication``()=
                 use y = worker.Malloc<float32>(hA)
 
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
+                kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
+
+                y.Gather() |> subvector size
+            ) }
+            
+    let multiplyVectorByTransposeOfMatrixTemplate (blockSize:int) = cuda {
+        let! kernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (x : Vector) ->
+                let size = width A
+
+                let A = padToMultiplesOf blockSize A
+                let x = padToMultipleOf blockSize x
+
+                let hA = height A
+                let wA = width A
+
+                use A = A |> flattenMatrix |> worker.Malloc
+                use x = x |> worker.Malloc
+                use y = worker.Malloc<float32>(hA)
+
+                let lp = createMultiplyVectorByTransposeOfMatrixLp blockSize hA wA
                 kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
 
                 y.Gather() |> subvector size
@@ -249,36 +297,72 @@ type ``CUDA Matrix Multiplication``()=
                 Ai.Gather() |> rebuildMatrix paddedSize originalSize originalSize
             ) }
 
-    let addTemplate (blockSize : int) = cuda {
-        let! addKernel =  addKernel blockSize |> Compiler.DefineKernel
+    let addVectorTemplate (blockSize : int) = cuda {
+        let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
-            let addKernel = program.Apply addKernel
+            let addVectorKernel = program.Apply addVectorKernel
 
-            fun (A : Matrix) (B : Matrix) ->
-                Common.simpleMatrixOperation blockSize A B addKernel worker
+            fun (x : Vector) (y : Vector) ->
+                Common.simpleVectorOperation blockSize x y addVectorKernel worker
         )
     }
 
-    let subtractTemplate (blockSize : int) = cuda {
-        let! subtractKernel =  subtractKernel blockSize |> Compiler.DefineKernel
+    let subtractVectorTemplate (blockSize : int) = cuda {
+        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
-            let subtractKernel = program.Apply subtractKernel
+            let subtractVectorKernel = program.Apply subtractVectorKernel
 
-            fun (A : Matrix) (B : Matrix) ->
-                Common.simpleMatrixOperation blockSize A B subtractKernel worker
+            fun (x : Vector) (y : Vector) ->
+                Common.simpleVectorOperation blockSize x y subtractVectorKernel worker
         )
     }
 
-    let scalarMultiplyTemplate (blockSize : int) = cuda {
-        let! scalarMultiplyKernel =  scalarMultiplyKernel blockSize |> Compiler.DefineKernel
+    let pointwiseMultiplyVectorTemplate (blockSize : int) = cuda {
+        let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
-            let scalarMultiplyKernel = program.Apply scalarMultiplyKernel
+            let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
+
+            fun (x : Vector) (y : Vector) ->
+                Common.simpleVectorOperation blockSize x y pointwiseMultiplyVectorKernel worker
+        )
+    }
+
+    let addMatrixTemplate (blockSize : int) = cuda {
+        let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let addMatrixKernel = program.Apply addMatrixKernel
+
+            fun (A : Matrix) (B : Matrix) ->
+                Common.simpleMatrixOperation blockSize A B addMatrixKernel worker
+        )
+    }
+
+    let subtractMatrixTemplate (blockSize : int) = cuda {
+        let! subtractMatrixKernel = <@ pointwiseSubtract @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let subtractMatrixKernel = program.Apply subtractMatrixKernel
+
+            fun (A : Matrix) (B : Matrix) ->
+                Common.simpleMatrixOperation blockSize A B subtractMatrixKernel worker
+        )
+    }
+
+    let scalarMultiplyMatrixTemplate (blockSize : int) = cuda {
+        let! scalarMultiplyMatrixKernel =  scalarMultiplyMatrixKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
             fun (A : Matrix) (lambda : float32) ->
                 let hA = height A
@@ -291,7 +375,7 @@ type ``CUDA Matrix Multiplication``()=
                 use flattenedA = worker.Malloc flattenedA
 
                 let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
-                scalarMultiplyKernel.Launch lp flattenedA.Ptr lambda hPaddedA wPaddedA
+                scalarMultiplyMatrixKernel.Launch lp flattenedA.Ptr lambda hPaddedA wPaddedA
 
                 flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
         )
@@ -302,11 +386,28 @@ type ``CUDA Matrix Multiplication``()=
     let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
     let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
     let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
-    let addProgram = 2 |> addTemplate |> Compiler.load Worker.Default
-    let subtractProgram = 2 |> subtractTemplate |> Compiler.load Worker.Default
-    let scalarMultiplyProgram = 2 |> scalarMultiplyTemplate |> Compiler.load Worker.Default
+    let addMatrixProgram = 2 |> addMatrixTemplate |> Compiler.load Worker.Default
+    let subtractMatrixProgram = 2 |> subtractMatrixTemplate |> Compiler.load Worker.Default
+    let addVectorProgram = 2 |> addVectorTemplate |> Compiler.load Worker.Default
+    let subtractVectorProgram = 2 |> subtractVectorTemplate |> Compiler.load Worker.Default
+    let pointwiseMultiplyVectorProgram = 2 |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default
+    let scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock32Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByTransposeOfMatrixBlock32Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
+
+    [<Fact>] member test.
+        ``The addVectorTemplate adds a to b.``() =
+            addVectorProgram.Run a b |> should equal aPlusb
+
+    [<Fact>] member test.
+        ``The subtractVectorTemplate subtracts a from b.``() =
+            subtractVectorProgram.Run b a |> should equal bMinusa
+
+    [<Fact>] member test.
+        ``The pointwiseMultiplyVectorTemplate multiplies a by b.``() =
+            pointwiseMultiplyVectorProgram.Run a b |> should equal aPointwiseTimesb
 
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 1.``() =
@@ -315,6 +416,14 @@ type ``CUDA Matrix Multiplication``()=
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 32.``() =
             multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
+
+    [<Fact>] member test.
+        ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 1.``() =
+            multiplyVectorByTransposeOfMatrixBlock1Program.Run At x |> should equal y
+
+    [<Fact>] member test.
+        ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 32.``() =
+            multiplyVectorByTransposeOfMatrixBlock32Program.Run At x |> should equal y
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
@@ -357,16 +466,16 @@ type ``CUDA Matrix Multiplication``()=
             loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
 
     [<Fact>] member test.
-        ``The addTemplate adds A to 2A to give 3A.``() =
-            addProgram.Run A ATimes2 |> should equal ATimes3
+        ``The addMatrixTemplate adds A to 2A to give 3A.``() =
+            addMatrixProgram.Run A ATimes2 |> should equal ATimes3
 
     [<Fact>] member test.
-        ``The subtractTemplate subtracts A from 3A to give 2A.``() =
-            subtractProgram.Run ATimes3 A |> should equal ATimes2
+        ``The subtractMatrixTemplate subtracts A from 3A to give 2A.``() =
+            subtractMatrixProgram.Run ATimes3 A |> should equal ATimes2
 
     [<Fact>] member test.
         ``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``() =
-            scalarMultiplyProgram.Run A 3.0f |> should equal ATimes3
+            scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
 
 type ``CUDA Matrix Activation``()=
     

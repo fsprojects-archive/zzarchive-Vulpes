@@ -18,6 +18,11 @@ module CudaTemplates =
         let grid = dim3(hA / threads.x)
         LaunchParam(grid, threads)
 
+    let createMultiplyVectorByTransposeOfMatrixLp blockSize hA wA =
+        let threads = dim3(blockSize)
+        let grid = dim3(wA / threads.x)
+        LaunchParam(grid, threads)
+
     let createMultiplyLp blockSize hA wA hB wB =
         let threads = dim3(blockSize, blockSize)
         let grid = dim3(wB / threads.x, hA / threads.y)
@@ -128,9 +133,9 @@ module CudaTemplates =
         let! activateFirstRowKernel = activateFirstRowKernel blockSize |> Compiler.DefineKernel
         let! activateFirstColumnKernel = activateFirstColumnKernel blockSize |> Compiler.DefineKernel
         let! activateKernel = <@ sigmoid @> |> activateKernel blockSize |> Compiler.DefineKernel
-        let! addKernel = addKernel blockSize |> Compiler.DefineKernel
-        let! subtractKernel = subtractKernel blockSize |> Compiler.DefineKernel
-        let! scalarMultiplyKernel = scalarMultiplyKernel blockSize |> Compiler.DefineKernel
+        let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+        let! subtractMatrixKernel = <@ pointwiseSubtract @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+        let! scalarMultiplyMatrixKernel = scalarMultiplyMatrixKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
@@ -141,9 +146,9 @@ module CudaTemplates =
             let activateFirstRowKernel = program.Apply activateFirstRowKernel
             let activateFirstColumnKernel = program.Apply activateFirstColumnKernel
             let activateKernel = program.Apply activateKernel
-            let addKernel = program.Apply addKernel
-            let subtractKernel = program.Apply subtractKernel
-            let scalarMultiplyKernel = program.Apply scalarMultiplyKernel
+            let addMatrixKernel = program.Apply addMatrixKernel
+            let subtractMatrixKernel = program.Apply subtractMatrixKernel
+            let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
             // Copy pre-calculated bit-matrices, needed for jump-ahead
             // calculations, to the device memory.
@@ -242,13 +247,13 @@ module CudaTemplates =
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
 
                     // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedAlpha * (c1 - c2)
-                    subtractKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
-                    scalarMultiplyKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha hHiddenUnitMatrix wVisibleUnitMatrix
-                    scalarMultiplyKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum hHiddenUnitMatrix wVisibleUnitMatrix
-                    addKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c2.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha hHiddenUnitMatrix wVisibleUnitMatrix
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum hHiddenUnitMatrix wVisibleUnitMatrix
+                    addMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr c1.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
 
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
-                    addKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
+                    addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr dWeightsAndBiases.Ptr hHiddenUnitMatrix wVisibleUnitMatrix
 
                 let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
                 let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
@@ -256,39 +261,60 @@ module CudaTemplates =
         ) }
 
     let runTrainNeuralNetEpochTemplate (blockSize:int) = cuda {
-        let! multiplyVectorByMatrixMulKernel = multiplyVectorByMatrixMulKernel blockSize |> Compiler.DefineKernel
+        let! multiplyVectorByMatrixKernel = multiplyVectorByMatrixKernel blockSize |> Compiler.DefineKernel
+        let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
         let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
         let! dSigmoidKernel = <@ dSigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel |> Compiler.DefineKernel
+        let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
             let rngKernel = program.Apply rngKernel
-            let multiplyVectorByMatrixMulKernel = program.Apply multiplyVectorByMatrixMulKernel
+            let multiplyVectorByMatrixKernel = program.Apply multiplyVectorByMatrixKernel
+            let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
             let sigmoidKernel = program.Apply sigmoidKernel
             let dSigmoidKernel = program.Apply dSigmoidKernel
             let coerceKernel = program.Apply coerceKernel
+            let addVectorKernel = program.Apply addVectorKernel
+            let subtractVectorKernel = program.Apply subtractVectorKernel
+            let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
 
             fun (netProps : NnetProperties) trainingSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
                 let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
-                let transformLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
+                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
+                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
                 let inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                let N = weights.Length - 1
+                let diffN = worker.Malloc<float32>(Utils.height paddedWeights.[N])
 
                 for i in 0..Array.length trainingSet - 1 do
-                    inputs0.Scatter(fst trainingSet.[i])
-                    for j in 0..weights.Length - 1 do
+                    inputs0.Scatter(fst trainingSet.[i] |> Utils.padToMultipleOf blockSize)
+
+                    for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
-                        multiplyVectorByMatrixMulKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
-                        sigmoidKernel.Launch transformLp.[j] outputs.[j].Ptr outputs.[j].Ptr (Utils.height paddedWeights.[j])
-                        dSigmoidKernel.Launch transformLp.[j] outputs.[j].Ptr dOutputs.[j].Ptr (Utils.height paddedWeights.[j])
+                        multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+                        dSigmoidKernel.Launch outputLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
                         coerceKernel.Launch coerceLp outputs.[j].Ptr 0 1.0f
-                        let temp = outputs.[j].Gather()
-                        temp.[0] = temp.[0] |> ignore
-                    (fst trainingSet.[0]).[0] = 0.0f |> ignore
+                        coerceKernel.Launch coerceLp dOutputs.[j].Ptr 0 0.0f
+
+                    diffs.[N].Scatter (snd trainingSet.[i] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
+                    subtractVectorKernel.Launch outputLp.[N] diffs.[N].Ptr diffs.[N].Ptr outputs.[N].Ptr (Utils.height paddedWeights.[N])
+                    for j in N..(-1)..0 do
+                        let weight = weights.[j].Gather() |> Utils.rebuildMatrix (Utils.width paddedWeights.[j]) (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        if j < N then 
+                            multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
+                        pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr (Utils.height paddedWeights.[N])
+                        
                 netProps
         ) }

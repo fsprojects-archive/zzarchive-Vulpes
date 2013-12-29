@@ -54,8 +54,7 @@ module NeuralNet =
 
     /// computes a list of gradients matrices
     let gradients (Ws : Matrix list) layeroutputs input target = 
-        let actualOuts = 
-            layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
+        let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
         let signals = errorSignals Ws layeroutputs target
         (input :: actualOuts, signals) 
             ||> List.zip 

@@ -159,7 +159,27 @@ module Kernels =
             // each thread writes one element
             C.[(%strategy.CUpdate) hB wB blockSize by ty bx tx] <- Csub @>
 
-    let multiplyVectorByMatrixMulKernel (blockSize:int) =
+    let multiplyVectorByMatrixKernel (blockSize:int) =
+        <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
+
+            let bx = blockIdx.x
+
+            let tx = threadIdx.x
+
+            let row = bx * blockSize + tx;
+
+            let mutable value = 0.0f
+
+            let mutable k = 0
+            while k < wA do
+                value <- value + A.[wA * row + k] * x.[k]
+                k <- k + 1
+
+            __syncthreads()
+            y.[row] <- value
+            __syncthreads() @>
+
+    let multiplyVectorByTransposeOfMatrixKernel (blockSize:int) =
         <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
 
             // Block index
@@ -168,23 +188,17 @@ module Kernels =
             // Thread index
             let tx = threadIdx.x
 
-            let row = bx * blockSize + tx;
+            let column = bx * blockSize + tx;
 
-            // ysub is used to store the element of the block sub-vector
-            // that is computed by the thread
             let mutable value = 0.0f
 
-            // Loop over all the sub-matrices of A and sub-vectors of x
-            // required to compute the block sub-matrix
             let mutable k = 0
-            while k < wA do
-                value <- value + A.[wA * row + k] * x.[k]
+            while k < hA do
+                value <- value + A.[wA * k + column] * x.[k]
                 k <- k + 1
 
             __syncthreads()
-            // Write the block sub-matrix to device memory;
-            // each thread writes one element
-            y.[row] <- value
+            y.[column] <- value
             __syncthreads() @>
 
     [<ReflectedDefinition>]
@@ -369,6 +383,11 @@ module Kernels =
     let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
     let [<ReflectedDefinition>] dSigmoid s = s * (1.0f - s)
 
+    let [<ReflectedDefinition>] pointwiseAdd (a : float32) (b : float32) = a + b
+    let [<ReflectedDefinition>] pointwiseSubtract (a : float32) (b : float32) = a - b
+    let [<ReflectedDefinition>] pointwiseMultiply (a : float32) (b : float32) = a * b
+
+    type PointwiseOperation = Expr<float32 -> float32 -> float32>
     type ActivationFunction = Expr<float32 -> float32>
     type TransformationFunction = Expr<float32 -> float32>
 
@@ -387,7 +406,7 @@ module Kernels =
             @>
 
     let transformKernel (blockSize : int) (transformationFunction : TransformationFunction) =
-        <@ fun (tX : deviceptr<float32>) (X : deviceptr<float32>) (size : int) ->
+        <@ fun (tX : deviceptr<float32>) (X : deviceptr<float32>) (startIndex : int) (size : int) ->
 
             // Block index
             let bx = blockIdx.x
@@ -399,7 +418,26 @@ module Kernels =
 
             // Write the block sub-matrix to device memory;
             // each thread writes one element
-            tX.[i] <- (%transformationFunction) X.[i]
+            if i >= startIndex && i < startIndex + size then
+                tX.[i] <- (%transformationFunction) X.[i]
+            else
+                tX.[i] <- 0.0f
+            __syncthreads() @>
+
+    let pointwiseVectorOperationKernel (blockSize : int) (operation : PointwiseOperation) =
+        <@ fun (result : deviceptr<float32>) (lhs : deviceptr<float32>) (rhs : deviceptr<float32>) (size : int) ->
+
+            // Block index
+            let bx = blockIdx.x
+
+            // Thread index
+            let tx = threadIdx.x
+
+            let i = bx * blockSize + tx;
+
+            // Write the block sub-matrix to device memory;
+            // each thread writes one element
+            result.[i] <- (%operation) lhs.[i] rhs.[i]
             __syncthreads() @>
 
     let coerceKernel =
@@ -433,7 +471,7 @@ module Kernels =
             M.[i] <- if i < max then 1.0f else 0.0f
             @>
 
-    let subtractKernel (blockSize : int) =
+    let pointwiseMatrixOperationKernel (blockSize : int) (operation : PointwiseOperation) =
         let strategy = multiplyStrategy blockSize
         <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
             
@@ -442,26 +480,12 @@ module Kernels =
             let mutable a = b
             while a <= e do
                 let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- A.[i] - B.[i]
+                A.[i] <- (%operation) A.[i] B.[i]
                 __syncthreads()
                 a <- a + s
             @>
 
-    let addKernel (blockSize : int) =
-        let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
-            
-            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
-
-            let mutable a = b
-            while a <= e do
-                let i = wA * threadIdx.y + a + threadIdx.x
-                A.[i] <- A.[i] + B.[i]
-                __syncthreads()
-                a <- a + s
-            @>
-
-    let scalarMultiplyKernel (blockSize : int) =
+    let scalarMultiplyMatrixKernel (blockSize : int) =
         let strategy = multiplyStrategy blockSize
         <@ fun (A : deviceptr<float32>) (lambda : float32) (hA : int) (wA : int) ->
             
