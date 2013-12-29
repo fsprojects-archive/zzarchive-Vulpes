@@ -56,9 +56,17 @@ type ``CUDA Matrix Multiplication``()=
     
     let a = [|1.0f; 2.0f; 3.0f|]
     let b = [|4.0f; 5.0f; 6.0f|]
+    let c = [|4.0f; 5.0f|]
+
     let aPlusb = [|5.0f; 7.0f; 9.0f|]
     let bMinusa = [|3.0f; 3.0f; 3.0f|]
     let aPointwiseTimesb = [|4.0f; 10.0f; 18.0f|]
+
+    let aOuterProductc = array2D [ [4.0f; 5.0f]
+                                   [8.0f; 10.0f]
+                                   [12.0f; 15.0f] ]
+    let cOuterProducta = array2D [ [4.0f; 8.0f; 12.0f]
+                                   [5.0f; 10.0f; 15.0f] ]
 
     let D = array2D [ [1.0f; 2.0f;]
                       [3.0f; 4.0f;] 
@@ -333,6 +341,31 @@ type ``CUDA Matrix Multiplication``()=
         )
     }
 
+    let outerProductTemplate (blockSize : int) = cuda {
+        let! outerProductKernel = outerProductKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun (program : Program) ->
+            let worker = program.Worker
+            let outerProductKernel = program.Apply outerProductKernel
+
+            fun (v : Vector) (w : Vector) ->
+                let sizeV = Array.length v
+                let sizeW = Array.length w
+                let paddedV = padToMultipleOf blockSize v
+                let paddedW = padToMultipleOf blockSize w
+                let sizePaddedV = Array.length paddedV
+                let sizePaddedW = Array.length paddedW
+
+                use paddedV = worker.Malloc paddedV
+                use paddedW = worker.Malloc paddedW
+                use result = worker.Malloc<float32> (sizePaddedV * sizePaddedW)
+
+                let lp = createSimpleMatrixOperationLp blockSize sizePaddedV sizePaddedW
+                outerProductKernel.Launch lp result.Ptr paddedV.Ptr paddedW.Ptr sizePaddedV sizePaddedW
+                result.Gather() |> rebuildMatrix sizePaddedW sizeV sizeW
+        )
+    }
+
     let addMatrixTemplate (blockSize : int) = cuda {
         let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
 
@@ -393,9 +426,31 @@ type ``CUDA Matrix Multiplication``()=
     let pointwiseMultiplyVectorProgram = 2 |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default
     let scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixBlock32Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByTransposeOfMatrixBlock32Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
+    let outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default
+    let outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default
+
+    let temp1 = outerProductBlock1Program.Run a c
+    let temp2 = outerProductBlock32Program.Run a c
+
+    [<Fact>] member test.
+        ``The outer product of a and c is computed with a block size of 1.``() =
+            (temp1, temp2) |> should equal (aOuterProductc, aOuterProductc)
+            //outerProductBlock1Program.Run a c |> should equal aOuterProductc
+
+    [<Fact>] member test.
+        ``The outer product of c and a is computed with a block size of 1.``() =
+            outerProductBlock1Program.Run c a |> should equal cOuterProducta
+
+    [<Fact>] member test.
+        ``The outer product of a and c is computed with a block size of 32.``() =
+            outerProductBlock32Program.Run a c |> should equal aOuterProductc
+
+    [<Fact>] member test.
+        ``The outer product of c and a is computed with a block size of 32.``() =
+            outerProductBlock32Program.Run c a |> should equal cOuterProducta
 
     [<Fact>] member test.
         ``The addVectorTemplate adds a to b.``() =

@@ -270,6 +270,7 @@ module CudaTemplates =
         let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
         let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
         let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! outerProductKernel = outerProductKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
@@ -282,20 +283,24 @@ module CudaTemplates =
             let addVectorKernel = program.Apply addVectorKernel
             let subtractVectorKernel = program.Apply subtractVectorKernel
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
+            let outerProductKernel = program.Apply outerProductKernel
 
             fun (netProps : NnetProperties) trainingSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
                 let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
+                let grads = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w * Utils.width w))
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
+                let outerProductLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (Utils.height w) (Utils.width w))
                 let inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
-                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.width w))
                 let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let N = weights.Length - 1
                 let diffN = worker.Malloc<float32>(Utils.height paddedWeights.[N])
+                let errorSignalN = worker.Malloc<float32>(Utils.height paddedWeights.[N])
 
                 for i in 0..Array.length trainingSet - 1 do
                     inputs0.Scatter(fst trainingSet.[i] |> Utils.padToMultipleOf blockSize)
@@ -311,10 +316,11 @@ module CudaTemplates =
                     diffs.[N].Scatter (snd trainingSet.[i] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
                     subtractVectorKernel.Launch outputLp.[N] diffs.[N].Ptr diffs.[N].Ptr outputs.[N].Ptr (Utils.height paddedWeights.[N])
                     for j in N..(-1)..0 do
-                        let weight = weights.[j].Gather() |> Utils.rebuildMatrix (Utils.width paddedWeights.[j]) (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
                         if j < N then 
                             multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr (Utils.height paddedWeights.[N])
+                        //outerProductKernel.Launch outerProductLp.[j] grads.[j] 
+
                         
                 netProps
         ) }

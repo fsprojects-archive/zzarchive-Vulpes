@@ -471,6 +471,20 @@ module Kernels =
             M.[i] <- if i < max then 1.0f else 0.0f
             @>
 
+    let outerProductKernel (blockSize : int) =
+        let strategy = multiplyStrategy blockSize
+        <@ fun (A : deviceptr<float32>) (v : deviceptr<float32>) (w : deviceptr<float32>) (hA : int) (wA : int) ->
+            
+            let b, e, s = (%strategy.AIteration) hA wA blockIdx.y
+
+            let mutable a = b
+            while a <= e do
+                let i = wA * threadIdx.y + a + threadIdx.x
+                A.[i] <- v.[i / wA] * w.[i % wA]
+                __syncthreads()
+                a <- a + s
+            @>
+
     let pointwiseMatrixOperationKernel (blockSize : int) (operation : PointwiseOperation) =
         let strategy = multiplyStrategy blockSize
         <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) (hA : int) (wA : int) ->
