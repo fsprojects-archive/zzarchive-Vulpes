@@ -76,10 +76,13 @@
     <None Include="packages.config" />
     <Compile Include="TestUtils.fs" />
     <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="CudaTemplates.fs" />
+    <Compile Include="CudaCommon.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="CudaDeepBeliefNet.fs" />
     <None Include="App.config" />
+    <Compile Include="CudaMatrixMultiplication.fs" />
+    <Compile Include="CudaMatrixActivation.fs" />
+    <Compile Include="CudaRbmEpoch.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
