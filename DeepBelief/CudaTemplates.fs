@@ -88,7 +88,6 @@ module CudaTemplates =
 
                 let lp = createMultiplyLp blockSize hA wA hB wB
                 kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-                worker.Synchronize()
                 let result = C.Gather()
                 result |> Utils.rebuildMatrix wC finalHeight finalWidth
             ) }
@@ -291,7 +290,7 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (netProps : NnetProperties) trainingSet -> 
+            fun (netProps : NnetProperties) trainingSet testSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
@@ -333,10 +332,19 @@ module CudaTemplates =
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr hW
                         outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
-                        worker.Synchronize()
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
                         addMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr grads.[j].Ptr
                         addMatrixKernel.Launch simpleMatrixLp.[j] weights.[j].Ptr prevDWeights.[j].Ptr
-                        
+
+                for i in 0..Array.length testSet - 1 do
+                    inputs0.Scatter(fst testSet.[i] |> Utils.padToMultipleOf blockSize)
+
+                    for j in 0..N do
+                        let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
+                        multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+
+                    let result = Array.sub (outputs.[N].Gather()) 1 (snd testSet.[i] |> Array.length)
+                    result |> ignore
                 netProps
         ) }
