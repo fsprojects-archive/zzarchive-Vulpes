@@ -361,7 +361,7 @@ type ``CUDA Matrix Multiplication``()=
                 use result = worker.Malloc<float32> (sizePaddedV * sizePaddedW)
 
                 let lp = createSimpleMatrixOperationLp blockSize sizePaddedV sizePaddedW
-                outerProductKernel.Launch lp result.Ptr paddedV.Ptr paddedW.Ptr sizePaddedV sizePaddedW
+                outerProductKernel.Launch lp result.Ptr paddedV.Ptr paddedW.Ptr sizePaddedW
                 result.Gather() |> rebuildMatrix sizePaddedW sizeV sizeW
         )
     }
@@ -432,13 +432,9 @@ type ``CUDA Matrix Multiplication``()=
     let outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default
     let outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default
 
-    let temp1 = outerProductBlock1Program.Run a c
-    let temp2 = outerProductBlock32Program.Run a c
-
     [<Fact>] member test.
         ``The outer product of a and c is computed with a block size of 1.``() =
-            (temp1, temp2) |> should equal (aOuterProductc, aOuterProductc)
-            //outerProductBlock1Program.Run a c |> should equal aOuterProductc
+            outerProductBlock1Program.Run a c |> should equal aOuterProductc
 
     [<Fact>] member test.
         ``The outer product of c and a is computed with a block size of 1.``() =

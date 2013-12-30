@@ -331,23 +331,12 @@ module CudaTemplates =
                         let hW = Utils.height paddedWeights.[j]
                         let wW = Utils.width paddedWeights.[j]
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr hW
-                        outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr hW wW
-                        let grad0 = grads.[j].Gather() |> Utils.rebuildMatrix wW hW wW
+                        outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
                         worker.Synchronize()
-                        let grad1 = grads.[j].Gather() |> Utils.rebuildMatrix wW hW wW
-                        let prevDWeights0 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
-                        let prevDWeights1 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
                         addMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr grads.[j].Ptr
-                        let prevDWeights2 = prevDWeights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
-                        let weights0 = weights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
                         addMatrixKernel.Launch simpleMatrixLp.[j] weights.[j].Ptr prevDWeights.[j].Ptr
-                        let weights1 = weights.[j].Gather() |> Utils.rebuildMatrix wW hW wW
-
-                        let err = errorSignals.[j].Gather()
-
-                        grad0 |> ignore
                         
                 netProps
         ) }
