@@ -37,8 +37,19 @@ module CudaDeepBeliefNet =
             |> List.map fst |> List.rev
 
     let gpuComputeResults netProps trainingSet testSet epochs = 
+//        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f |> Compiler.load Worker.Default
+//        let outputWeights = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
+//        outputWeights |> ignore
+
+        let trainingSet = Array.sub trainingSet 0 1
+        let testSet = Array.sub testSet 0 1
         use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f |> Compiler.load Worker.Default
-        runTrainNeuralNetEpochProgram.Run netProps trainingSet
+        let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
+        let gpuWeights = gpuOutput |> List.mapi (fun iw w -> Array2D.init (height netProps.Weights.[iw]) (width netProps.Weights.[iw]) (fun i j -> w.[i + 1, j]))
+
+        let cpuOutput = NeuralNet.nnetTrain rand netProps trainingSet 1
+        let diff = cpuOutput.Weights |> List.mapi (fun iw w -> subtractMatrices gpuWeights.[iw] w)
+        cpuOutput |> ignore
 //        let netProps' = nnetTrain rnd netProps trainingSet epochs
 //        let setSize = trainingSet.Length
 //

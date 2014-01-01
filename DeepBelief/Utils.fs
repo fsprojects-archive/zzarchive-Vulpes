@@ -135,6 +135,9 @@ module Utils =
 
     let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
     let logitFunction x = log x - log (1.0f - x)
+    let sigmoidDerivative x = 
+        let f = sigmoidFunction x
+        f * (1.0f - f)
 
     let toList M =
         let h = height M

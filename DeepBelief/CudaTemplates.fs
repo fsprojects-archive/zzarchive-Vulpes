@@ -292,6 +292,7 @@ module CudaTemplates =
 
             fun (netProps : NnetProperties) trainingSet testSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
+                
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
@@ -310,8 +311,8 @@ module CudaTemplates =
                 let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 
                 let N = weights.Length - 1
-
                 for i in 0..Array.length trainingSet - 1 do
+                //for i in 0..1000 do
                     inputs0.Scatter(fst trainingSet.[i] |> Utils.padToMultipleOf blockSize)
 
                     for j in 0..N do
@@ -341,10 +342,16 @@ module CudaTemplates =
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
+                        let lo = lastOutput.Gather()
                         multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        let oj1 = outputs.[j].Gather()
                         sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+                        let oj2 = outputs.[j].Gather()
+                        oj2 |> ignore
 
                     let result = Array.sub (outputs.[N].Gather()) 1 (snd testSet.[i] |> Array.length)
                     result |> ignore
-                netProps
+
+                weights |> List.mapi (fun j w -> 
+                    w.Gather() |> Utils.rebuildMatrix (Utils.width paddedWeights.[j]) (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j]))
         ) }

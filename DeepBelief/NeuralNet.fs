@@ -12,7 +12,7 @@ module NeuralNet =
 
     type NnetProperties = {
         Weights : Matrix list
-        Activations : (float32 -> float32) list
+        Activations : ((float32 -> float32) * (float32 -> float32)) list
     }
 
     /// returns list of (out, out') vectors per layer
@@ -25,8 +25,8 @@ module NeuralNet =
                     | _    -> fst (os.Head)
                 let prevOut = prependForBias prevLayerOutput
                 let layerInput = prevOut |> multiplyVectorByMatrix W
-                (layerInput |> Array.map f, 
-                 layerInput |> Array.map (derivative prc f)) :: os) 
+                (layerInput |> Array.map (fst f), 
+                 layerInput |> Array.map (snd f)) :: os) 
           [] (List.zip netProps.Weights netProps.Activations)
 
     /// matlab like pointwise multiply
