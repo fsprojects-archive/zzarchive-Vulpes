@@ -9,6 +9,7 @@ open DeepBelief.DeepBeliefNet
 open DeepBelief.Utils
 open DeepBelief.Kernels
 open DeepBelief.NeuralNet
+open System
 
 type ``CUDA Neural Net``()=
     
@@ -26,7 +27,7 @@ type ``CUDA Neural Net``()=
     let nnetProps = 
         {
             Weights = layeredDbn |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-            Activations = layeredDbn |> List.map (fun _ -> (sigmoid, dSigmoid))
+            Activations = layeredDbn |> List.map (fun _ -> (sigmoid, sigmoid >> dSigmoid))
         }
 
     let sigmoidTemplate (blockSize:int) = cuda {
@@ -78,7 +79,7 @@ type ``CUDA Neural Net``()=
                 let mutable result = []
                 let N = weights.Length - 1
                 for i in 0..Array.length trainingSet - 1 do
-                    inputs0.Scatter(fst trainingSet.[i] |> padToMultipleOf blockSize)
+                    inputs0.Scatter(fst trainingSet.[i] |> prependForBias |> padToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
@@ -88,7 +89,9 @@ type ``CUDA Neural Net``()=
                         coerceKernel.Launch coerceLp outputs.[j].Ptr 0 1.0f
                         coerceKernel.Launch coerceLp dOutputs.[j].Ptr 0 0.0f
 
-                    result <- (outputs.[N].Gather(), dOutputs.[N].Gather()) :: result
+                    let zippedOutputs = List.zip outputs dOutputs
+                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 0 (1 + height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 0 (1 + height netProps.Weights.[iw])))
+                    result <- gatheredOutputs :: result
                 result
        ) }
 
@@ -100,13 +103,36 @@ type ``CUDA Neural Net``()=
     let feedForwardProgramBlock2 = 1 |> feedForwardTemplate |> Compiler.load Worker.Default
     let feedForwardProgramBlock32 = 1 |> feedForwardTemplate |> Compiler.load Worker.Default
 
-    let cpuFeedForwardOutputs = feedForward nnetProps xInput
+    let cpuFeedForwardOutputs = feedForward nnetProps xInput |> List.rev |> List.map (fun (output, dOutput) -> (prependForBias output, prepend 0.0f dOutput))
     let lastPrependedFeedForwardOutput = (prependForBias (fst cpuFeedForwardOutputs.[0]), prepend 0.0f (snd cpuFeedForwardOutputs.[0]))
-    let temp1 = feedForwardProgramBlock1.Run nnetProps gpuInputs
+
+    let liesWithinTolerance diffs =
+        let maxDiff = Array.max diffs
+        maxDiff < 1e-6
+
+    let arraysMatch cpu gpu =
+        Array.zip cpu gpu |> Array.map (fun el -> Math.Abs ((fst el |> float) - (snd el |> float))) |> liesWithinTolerance
+
+    let outputsMatch result =
+        arraysMatch (fst (fst result)) (fst (snd result)) && arraysMatch (snd (fst result)) (snd (snd result))
+
+    let levelResultsMatch results =
+        List.forall (fun result -> outputsMatch result) results
+
+    let resultsMatch cpu gpu =
+        List.zip cpu gpu |> levelResultsMatch
 
     [<Fact>] member test.
-        ``The feedForrward block 1 program matches the outputs of the feedForward function.``()=
-            temp1 |> should equal lastPrependedFeedForwardOutput
+        ``The feedForward block 1 program matches the outputs of the feedForward function.``()=
+            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]) |> should equal true
+
+    [<Fact>] member test.
+        ``The feedForward block 2 program matches the outputs of the feedForward function.``()=
+            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock2.Run nnetProps gpuInputs).[0]) |> should equal true
+
+    [<Fact>] member test.
+        ``The feedForward block 32 program matches the outputs of the feedForward function.``()=
+            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock32.Run nnetProps gpuInputs).[0]) |> should equal true
 
     [<Fact>] member test.
         ``The sigmoid block 1 program maps the logit vector to the original vector.``()=
