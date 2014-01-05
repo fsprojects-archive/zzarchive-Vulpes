@@ -8,6 +8,7 @@ open Common
 open DeepBelief.CudaTemplates
 open DeepBelief.Kernels
 open DeepBelief.Utils
+open TestUtils
 
 type ``CUDA Matrix Multiplication``()=
 
@@ -59,6 +60,9 @@ type ``CUDA Matrix Multiplication``()=
     
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
     let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
+
+    let largeRandomMatrix = Array2D.init 50 100 (fun _ _ -> rand.NextDouble() |> float32)
+    let largeRandomVector = Array.init 100 (fun _ -> rand.NextDouble() |> float32)
 
     let UpperTriangle a b =
         array2D [ [a; b]; [0.0f; a] ]
@@ -269,38 +273,38 @@ type ``CUDA Matrix Multiplication``()=
             ) }
 
     let addVectorTemplate (blockSize : int) = cuda {
-        let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
             let addVectorKernel = program.Apply addVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.simpleVectorOperation blockSize x y addVectorKernel worker
+                Common.binaryVectorOperation blockSize x y addVectorKernel worker
         )
     }
 
     let subtractVectorTemplate (blockSize : int) = cuda {
-        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
             let subtractVectorKernel = program.Apply subtractVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.simpleVectorOperation blockSize x y subtractVectorKernel worker
+                Common.binaryVectorOperation blockSize x y subtractVectorKernel worker
         )
     }
 
     let pointwiseMultiplyVectorTemplate (blockSize : int) = cuda {
-        let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseVectorOperationKernel blockSize |> Compiler.DefineKernel
+        let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.simpleVectorOperation blockSize x y pointwiseMultiplyVectorKernel worker
+                Common.binaryVectorOperation blockSize x y pointwiseMultiplyVectorKernel worker
         )
     }
 
@@ -330,26 +334,26 @@ type ``CUDA Matrix Multiplication``()=
     }
 
     let addMatrixTemplate (blockSize : int) = cuda {
-        let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+        let! addMatrixKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
             let addMatrixKernel = program.Apply addMatrixKernel
 
             fun (A : Matrix) (B : Matrix) ->
-                Common.simpleMatrixOperation blockSize A B addMatrixKernel worker
+                Common.binaryMatrixOperation blockSize A B addMatrixKernel worker
         )
     }
 
     let subtractMatrixTemplate (blockSize : int) = cuda {
-        let! subtractMatrixKernel = <@ pointwiseSubtract @> |> pointwiseMatrixOperationKernel blockSize |> Compiler.DefineKernel
+        let! subtractMatrixKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun (program : Program) ->
             let worker = program.Worker
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
 
             fun (A : Matrix) (B : Matrix) ->
-                Common.simpleMatrixOperation blockSize A B subtractMatrixKernel worker
+                Common.binaryMatrixOperation blockSize A B subtractMatrixKernel worker
         )
     }
 
@@ -491,4 +495,8 @@ type ``CUDA Matrix Multiplication``()=
         ``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``() =
             scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
 
-
+    [<Fact>] member test.
+        ``Multipliying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            multiplyVectorByMatrixBlock32Program.Run largeRandomMatrix largeRandomVector 
+            |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
+            |> should equal true

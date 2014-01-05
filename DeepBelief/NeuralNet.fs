@@ -15,6 +15,12 @@ module NeuralNet =
         Activations : ((float32 -> float32) * (float32 -> float32)) list
     }
 
+    let toNnetProperties weights =
+        {
+            Weights = weights;
+            Activations = weights |> List.map (fun _ -> (Kernels.sigmoid, Kernels.sigmoid >> Kernels.dSigmoid))
+        }
+
     /// returns list of (out, out') vectors per layer
     let feedForward (netProps : NnetProperties) input = 
         List.fold 

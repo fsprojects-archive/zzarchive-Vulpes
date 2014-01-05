@@ -18,7 +18,7 @@ module CudaDeepBeliefNet =
             {
                 Weights = rbm.Weights;
                 DWeights = rbm.DWeights;
-                VisibleBiases = xInputs.[0..,1..] |> toColumns |> Array.map initVisibleUnit;
+                VisibleBiases = xInputs.[0..,1..] |> toColumns |> Array.map initVisibleBias;
                 DVisibleBiases = rbm.DVisibleBiases
                 HiddenBiases = rbm.HiddenBiases
                 DHiddenBiases = rbm.DHiddenBiases
@@ -37,27 +37,14 @@ module CudaDeepBeliefNet =
             |> List.map fst |> List.rev
 
     let gpuComputeResults netProps trainingSet testSet epochs = 
-//        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f |> Compiler.load Worker.Default
-//        let outputWeights = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
-//        outputWeights |> ignore
-
-        let trainingSet = Array.sub trainingSet 0 1
-        let testSet = Array.sub testSet 0 1
-        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f |> Compiler.load Worker.Default
+        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f 1 |> Compiler.load Worker.Default
         let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
-        let gpuWeights = gpuOutput |> List.mapi (fun iw w -> Array2D.init (height netProps.Weights.[iw]) (width netProps.Weights.[iw]) (fun i j -> w.[i + 1, j]))
+        let targets = testSet |> Array.map (fun x -> snd x)
 
-        let cpuOutput = NeuralNet.nnetTrain rand netProps trainingSet 1
-        let diff = cpuOutput.Weights |> List.mapi (fun iw w -> subtractMatrices gpuWeights.[iw] w)
-        cpuOutput |> ignore
-//        let netProps' = nnetTrain rnd netProps trainingSet epochs
-//        let setSize = trainingSet.Length
-//
-//        let testError = 
-//            testSet 
-//            |> Array.fold (fun E (x, t) -> 
-//                let outs = feedForward netProps' x
-//                let En = error t (netoutput outs)
-//                E + En) 0.0f
-//
-//        testError / (float32 setSize)
+        let testError = 
+            Array.zip targets gpuOutput
+            |> Array.fold (fun E (x, t) -> 
+                let En = error t x
+                E + En) 0.0f
+
+        testError / (float32 testSet.Length)

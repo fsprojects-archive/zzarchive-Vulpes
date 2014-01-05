@@ -3,6 +3,7 @@
 module TestUtils =
 
     open DeepBelief
+    open System
     open Utils
 
     let allElementsOfVector predicate (v : Vector) =
@@ -13,3 +14,10 @@ module TestUtils =
 
     let nonZeroEntries M =
         M |> flattenMatrix |> Array.filter (fun x -> x <> 0.0f)
+
+    let liesWithinTolerance diffs =
+        let maxDiff = Array.max diffs
+        maxDiff < 1e-6
+
+    let arraysMatch (cpu : float32[]) (gpu : float32[]) =
+        Array.zip cpu gpu |> Array.map (fun el -> Math.Abs ((fst el |> float) - (snd el |> float))) |> liesWithinTolerance

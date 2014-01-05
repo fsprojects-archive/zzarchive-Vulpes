@@ -11,8 +11,8 @@ open DeepBelief.Utils
 open System
 
 module Common =
-    type SimpleMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> unit
-    let simpleMatrixOperation blockSize A B (kernel : Kernel<SimpleMatrixOperationKernelSignature>) (worker : Worker) =
+    type BinaryMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
+    let binaryMatrixOperation blockSize A B (kernel : Kernel<BinaryMatrixOperationKernelSignature>) (worker : Worker) =
         let hA = height A
         let wA = width A
         let paddedA = padToMultiplesOf blockSize A
@@ -24,14 +24,15 @@ module Common =
 
         use flattenedA = worker.Malloc flattenedA
         use flattenedB = worker.Malloc flattenedB
+        use result = worker.Malloc<float32> flattenedA.Length
 
         let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
-        kernel.Launch lp flattenedA.Ptr flattenedB.Ptr
+        kernel.Launch lp result.Ptr flattenedA.Ptr flattenedB.Ptr
 
-        flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+        result.Gather() |> rebuildMatrix wPaddedA hA wA
 
-    type SimpleVectorOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> int -> unit
-    let simpleVectorOperation blockSize x y (kernel : Kernel<SimpleVectorOperationKernelSignature>) (worker : Worker) =
+    type BinaryVectorOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
+    let binaryVectorOperation blockSize x y (kernel : Kernel<BinaryVectorOperationKernelSignature>) (worker : Worker) =
         let size = Array.length x
         let paddedX = padToMultipleOf blockSize x
         let paddedY = padToMultipleOf blockSize y
@@ -41,7 +42,7 @@ module Common =
         use result = worker.Malloc<float32> paddedX.Length
 
         let lp = createSimpleVectorOperationLp blockSize paddedX.Length
-        kernel.Launch lp result.Ptr paddedX.Ptr paddedY.Ptr paddedX.Length
+        kernel.Launch lp result.Ptr paddedX.Ptr paddedY.Ptr
 
         let result = result.Gather() 
         Array.sub result 0 size

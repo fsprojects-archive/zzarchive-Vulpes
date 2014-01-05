@@ -109,7 +109,7 @@ type ``CUDA Matrix Activation``()=
             let activateKernel = program.Apply activateKernel
 
             fun (A : Matrix) (rnd : Matrix) ->
-                Common.simpleMatrixOperation blockSize A rnd activateKernel worker
+                Common.binaryMatrixOperation blockSize A rnd activateKernel worker
         )
     }
 

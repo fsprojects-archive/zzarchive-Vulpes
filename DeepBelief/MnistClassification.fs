@@ -22,7 +22,7 @@ module MnistClassification =
     let momentum = 0.9f
 
     let mnistDbn = dbn dbnSizes mnistTrainingImages
-    let trainedDbn = gpuDbnTrain alpha momentum 500 3 mnistDbn mnistTrainingImages
+    let trainedDbn = gpuDbnTrain alpha momentum 30 3 mnistDbn mnistTrainingImages
 
     let rbmProps = 
         trainedDbn 

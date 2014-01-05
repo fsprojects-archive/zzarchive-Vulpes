@@ -162,20 +162,26 @@ module Kernels =
     let multiplyVectorByMatrixKernel (blockSize:int) =
         <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
 
-            let bx = blockIdx.x
+            let Xds = __shared__.Array(blockSize);
 
+            let bx = blockIdx.x
             let tx = threadIdx.x
 
             let row = bx * blockSize + tx;
 
             let mutable value = 0.0f
 
-            let mutable k = 0
-            while k < wA do
-                value <- value + A.[wA * row + k] * x.[k]
-                k <- k + 1
+            let mutable m = 0
+            let upperBound = (wA - 1)/blockSize
+            for m in 0..upperBound do
+                
+                Xds.[tx] <- if (m * blockSize + tx < wA) then x.[m * blockSize + tx] else 0.0f
+                __syncthreads()
+                
+                for k in 0..(blockSize - 1) do
+                    value <- value + (if row < hA && m * blockSize + k < wA then A.[m * blockSize + row * wA + k] * Xds.[k] else 0.0f)
+                __syncthreads()
 
-            __syncthreads()
             y.[row] <- value
             __syncthreads() @>
 
@@ -393,7 +399,7 @@ module Kernels =
 
     let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
         let strategy = multiplyStrategy blockSize
-        <@ fun (A : deviceptr<float32>) (rnd : deviceptr<float32>) ->
+        <@ fun (result : deviceptr<float32>) (A : deviceptr<float32>) (rnd : deviceptr<float32>) ->
 
             // Block index
             let bx = blockIdx.x
@@ -402,7 +408,7 @@ module Kernels =
             let tx = threadIdx.x
 
             let i = bx * blockSize + tx;
-            A.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
+            result.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
             __syncthreads() @>
 
     let transformKernel (blockSize : int) (transformationFunction : TransformationFunction) =
@@ -424,8 +430,8 @@ module Kernels =
                 tX.[i] <- 0.0f
             __syncthreads() @>
 
-    let pointwiseVectorOperationKernel (blockSize : int) (operation : PointwiseOperation) =
-        <@ fun (result : deviceptr<float32>) (lhs : deviceptr<float32>) (rhs : deviceptr<float32>) (size : int) ->
+    let pointwiseBinaryOperationKernel (blockSize : int) (operation : PointwiseOperation) =
+        <@ fun (result : deviceptr<float32>) (lhs : deviceptr<float32>) (rhs : deviceptr<float32>) ->
 
             // Block index
             let bx = blockIdx.x
@@ -435,16 +441,18 @@ module Kernels =
 
             let i = bx * blockSize + tx;
 
+            __syncthreads()
             // Write the block sub-matrix to device memory;
             // each thread writes one element
             result.[i] <- (%operation) lhs.[i] rhs.[i]
             __syncthreads() @>
 
-    let coerceKernel =
-        <@ fun (X : deviceptr<float32>) (index : int) (value:float32) ->
+    let coerceKernel (blockSize : int) =
+        <@ fun (X : deviceptr<float32>) (index : int) (value : float32) ->
 
-            X.[index] <- value
-            __syncthreads() @>
+            if index = (blockIdx.x * blockSize + threadIdx.x) then
+                X.[index] <- value
+                __syncthreads() @>
 
     let activateFirstRowKernel (blockSize:int) =
         <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
@@ -486,22 +494,6 @@ module Kernels =
             A.[i] <- v.[i / wA] * w.[i % wA]
             __syncthreads()
             @>
-
-    let pointwiseMatrixOperationKernel (blockSize : int) (operation : PointwiseOperation) =
-        <@ fun (A : deviceptr<float32>) (B : deviceptr<float32>) ->
-            
-            // Block index
-            let bx = blockIdx.x
-
-            // Thread index
-            let tx = threadIdx.x
-
-            let i = bx * blockSize + tx;
-
-            // Write the block sub-matrix to device memory;
-            // each thread writes one element
-            A.[i] <- (%operation) A.[i] B.[i]
-            __syncthreads() @>
 
     let scalarMultiplyMatrixKernel (blockSize : int) =
         let strategy = multiplyStrategy blockSize
