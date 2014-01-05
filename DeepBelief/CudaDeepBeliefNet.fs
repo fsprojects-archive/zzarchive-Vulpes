@@ -37,7 +37,7 @@ module CudaDeepBeliefNet =
             |> List.map fst |> List.rev
 
     let gpuComputeResults netProps trainingSet testSet epochs = 
-        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f 1 |> Compiler.load Worker.Default
+        use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate 0.8f 0.25f epochs |> Compiler.load Worker.Default
         let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
         let targets = testSet |> Array.map (fun x -> snd x)
 

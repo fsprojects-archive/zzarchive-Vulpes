@@ -41,9 +41,9 @@ module DeepBeliefNet =
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
     // of training vectors in which the unit i is on.
-    let initVisibleBias v = // 0.0f
-        let p = proportionOfVisibleUnits v
-        Math.Max(-1.0f, Math.Log(float p) |> float32) - Math.Max(-1.0f, Math.Log(1.0 - float p) |> float32)
+    let initVisibleBias v = 0.0f
+//        let p = proportionOfVisibleUnits v
+//        Math.Max(-1.0f, Math.Log(float p) |> float32) - Math.Max(-1.0f, Math.Log(1.0 - float p) |> float32)
 
     let initRbm nVisible nHidden =
         { 

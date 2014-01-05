@@ -63,6 +63,7 @@ type ``CUDA Matrix Multiplication``()=
 
     let largeRandomMatrix = Array2D.init 50 100 (fun _ _ -> rand.NextDouble() |> float32)
     let largeRandomVector = Array.init 100 (fun _ -> rand.NextDouble() |> float32)
+    let transposeOfLargeRandomMatrix = largeRandomMatrix |> transpose
 
     let UpperTriangle a b =
         array2D [ [a; b]; [0.0f; a] ]
@@ -498,5 +499,11 @@ type ``CUDA Matrix Multiplication``()=
     [<Fact>] member test.
         ``Multipliying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
             multiplyVectorByMatrixBlock32Program.Run largeRandomMatrix largeRandomVector 
+            |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
+            |> should equal true
+
+    [<Fact>] member test.
+        ``Multipliying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix largeRandomVector 
             |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
             |> should equal true

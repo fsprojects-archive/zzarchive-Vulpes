@@ -179,7 +179,7 @@ module Kernels =
                 __syncthreads()
                 
                 for k in 0..(blockSize - 1) do
-                    value <- value + (if row < hA && m * blockSize + k < wA then A.[m * blockSize + row * wA + k] * Xds.[k] else 0.0f)
+                    value <- value + (if row < hA && m * blockSize + k < wA then A.[row * wA + m * blockSize + k] * Xds.[k] else 0.0f)
                 __syncthreads()
 
             y.[row] <- value
@@ -187,6 +187,8 @@ module Kernels =
 
     let multiplyVectorByTransposeOfMatrixKernel (blockSize:int) =
         <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
+
+            let Xds = __shared__.Array(blockSize);
 
             // Block index
             let bx = blockIdx.x
@@ -198,12 +200,17 @@ module Kernels =
 
             let mutable value = 0.0f
 
-            let mutable k = 0
-            while k < hA do
-                value <- value + A.[wA * k + column] * x.[k]
-                k <- k + 1
+            let mutable m = 0
+            let upperBound = (hA - 1)/blockSize
+            for m in 0..upperBound do
+                
+                Xds.[tx] <- if (m * blockSize + tx < hA) then x.[m * blockSize + tx] else 0.0f
+                __syncthreads()
+                
+                for k in 0..(blockSize - 1) do
+                    value <- value + (if column < wA && m * blockSize + k < hA then A.[column + wA * (m * blockSize + k)] * Xds.[k] else 0.0f)
+                __syncthreads()
 
-            __syncthreads()
             y.[column] <- value
             __syncthreads() @>
 
