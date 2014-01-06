@@ -22,6 +22,7 @@ module NeuralNet =
         }
 
     /// returns list of (out, out') vectors per layer
+    // Taken from Reto Matter's blog, http://retomatter.blogspot.ch/2013/01/functional-feed-forward-neural-networks.html
     let feedForward (netProps : NnetProperties) input = 
         List.fold 
             (fun (os : (Vector * Vector) list) (W, f) -> 
