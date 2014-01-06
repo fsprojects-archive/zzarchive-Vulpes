@@ -394,7 +394,10 @@ module Kernels =
                 index <- index + numThreads @>
 
     let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
-    let [<ReflectedDefinition>] dSigmoid s = s * (1.0f - s)
+    let [<ReflectedDefinition>] dSigmoid1 x = 
+        let s = sigmoid x
+        s * (1.0f - s)
+    let [<ReflectedDefinition>] dSigmoid2 s x = s * (1.0f - s)
 
     let [<ReflectedDefinition>] pointwiseAdd (a : float32) (b : float32) = a + b
     let [<ReflectedDefinition>] pointwiseSubtract (a : float32) (b : float32) = a - b
@@ -403,6 +406,7 @@ module Kernels =
     type PointwiseOperation = Expr<float32 -> float32 -> float32>
     type ActivationFunction = Expr<float32 -> float32>
     type TransformationFunction = Expr<float32 -> float32>
+    type SecondOrderTransformationFunction = Expr<float32 -> float32 -> float32>
 
     let activateKernel (blockSize : int) (activationFunction : ActivationFunction) =
         let strategy = multiplyStrategy blockSize
@@ -517,4 +521,57 @@ module Kernels =
             // Write the block sub-matrix to device memory;
             // each thread writes one element
             A.[i] <- A.[i] * lambda
+            __syncthreads() @>
+
+    let multiplyVectorByMatrixAndTransformKernel (blockSize:int) (transformationFunction : TransformationFunction) =
+        <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
+
+            let Xds = __shared__.Array(blockSize);
+
+            let bx = blockIdx.x
+            let tx = threadIdx.x
+
+            let row = bx * blockSize + tx;
+
+            let mutable value = 0.0f
+
+            let mutable m = 0
+            let upperBound = (wA - 1)/blockSize
+            for m in 0..upperBound do
+                
+                Xds.[tx] <- if (m * blockSize + tx < wA) then x.[m * blockSize + tx] else 0.0f
+                __syncthreads()
+                
+                for k in 0..(blockSize - 1) do
+                    value <- value + (if row < hA && m * blockSize + k < wA then A.[row * wA + m * blockSize + k] * Xds.[k] else 0.0f)
+                __syncthreads()
+
+            y.[row] <- (%transformationFunction) value
+            __syncthreads() @>
+
+    let multiplyVectorByMatrixAndTransformTwiceKernel (blockSize:int) (transformationFunction1 : TransformationFunction) (transformationFunction2 : SecondOrderTransformationFunction) =
+        <@ fun (y2:deviceptr<float32>) (y1:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
+
+            let Xds = __shared__.Array(blockSize);
+
+            let bx = blockIdx.x
+            let tx = threadIdx.x
+
+            let row = bx * blockSize + tx;
+
+            let mutable value = 0.0f
+
+            let mutable m = 0
+            let upperBound = (wA - 1)/blockSize
+            for m in 0..upperBound do
+                
+                Xds.[tx] <- if (m * blockSize + tx < wA) then x.[m * blockSize + tx] else 0.0f
+                __syncthreads()
+                
+                for k in 0..(blockSize - 1) do
+                    value <- value + (if row < hA && m * blockSize + k < wA then A.[row * wA + m * blockSize + k] * Xds.[k] else 0.0f)
+                __syncthreads()
+
+            y1.[row] <- (%transformationFunction1) value
+            y2.[row] <- (%transformationFunction2) y1.[row] value
             __syncthreads() @>

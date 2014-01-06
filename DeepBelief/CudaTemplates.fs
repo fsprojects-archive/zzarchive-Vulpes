@@ -265,11 +265,10 @@ module CudaTemplates =
         ) }
 
     let runTrainNeuralNetEpochTemplate (eta : float32) (alpha : float32) (epochs : int) (blockSize : int) = cuda {
-        let! multiplyVectorByMatrixKernel = multiplyVectorByMatrixKernel blockSize |> Compiler.DefineKernel
+        let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
+        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
         let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
-        let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
-        let! dSigmoidKernel = <@ dSigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
         let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
         let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
@@ -281,10 +280,9 @@ module CudaTemplates =
         return Entry(fun program ->
             let worker = program.Worker
             let rngKernel = program.Apply rngKernel
-            let multiplyVectorByMatrixKernel = program.Apply multiplyVectorByMatrixKernel
+            let multiplyVectorByMatrixAndTransformKernel = program.Apply multiplyVectorByMatrixAndTransformKernel
+            let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
-            let sigmoidKernel = program.Apply sigmoidKernel
-            let dSigmoidKernel = program.Apply dSigmoidKernel
             let coerceKernel = program.Apply coerceKernel
             let addVectorKernel = program.Apply addVectorKernel
             let subtractVectorKernel = program.Apply subtractVectorKernel
@@ -322,9 +320,7 @@ module CudaTemplates =
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
-                        multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
-                        sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
-                        dSigmoidKernel.Launch outputLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
                     
                     coerceKernel.Launch coerceLp outputs.[N].Ptr 0 1.0f
                     coerceKernel.Launch coerceLp dOutputs.[N].Ptr 0 0.0f
@@ -349,8 +345,7 @@ module CudaTemplates =
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
-                        multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
-                        sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+                        multiplyVectorByMatrixAndTransformKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
 
                     let rawOutput = Array.sub (outputs.[N].Gather()) 1 (Array.length (snd testSet.[i]))
                     let maxIndex = rawOutput |> Array.mapi (fun i x -> i, x) |> Array.maxBy snd |> fst
@@ -361,16 +356,12 @@ module CudaTemplates =
         ) }
 
     let feedForwardTemplate (blockSize:int) = cuda {
-        let! multiplyVectorByMatrixKernel = multiplyVectorByMatrixKernel blockSize |> Compiler.DefineKernel
-        let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
-        let! dSigmoidKernel = <@ dSigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
+        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
             let worker = program.Worker
-            let multiplyVectorByMatrixKernel = program.Apply multiplyVectorByMatrixKernel
-            let sigmoidKernel = program.Apply sigmoidKernel
-            let dSigmoidKernel = program.Apply dSigmoidKernel
+            let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let coerceKernel = program.Apply coerceKernel
 
             fun (netProps : NnetProperties) data -> 
@@ -394,9 +385,7 @@ module CudaTemplates =
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
-                        multiplyVectorByMatrixKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
-                        sigmoidKernel.Launch outputLp.[j] outputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
-                        dSigmoidKernel.Launch outputLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr 1 (Utils.height netProps.Weights.[j])
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
 
                     let zippedOutputs = List.zip outputs dOutputs
                     let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (Utils.height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 1 (Utils.height netProps.Weights.[iw])))

@@ -28,7 +28,7 @@ type ``CUDA Neural Net``()=
     let nnetProps = 
         {
             Weights = layeredDbn |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-            Activations = layeredDbn |> List.map (fun _ -> (sigmoid, sigmoid >> dSigmoid))
+            Activations = layeredDbn |> List.map (fun _ -> (sigmoid, dSigmoid1))
         }
 
     let sigmoidTemplate (blockSize:int) = cuda {

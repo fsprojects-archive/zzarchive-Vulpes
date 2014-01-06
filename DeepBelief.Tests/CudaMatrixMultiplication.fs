@@ -214,6 +214,59 @@ type ``CUDA Matrix Multiplication``()=
 
                 y.Gather() |> subvector size
             ) }
+
+    let multiplyVectorByMatrixAndTransformTwiceTemplate (transformation1 : TransformationFunction) (transformation2 : SecondOrderTransformationFunction) (blockSize:int) = cuda {
+        let! kernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize transformation1 transformation2 |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (x : Vector) ->
+                let size = height A
+
+                let A = padToMultiplesOf blockSize A
+                let x = padToMultipleOf blockSize x
+
+                let hA = height A
+                let wA = width A
+
+                use A = A |> flattenMatrix |> worker.Malloc
+                use x = x |> worker.Malloc
+                use y1 = worker.Malloc<float32>(hA)
+                use y2 = worker.Malloc<float32>(hA)
+
+                let lp = createMultiplyVectorByMatrixLp blockSize hA wA
+                kernel.Launch lp y2.Ptr y1.Ptr A.Ptr x.Ptr hA wA
+
+                (y1.Gather() |> subvector size, y2.Gather() |> subvector size)
+            ) }
+
+    let multiplyVectorByMatrixAndTransformTemplate (transformation : TransformationFunction) (blockSize:int) = cuda {
+        let! kernel = multiplyVectorByMatrixAndTransformKernel blockSize transformation |> Compiler.DefineKernel
+
+        return Entry(fun (program:Program) ->
+            let worker = program.Worker
+            let kernel = program.Apply(kernel)
+
+            fun (A : Matrix) (x : Vector) ->
+                let size = height A
+
+                let A = padToMultiplesOf blockSize A
+                let x = padToMultipleOf blockSize x
+
+                let hA = height A
+                let wA = width A
+
+                use A = A |> flattenMatrix |> worker.Malloc
+                use x = x |> worker.Malloc
+                use y = worker.Malloc<float32>(hA)
+
+                let lp = createMultiplyVectorByMatrixLp blockSize hA wA
+                kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
+
+                y.Gather() |> subvector size
+            ) }
             
     let multiplyVectorByTransposeOfMatrixTemplate (blockSize:int) = cuda {
         let! kernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
@@ -395,6 +448,10 @@ type ``CUDA Matrix Multiplication``()=
     let scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformTwiceBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformTwiceBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.load Worker.Default
     let multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
     let outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default
@@ -507,3 +564,27 @@ type ``CUDA Matrix Multiplication``()=
             multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix largeRandomVector 
             |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
             |> should equal true
+
+    [<Fact>] member test.
+        ``Multipliying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 1).``()=
+            multiplyVectorByMatrixAndTransformBlock1Program.Run largeRandomMatrix largeRandomVector 
+            |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid)
+            |> should equal true
+
+    [<Fact>] member test.
+        ``Multipliying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 32).``()=
+            multiplyVectorByMatrixAndTransformBlock32Program.Run largeRandomMatrix largeRandomVector 
+            |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid)
+            |> should equal true
+
+    [<Fact>] member test.
+        ``Multipliying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=
+            multiplyVectorByMatrixAndTransformTwiceBlock1Program.Run largeRandomMatrix largeRandomVector 
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map dSigmoid1))
+            |> should equal (true, true)
+
+    [<Fact>] member test.
+        ``Multipliying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 32).``()=
+            multiplyVectorByMatrixAndTransformTwiceBlock32Program.Run largeRandomMatrix largeRandomVector 
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map dSigmoid1))
+            |> should equal (true, true)

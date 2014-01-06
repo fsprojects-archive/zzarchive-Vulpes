@@ -18,7 +18,7 @@ module NeuralNet =
     let toNnetProperties weights =
         {
             Weights = weights;
-            Activations = weights |> List.map (fun _ -> (Kernels.sigmoid, Kernels.sigmoid >> Kernels.dSigmoid))
+            Activations = weights |> List.map (fun _ -> (Kernels.sigmoid, Kernels.dSigmoid1))
         }
 
     /// returns list of (out, out') vectors per layer
