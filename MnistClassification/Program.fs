@@ -30,7 +30,12 @@ module Main =
     open MnistClassification
     open Utils
 
+    let dbnSizes = [500; 300; 10]
+    let dbnAlpha = 0.5f
+    let dbnMomentum = 0.9f
+
     [<EntryPoint>]
     let main argv = 
-        printfn "%A" (gpuComputeResults props trainingSet testSet 10)
+        let nnetProps = props dbnSizes dbnAlpha dbnMomentum 30 10
+        printfn "%A" (gpuComputeResults nnetProps trainingSet testSet 0.8f 0.25f 10)
         0

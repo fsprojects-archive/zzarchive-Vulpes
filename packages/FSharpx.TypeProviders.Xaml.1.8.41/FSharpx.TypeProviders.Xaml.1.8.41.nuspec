@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>FSharpx.TypeProviders.Xaml</id>
+    <version>1.8.41</version>
+    <authors>Steffen Forkmann, Daniel Mohl, Tomas Petricek, Ryan Riley, Mauricio Scheffer, Phil Trelford</authors>
+    <owners>Steffen Forkmann, Daniel Mohl, Tomas Petricek, Ryan Riley, Mauricio Scheffer, Phil Trelford</owners>
+    <licenseUrl>http://github.com/fsharp/fsharpx/raw/master/LICENSE.md</licenseUrl>
+    <projectUrl>http://github.com/fsharp/fsharpx</projectUrl>
+    <iconUrl>https://nugetgallery.blob.core.windows.net/icons/FSharpx.1.2.1.110910.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>FSharpx is a library for the .NET platform implementing general functional constructs on top of the F# core library. Its main target is F# but it aims to be compatible with all .NET languages wherever possible.
+
+This library is for the .NET platform implementing a type provider for Xaml files.</description>
+    <summary>FSharpx is a library for the .NET platform implementing general functional constructs on top of the F# core library. Its main target is F# but it aims to be compatible with all .NET languages wherever possible.
+
+This library is for the .NET platform implementing a type provider for Xaml files.</summary>
+    <language>en-US</language>
+    <tags>fsharp csharp interop monad iteratee validation bytestring testing</tags>
+  </metadata>
+</package>

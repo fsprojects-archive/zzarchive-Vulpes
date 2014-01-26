@@ -17,19 +17,17 @@ module MnistClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData
     let mnistTestLabels = loadMnistLabel MnistTestLabelData
 
-    let dbnSizes = [500; 300; 10]
-    let alpha = 0.5f
-    let momentum = 0.9f
+    let mnistDbn dbnSizes = dbn dbnSizes mnistTrainingImages
+    let trainedDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
 
-    let mnistDbn = dbn dbnSizes mnistTrainingImages
-    let trainedDbn = gpuDbnTrain alpha momentum 30 10 mnistDbn mnistTrainingImages
-
-    let rbmProps = 
-        trainedDbn 
+    let rbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
+        trainedDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs
         |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, (sigmoidFunction, sigmoidDerivative)))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
 
-    let props = { Weights = rbmProps.Weights; Activations = rbmProps.Activations }
+    let props dbnSizes dbnAlpha dbnMomentum batchSize epochs =
+        let dbnOutput = rbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs
+        { Weights = dbnOutput.Weights; Activations = dbnOutput.Activations }
 
     let trainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
     let testSet = Array.zip (toArray mnistTestImages) mnistTestLabels
