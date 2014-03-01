@@ -19,5 +19,6 @@
  });
  Runtime.OnLoad(function()
  {
+  return;
  });
 }());

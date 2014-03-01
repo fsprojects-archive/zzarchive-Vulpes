@@ -1,0 +1,173 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.WebSharper.Web</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Web.Control">
+<summary>
+ A base class for defining custom ASP.NET controls. Inherit from this class,
+ override the Body property and use the new class as a Server ASP.NET
+ control in your application.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Web.RpcModule">
+<summary>
+ The WebSharper RPC HttpModule. Handles RPC requests.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Web.ScriptManager.TryFind(System.Web.UI.Page)">
+<summary>
+ Searches the page for a ScriptManager.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Web.ScriptManager.Render(System.Web.UI.HtmlTextWriter)">
+<summary>
+ Renders the resources.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Web.ScriptManager.Register(Microsoft.FSharp.Core.FSharpOption{System.String},System.Web.UI.Control)">
+<summary>
+ Registers a pagelet with the manager.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Web.ScriptManager.Find(System.Web.UI.Page)">
+<summary>
+ Finds an instance of ScriptManager on the page, throwing an
+ exception if it is not present.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Web.ScriptManager">
+<summary>
+ The script manager control takes care of providing resources
+ for the WebSharper pagelets used on the page. Every
+ ASP.NET page should have one instance of this
+ control in the head section.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Web.RpcUtil">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Web.Shared">
+
+</member>
+</members>
+</doc>

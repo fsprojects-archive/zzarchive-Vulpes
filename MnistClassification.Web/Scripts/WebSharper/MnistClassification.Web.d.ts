@@ -3,12 +3,12 @@ declare module MnistClassification {
         module Skin {
             interface Page {
                 Title: string;
-                Body: _List.T<_Html.Element<_Web.Control>>;
+                Body: __ABBREV.__List.T<__ABBREV.__Html.Element<__ABBREV.__Web.Control>>;
             }
         }
         module Controls {
             interface EntryPoint {
-                get_Body(): _Html1.IPagelet;
+                get_Body(): __ABBREV.__Html1.IPagelet;
             }
         }
         module Client {
@@ -18,7 +18,7 @@ declare module MnistClassification {
                 }): void;
             };
             var Main : {
-                (): _Html1.Element;
+                (): __ABBREV.__Html1.Element;
             };
         }
         interface Action {
@@ -26,9 +26,11 @@ declare module MnistClassification {
         interface Website {
         }
     }
+}
+declare module __ABBREV {
     
-    import _List = IntelliFactory.WebSharper.List;
-    import _Html = IntelliFactory.Html.Html;
-    import _Web = IntelliFactory.WebSharper.Web;
-    import _Html1 = IntelliFactory.WebSharper.Html;
+    export import __List = IntelliFactory.WebSharper.List;
+    export import __Html = IntelliFactory.Html.Html;
+    export import __Web = IntelliFactory.WebSharper.Web;
+    export import __Html1 = IntelliFactory.WebSharper.Html;
 }

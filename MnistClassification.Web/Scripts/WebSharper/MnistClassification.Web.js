@@ -7,10 +7,11 @@
     Client:{
      Main:function()
      {
-      var input,label,x,f,arg00;
+      var input,label,x,arg00;
       input=Default.Input(List.ofArray([Default.Text("")]));
       label=Default.Div(List.ofArray([Default.Text("")]));
-      return Default.Div(List.ofArray([input,label,(x=Default.Button(List.ofArray([Default.Text("Click")])),(f=(arg00=function()
+      x=Default.Button(List.ofArray([Default.Text("Click")]));
+      arg00=function()
       {
        return function()
        {
@@ -19,30 +20,19 @@
          return label.set_Text(out);
         });
        };
-      },function(arg10)
-      {
-       return EventsPervasives.Events().OnClick(arg00,arg10);
-      }),(f(x),x)))]));
+      };
+      EventsPervasives.Events().OnClick(arg00,x);
+      return Default.Div(List.ofArray([input,label,x]));
      },
      Start:function(input,k)
      {
-      var arg00,clo1,t;
-      arg00=Concurrency.Delay((clo1=function()
+      return Concurrency.Start(Concurrency.Delay(function()
       {
-       var x,f;
-       x=Remoting.Async("MnistClassification.Web:0",[input]);
-       f=function(_arg1)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[input]),function(_arg1)
        {
-        var x1;
-        x1=k(_arg1);
-        return Concurrency.Return(x1);
-       };
-       return Concurrency.Bind(x,f);
-      },clo1));
-      t={
-       $:0
-      };
-      return Concurrency.Start(arg00);
+        return Concurrency.Return(k(_arg1));
+       });
+      }));
      }
     },
     Controls:{
@@ -71,5 +61,6 @@
  });
  Runtime.OnLoad(function()
  {
+  return;
  });
 }());

@@ -1,0 +1,485 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.Formlet</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.Formlet.Base.Form`2">
+<summary>
+ Represent a form
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.WithNotificationChannel``1(IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Constructs a formlet with a handler to it&apos;s notification channel.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.WithNotification``1(Microsoft.FSharp.Core.FSharpFunc{System.Object,Microsoft.FSharp.Core.Unit},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Constructs a formlet with an extra notification action.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.WithLayout``1(IntelliFactory.Formlet.Base.Layout{`0},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Specifies the layout.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.Sequence``2(System.Collections.Generic.IEnumerable{IntelliFactory.Formlet.Base.IFormlet{`0,``1}})">
+<summary>
+ Given a sequence of formlets returns a composed formlet
+ producing a list of values.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.SelectMany``1(IntelliFactory.Formlet.Base.IFormlet{`0,IntelliFactory.Formlet.Base.IFormlet{`0,``0}})">
+<summary>
+ Collects all values from nested formlets.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.New``1(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.Formlet.Base.Form{`0,``0}})">
+<summary>
+ Creates a new formlet with the default layout.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.MapResult``2(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.Formlet.Base.Result{``0},IntelliFactory.Formlet.Base.Result{``1}},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Maps the result.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.MapBody``1(Microsoft.FSharp.Core.FSharpFunc{`0,`0},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Maps the body.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.Map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Maps the value.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.LiftResult``1(IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Returns with lifted result type.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.FlipBody``1(IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Flips the stream of body edit operations so that each left
+ branch becomes a right branch and vice versa.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.EmptyForm``1">
+<summary>
+ Constructs an empty form.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.BuildForm``1(IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Builds the form and applies the layout.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.ApplyLayout``1(IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Maps the body.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.FormletProvider`1.Apply``2(IntelliFactory.Formlet.Base.IFormlet{`0,Microsoft.FSharp.Core.FSharpFunc{``0,``1}},IntelliFactory.Formlet.Base.IFormlet{`0,``0})">
+<summary>
+ Applicative style of application for formlets.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.Formlet.Base.FormletProvider`1">
+<summary>
+ Defines formlets and their operations.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="F:IntelliFactory.Formlet.Base.IntelliFactory.Formlet.Base.Formlet`2.Build">
+<summary>
+ Builds the form without applying the layout.
+</summary>
+</member>
+<member name="F:IntelliFactory.Formlet.Base.IntelliFactory.Formlet.Base.Formlet`2.Layout">
+<summary>
+ The layout manager.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.Formlet.Base.LayoutUtils">
+<summary>
+ Defines layout managers and their associated operations.
+ TODO: make private (error with WS???)
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Result`1.Sequence(System.Collections.Generic.IEnumerable{IntelliFactory.Formlet.Base.Result{`0}})">
+<summary>
+ Converts a sequence of results into a result with a
+ a sequence of values.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Result`1.Map``1(Microsoft.FSharp.Core.FSharpFunc{`0,``0},IntelliFactory.Formlet.Base.Result{`0})">
+<summary>
+ Maps the value.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsTrue``2(System.String,``0)">
+<summary>
+ Only accept &quot;true&quot; values.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsRegexMatch``2(System.String,System.String,``0)">
+<summary>
+ Validates a formlet against a regex, with a given error message on failure.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsNotEqual``3(``0,System.String,``1)">
+<summary>
+ Only accept values not equal to the the given value.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsNotEmpty``2(System.String,``1)">
+<summary>
+ Validator for preventing empty values.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsLessThan``3(``0,System.String,``1)">
+<summary>
+ Only accept values less than than the given value.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsInt``2(System.String)">
+<summary>
+ Only accept integer input.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsGreaterThan``3(``0,System.String,``1)">
+<summary>
+ Only accept values greater than the given value.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsFloat``2(System.String)">
+<summary>
+ Only accept float input.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsEqual``3(``0,System.String,``1)">
+<summary>
+ Only accept values equal to the given value.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.IsEmail``2(System.String)">
+<summary>
+ TODO: Check for consistency!
+ Only accept email addresses.
+</summary>
+</member>
+<member name="M:IntelliFactory.Formlet.Base.Validator.Is``3(Microsoft.FSharp.Core.FSharpFunc{``0,System.Boolean},System.String,``1)">
+<summary>
+ Validator for preventing empty values.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.Formlet.Base.Tree">
+<summary>
+ Defines a binary tree structure and its associated operations.
+ In particular, defines a derivative type to describe tree edits.
+</summary>
+</member>
+</members>
+</doc>

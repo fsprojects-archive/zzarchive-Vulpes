@@ -1,0 +1,754 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.WebSharper.Collections</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.Dictionary`2">
+<summary>
+ Implements a proxy for the .NET dictionary.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.FSharpMap`2">
+<summary>
+ Implements a proxy for the F# Map type.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.FSharpSet`1">
+<summary>
+ Implements a proxy for the F# Set type.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.Pair`2">
+<summary>
+ Represents a key-value pair with comparison and equality
+ ignoring the value and using only the key.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.BalancedTree.Tree`1">
+<summary>
+ Represents a binary balanced search tree, preserving the balance
+ invariant: the heights of the branches differ by at most 1.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.TryFind``1(``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Looks up a node by key.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Contains``1(``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Checks if a tree contains a given key.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Add``1(``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Adds a node into the tree, replacing an existing one if found.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Remove``1(``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Removes a node from the tree.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Put``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpFunc{``0,``0}},``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Inserts or updates a node in the tree. If a matching node is found,
+ it is replaced with the value of &quot;combine old new&quot;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Rebuild``1(System.Tuple{System.Boolean,``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0}}[],IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Rebuilds an unzipped tree by going up the spine and performing
+ rotations where necessary for balance.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Lookup``2(``0,IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Unzips a tree into a matching node and a spine.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.OfSorted``1(``0[])">
+<summary>
+ Quickly constructs a tree from a sorted, distinct array.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Build``1(``0[],System.Int32,System.Int32)">
+<summary>
+ Builds a tree from sorted input and the indices of the
+ first and the last elements to include.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Descend``1(IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Traverses the tree in descending order.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Collections.BalancedTree.Ascend``1(IntelliFactory.WebSharper.Collections.BalancedTree.Tree{``0})">
+<summary>
+ Traverses the tree in ascending order.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.BalancedTree">
+<summary>
+ Provides balanced binary search tree operations.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.DictionaryUtil">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.LinkedList">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.MapModule">
+<summary>
+ Implements a proxy for the F# Map module.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.MapUtil">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.ResizeArray">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.SetModule">
+<summary>
+ Implements a proxy for the F# Set module.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Collections.SetUtil">
+
+</member>
+</members>
+</doc>

@@ -1,0 +1,1135 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.WebSharper.Sitelets</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content`1">
+<summary>
+ Represents server responses to actions. The Page response is special-cased
+ for combinators to have access to it.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.RootFolder">
+<summary>
+ The full path to the root application folder.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.Request">
+<summary>
+ HTTP Request object
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.ResourceContext">
+<summary>
+ WebSharper resource rendering context required for resources.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.Metadata">
+<summary>
+ WebSharper metadata required for serializing controls.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.Json">
+<summary>
+ The typed JSON provider for interacting with the client.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.Link">
+<summary>
+ Generates a (possibly relative) URL to a given action.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Sitelets.IntelliFactory.WebSharper.Sitelets.Context`1.ApplicationPath">
+<summary>
+ Virtual application root path on the server.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Context`1">
+<summary>
+ Provides services available to handlers at run-time.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Controller`1">
+<summary>
+ Represents a controller that matches actions to responses.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.HttpHandler">
+<summary>
+ The ISS handler for WebSharper applications.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.HttpModule">
+<summary>
+ IIS module, processing the URLs and serving the pages.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Location">
+<summary>
+ Represents addressable locations.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Page">
+<summary>
+ Represents HTML pages with embedded WebSharper controls.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Plugin">
+<summary>
+ Implements the WebSharper executable plugin for generating
+ offline pages with sitelets. To use, run WebSharper.exe sitelets.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router`1.op_LessBarGreater(IntelliFactory.WebSharper.Sitelets.Router{`0},IntelliFactory.WebSharper.Sitelets.Router{`0})">
+<summary>
+ Combines two routers. The combined router
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router`1.Route(IntelliFactory.WebSharper.Sitelets.Http.Request)">
+<summary>
+ Tries to route a request to an action. Fails if the request
+ is not understood by the router.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router`1.Link(`0)">
+<summary>
+ Tries to constructs a link to a given action. Fails with None
+ if the action is not understood by the router.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Router`1">
+<summary>
+ Provides a bijection between URL locations and abstract actions.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet`1.op_LessBarGreater``1(IntelliFactory.WebSharper.Sitelets.Sitelet{``0},IntelliFactory.WebSharper.Sitelets.Sitelet{``0})">
+<summary>
+ Combines two sitelets, with the leftmost taking precedence.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Sitelet`1">
+<summary>
+ Represents a self-contained website parameterized by the type of actions.
+ A sitelet combines a router, which is used to match incoming requests to
+ actions and actions to URLs, and a controller, which is used to handle
+ the actions.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With``1(System.String,System.Func{`0,Microsoft.FSharp.Control.FSharpAsync{``0}})">
+ <summary>Adds an element-list-valued hole accessible in the
+ template via the <c>data-hole="name"</c> attribute.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With(System.String,System.Func{`0,Microsoft.FSharp.Control.FSharpAsync{IntelliFactory.Html.Html.Element{IntelliFactory.WebSharper.Web.Control}}})">
+ <summary>Adds an element-valued hole accessible in the
+ template via the <c>data-hole="name"</c> attribute.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With(System.String,System.Func{`0,Microsoft.FSharp.Control.FSharpAsync{System.String}})">
+ <summary>Adds a text-valued hole accessible in the
+ template as <c>${name}</c>.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With``1(System.String,System.Func{`0,``0})">
+ <summary>Adds an element-list-valued hole accessible in the
+ template via the <c>data-hole="name"</c> attribute.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With(System.String,System.Func{`0,IntelliFactory.Html.Html.Element{IntelliFactory.WebSharper.Web.Control}})">
+ <summary>Adds an element-valued hole accessible in the
+ template via the <c>data-hole="name"</c> attribute.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.With(System.String,System.Func{`0,System.String})">
+ <summary>Adds a text-valued hole accessible in the
+ template as <c>${name}</c>.</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.Run(`0,Microsoft.FSharp.Core.FSharpOption{System.String})">
+<summary>
+ Expands the template on a given value. Optionally pass the root folder.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.Compile(Microsoft.FSharp.Core.FSharpOption{System.String})">
+<summary>
+ Compiles the template as a simple template. Recommended to use before Run
+ for early detection of errors. Optionally pass the root folder.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.#ctor(System.String,IntelliFactory.WebSharper.Sitelets.Content.Template.LoadFrequency)">
+<summary>
+ Constructs a new template from an XML file at a given path,
+ also specifying the load frequency (defaults to WhenChanged).
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Template`1.#ctor(System.String)">
+<summary>
+ Constructs a new template from an XML file at a given path.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template`1">
+ <summary>Defines a new page template.  Template files are parsed as XML
+ and then analyzed for placeholders.  There are text placeholders
+ <c>${foo}</c> that can appear inside text nodes and attributes, and
+ node or node-list placeholders such as
+ <c>&lt;div data-hole="bar"&gt;</c> or <c>&lt;div data-replace="bar"&gt;</c>.
+ Node placeholder elements get completely replaced (data-replace),
+ or get their contents replaced (data-hole) during expansion.
+ This mechanism allows to populate placeholders with example
+ content and validate templates as HTML5 during development.</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.HtmlElement">
+<summary>
+ A type of HTML elements.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.WithTemplate``2(IntelliFactory.WebSharper.Sitelets.Content.Template{``1},Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Sitelets.Context{``0},``1})">
+<summary>
+ Applies a template as a page template for sitelet content.
+ An extra placeholder called &quot;scripts&quot; is available with WebSharper-determined
+ dependencies.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.WithTemplateAsync``2(IntelliFactory.WebSharper.Sitelets.Content.Template{``1},Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Sitelets.Context{``0},Microsoft.FSharp.Control.FSharpAsync{``1}})">
+<summary>
+ Asynchronously applies a template as a page template for sitelet content.
+ An extra placeholder called &quot;scripts&quot; is available with WebSharper-determined
+ dependencies.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.ServerError``1">
+<summary>
+ Constructs a 500 Server Error response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.NotFound``1">
+<summary>
+ Constructs a 404 Not Found response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Forbidden``1">
+<summary>
+ Constructs a 403 Forbidden response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Unauthorized``1">
+<summary>
+ Constructs a 401 Unauthorized response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.RedirectTemporaryToUrl``1(System.String)">
+<summary>
+ Redirects temporarily (307 Redirect Temporary) to a given URL.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.RedirectTemporary``1(``0)">
+<summary>
+ Redirects temporarily (307 Redirect Temporary) to a given action.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.RedirectToUrl``1(System.String)">
+<summary>
+ Redirects permanently (301 Moved Permanently) to a given URL.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.Redirect``1(``0)">
+<summary>
+ Redirects permanently (301 Moved Permanently) to a given action.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.SetStatus``1(IntelliFactory.WebSharper.Sitelets.Http.Status,IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Sets the status of the generated response.
+ Transforms any content to &apos;CustomContent&apos;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.WithHeaders``1(System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Sitelets.Http.Header},IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Add headers to the generated response. Transforms any
+ content to &apos;CustomContent&apos;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.MapResponseAsync``1(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Sitelets.Http.Response,Microsoft.FSharp.Control.FSharpAsync{IntelliFactory.WebSharper.Sitelets.Http.Response}},IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Modify the response of a content. Transforms any
+ content to &apos;CustomContent&apos;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.MapResponse``1(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Sitelets.Http.Response,IntelliFactory.WebSharper.Sitelets.Http.Response},IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Modify the response of a content. Transforms any
+ content to &apos;CustomContent&apos;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.ToCustomContent``1(IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Eliminates the PageContent case. This member is obsolete.
+ Use ToResponse instead.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.ToResponseAsync``1(IntelliFactory.WebSharper.Sitelets.Content{``0},IntelliFactory.WebSharper.Sitelets.Context{``0})">
+<summary>
+ Generates an HTTP response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Content.ToResponse``1(IntelliFactory.WebSharper.Sitelets.Content{``0},IntelliFactory.WebSharper.Sitelets.Context{``0})">
+<summary>
+ Generates an HTTP response. OBSOLETE - use the Async version.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template.LoadFrequency.WhenChanged">
+<summary>
+ Loading detects file changes and only happens
+ when necessary, using System.IO.FileSystemWatcher
+ to detect changes in the file system.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template.LoadFrequency.PerRequest">
+<summary>
+ Loading happens once per every request, which
+ is useful for development.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template.LoadFrequency.Once">
+<summary>
+ Loading happens once per application start.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template.LoadFrequency">
+<summary>
+ Defines how frequently a template should be
+ loaded from disk.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content.Template">
+<summary>
+ HTML template utilities.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Content">
+<summary>
+ Provides combinators for modifying content.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Extensions">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.Unauthorized">
+<summary>
+ 401 Unauthorized.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.Ok">
+<summary>
+ 200 Ok.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.NotFound">
+<summary>
+ 404 Not Found.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.InternalServerError">
+<summary>
+ 500 Internal Error.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.Forbidden">
+<summary>
+ 403 Forbidden.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Status.Code">
+<summary>
+ The integer status code, such as 200.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Http.Status.Custom(System.Int32,Microsoft.FSharp.Core.FSharpOption{System.String})">
+<summary>
+ Custom status with an integer code and optional message.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.Status">
+<summary>
+ Represents the status of HTTP responses.
+ TODO
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.Request">
+<summary>
+ Represents HTTP requests.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Http.ParameterCollection.ToList">
+<summary>
+ Transforms the parameter list into a list of
+ name and value pairs.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Http.ParameterCollection.Item(System.String)">
+<summary>
+ Get the entry with the specified key.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Http.ParameterCollection.#ctor(System.Collections.Generic.IEnumerable{System.Tuple{System.String,System.String}})">
+<summary>
+ Creates a new parameter collection from s sequence of name and value pairs.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.ParameterCollection">
+<summary>
+ Represents parameter collections.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.Header">
+<summary>
+ Represents HTTP headers.
+ May later add active patterns and constructors
+ for common headers.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Http.Version.Default">
+<summary>
+ The default version (1.1).
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Http.Version.Custom(System.Double)">
+<summary>
+ Constructs a new custom version.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.Version">
+<summary>
+ Represents the HTTP version for responses and requests.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.Method">
+<summary>
+ Represents HTTP methods.
+ See: http://www.w3.org/Protocols/rfc2616/rfc2616-sec9.html.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.StatusUtils">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http.VersionUtils">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Http">
+<summary>
+ Defines HTTP-related functionality.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Offline.Extra.CopyFiles(System.String,System.String)">
+<summary>
+ Copies files specified in extra.files to the html directory of a mobile application
+ takes in the directory in which extra.files is contained and the destination.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Extra">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Options.T">
+<summary>
+ Represents command-line options.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Offline.Options.Parse(System.Collections.Generic.IEnumerable{System.String})">
+<summary>
+ Parses the command-line arguments.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Sitelets.Offline.Options.Help">
+<summary>
+ The help string that describes the options.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Options">
+<summary>
+ Provides tools for creating the pages as physical files.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Output.Config">
+<summary>
+ Configuration options.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Output.Mode">
+<summary>
+ The output mode, Debug or Release.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Offline.Output.WriteSite(IntelliFactory.Core.AssemblyResolution.AssemblyResolver,IntelliFactory.WebSharper.Sitelets.Offline.Output.Config)">
+<summary>
+ Writes a site given the configuration options.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Offline.Output">
+<summary>
+ Implements offline sitelet HTML generation.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.ResourceContext">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.TryMap``2(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{``1}},Microsoft.FSharp.Core.FSharpFunc{``1,Microsoft.FSharp.Core.FSharpOption{``0}},IntelliFactory.WebSharper.Sitelets.Router{``0})">
+<summary>
+ Maps over the action type of the router.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Empty``1">
+<summary>
+ The empty router, the unit of &lt;|&gt;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.At``1(System.String,IntelliFactory.WebSharper.Sitelets.Router{``0})">
+<summary>
+ Modifies the router to use a constant URL.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.FromJsonParameter``1(System.String)">
+<summary>
+ Creates a router with Link always failing,
+ and Route picking a POST-ed parameter with a
+ given key, assumes that the corresponding value is
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.FromPostParameter(System.String)">
+<summary>
+ Creates a router with Link always failing,
+ and Route picking a POST-ed parameter with a
+ given key, for example PostParameter &quot;id&quot; routes
+ request POST id=123 to action &quot;123&quot;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Shift``1(System.String,IntelliFactory.WebSharper.Sitelets.Router{``0})">
+<summary>
+ Shifts the router&apos;s locations by adding a prefix.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},Microsoft.FSharp.Core.FSharpFunc{``1,``0},IntelliFactory.WebSharper.Sitelets.Router{``0})">
+<summary>
+ Maps over a router, changing its action type.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Sum``1(System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Sitelets.Router{``0}})">
+<summary>
+ Composes several routers. For both linking and routing,
+ the leftmost matching router is selected. Two routers can be
+ composed with the `&lt;|&gt;` combinator.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Infer``1">
+<summary>
+ Infers the router by analyzing an algebraic action data type.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.Table``1(System.Collections.Generic.IEnumerable{System.Tuple{``0,System.String}})">
+<summary>
+ Constructs a router from a finite table defining a
+ bijection between locations and actions. Throws InvalidArgument
+ exceptions if the table does not define a bijection.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Router.New``1(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Sitelets.Http.Request,Microsoft.FSharp.Core.FSharpOption{``0}},Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.FSharpOption{System.Uri}})">
+<summary>
+ Constructs a custom new router with a given route and link functions.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Router">
+<summary>
+ Provides combinators over the Router type.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.SiteLoading">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Sitelet.Filter`1">
+<summary>
+ Represents filters for protecting sitelets.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Infer``1(Microsoft.FSharp.Core.FSharpFunc{``0,IntelliFactory.WebSharper.Sitelets.Content{``0}})">
+<summary>
+ Constructs a sitelet with an inferred router and a given controller
+ function.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.UnsafeDowncast``1(IntelliFactory.WebSharper.Sitelets.Sitelet{System.Object})">
+<summary>
+ Reverses the Upcast operation on the sitelet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Upcast``1(IntelliFactory.WebSharper.Sitelets.Sitelet{``0})">
+<summary>
+ Boxes the sitelet action type to Object type.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Folder``1(System.String,System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Sitelets.Sitelet{``0}})">
+<summary>
+ Serves the sum of the given sitelets under a given prefix.
+ This function is convenient for folder-like structures.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Sum``1(System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Sitelets.Sitelet{``0}})">
+<summary>
+ Combines several sitelets, leftmost taking precedence.
+ Is equivalent to folding with the choice operator.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Shift``1(System.String,IntelliFactory.WebSharper.Sitelets.Sitelet{``0})">
+<summary>
+ Shifts all sitelet locations by a given prefix.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},Microsoft.FSharp.Core.FSharpFunc{``1,``0},IntelliFactory.WebSharper.Sitelets.Sitelet{``0})">
+<summary>
+ Maps over the sitelet action type. Requires a bijection.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Content``1(System.String,``0,IntelliFactory.WebSharper.Sitelets.Content{``0})">
+<summary>
+ Constructs a singleton sitelet that contains exactly one action
+ and serves a single content value at a given location.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Protect``1(IntelliFactory.WebSharper.Sitelets.Sitelet.Filter{``0},IntelliFactory.WebSharper.Sitelets.Sitelet{``0})">
+<summary>
+ Constructs a protected sitelet given the filter specification.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Sitelet.Empty``1">
+<summary>
+ Creates an empty sitelet.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Sitelet">
+<summary>
+ Provides combinators over sitelets.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Specialization.IGeneric`2.Run``1(`0)">
+<summary>
+ Runs the computation. Note the generic &apos;T3 argument.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Specialization.IGeneric`2">
+<summary>
+ Represents a generic algorithm.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.Specialization.Specialize``2(IntelliFactory.WebSharper.Sitelets.Specialization.IGeneric{``0,``1})">
+<summary>
+ Specializes the generic algorithm.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Specialization">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Factory.GetFormatFor(System.Type)">
+<summary>
+ Derives an encoding for the given type.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Factory.GetFormat``1">
+<summary>
+ Derives an encoding for the given type passed as a type parameter.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Factory.Create">
+<summary>
+ Creates a new factory.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Factory">
+<summary>
+ Represents cached formatter collection.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Format`1.Show(`0)">
+<summary>
+ Formats a value. Fails if it cannot be represented.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Format`1.Read(System.String)">
+<summary>
+ Parses a string. Fails if the string cannot be parsed.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlEncoding.Format`1">
+<summary>
+ Represents an URL encoding for a given type.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.GetFormatFor(System.Type)">
+<summary>
+ Derives a format for a given type using a new temporary factory.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UrlEncoding.GetFormat``1">
+<summary>
+ Derives a format using a new temporary factory.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlEncoding.NoFormatError">
+<summary>
+ Thrown when a formatter cannot be derived for a certain type.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlEncoding">
+<summary>
+ Implements generic URL encoding and decoding for algebraic
+ datatypes. To be on the safe side, the encoded values use only
+ unreserved URL characters (including alphanumeric, tilde, dash,
+ underscore and dot characters). Tilde serves as a special character
+ starting escape sequences. The encoding also uses the forward slash
+ to separate logical components.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlHelpers.Internals">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UrlHelpers">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UserSession.Logout">
+<summary>
+ Logout current user.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UserSession.LoginUser(System.String)">
+<summary>
+ Login user.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UserSession.GetLoggedInUser">
+<summary>
+ Gets the currently logged in user.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.UserSession.Refresh">
+<summary>
+ Refreshes the user cookie.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.UserSession">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.Utils">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.WebUtils.respond(IntelliFactory.WebSharper.Sitelets.Sitelet{System.Object},System.Web.HttpContext,IntelliFactory.WebSharper.Sitelets.Http.Request,System.Object)">
+<summary>
+ Writes a response.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.WebUtils.getContext(IntelliFactory.WebSharper.Sitelets.Sitelet{System.Object},System.Web.HttpRequest,IntelliFactory.WebSharper.Sitelets.Http.Request)">
+<summary>
+ Constructs the sitelet context object.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Sitelets.WebUtils.convertRequest(System.Web.HttpContext)">
+<summary>
+ Converts ASP.NET requests to Sitelet requests.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Sitelets.WebUtils">
+
+</member>
+</members>
+</doc>

@@ -1,0 +1,492 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<doc>
+  <assembly>
+    <name>IntelliFactory.WebSharper.JQuery</name>
+  </assembly>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Type()">
+    <summary>Determine the internal JavaScript [[Class]] of an object</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.IsWindow(System.Object)">
+    <summary>This is used in a number of places in jQuery to determine if we're operating against a browser window (such as the current window or an iframe).</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Binds a function to be executed when the DOM has finished loading.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String,System.Object)">
+    <summary>Creates DOM elements on the fly from the provided string of raw HTML.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String,IntelliFactory.WebSharper.Dom.Document)">
+    <summary>Creates DOM elements on the fly from the provided string of raw HTML.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(IntelliFactory.WebSharper.Dom.Node)">
+    <summary>DOM node to wrap in a jQuery object.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(IntelliFactory.WebSharper.Dom.Node[])">
+    <summary>An array containing a set of DOM elements to wrap in a jQuery object.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String,IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Accepts a string containing a CSS selector and a DOM Element, Document, or jQuery to use as context.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String,System.String)">
+    <summary>Accepts a string containing a CSS selector and a DOM Element, Document, or jQuery to use as context.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String,IntelliFactory.WebSharper.JQuery.JQuery)">
+    <summary>Accepts a string containing a CSS selector and a DOM Element, Document, or jQuery to use as context.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Of(System.String)">
+    <summary>Accepts a string containing a CSS selector which is then used to match a set of elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.UnbindFalse(System.String,System.Object)">
+    <summary>Attach a handler to an event for the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Index(IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Search for a given element from among the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Index(System.String)">
+    <summary>Search for a given element from among the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Index()">
+    <summary>Search for a given element from among the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hover(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind two handlers to the matched elements, to be executed when the mouse pointer enters and leaves the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hover(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind two handlers to the matched elements, to be executed when the mouse pointer enters and leaves the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.Int32,System.String)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.String,System.String)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.Int32,System.String,System.Action`1&lt;IntelliFactory.WebSharper.Dom.Element&gt;)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.String,System.String,System.Action`1&lt;IntelliFactory.WebSharper.Dom.Element&gt;)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide()">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.Int32)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.String)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.Int32,System.Action`1&lt;IntelliFactory.WebSharper.Dom.Element&gt;)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Hide(System.String,System.Action`1&lt;IntelliFactory.WebSharper.Dom.Element&gt;)">
+    <summary>Hide the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Height(System.Int32)">
+    <summary>Get the current computed height for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Height()">
+    <summary>Get the current computed height for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.HasClass(System.String)">
+    <summary>Determine whether any of the matched elements are assigned the given class.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Has(System.String,IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Reduce the set of matched elements to those that have a descendant that matches the selector or DOM element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Get()">
+    <summary>Retrieve the DOM elements matched by the jQuery object.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Get(System.Int32)">
+    <summary>Retrieve the DOM elements matched by the jQuery object.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focusout(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focusout" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focusout(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focusout" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focusin(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focusin" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focusin(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focusin" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focus(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focus" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focus()">
+    <summary>Bind an event handler to the "focus" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Focus(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "focus" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.First()">
+    <summary>Reduce the set of matched elements to the first in the set.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Find(System.String)">
+    <summary>Get the descendants of each element in the current set of matched elements, filtered by a selector.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Filter(System.Converter`2&lt;IntelliFactory.WebSharper.Dom.Element,System.Boolean&gt;)">
+    <summary>Reduce the set of matched elements to those that match the selector or pass the function's test.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Filter(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,System.Int32,System.Boolean&gt;)">
+    <summary>Reduce the set of matched elements to those that match the selector or pass the function's test.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Filter(System.String)">
+    <summary>Reduce the set of matched elements to those that match the selector or pass the function's test.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.Double,System.String)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.String,System.String)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.Double,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.String,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle()">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.Double)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.String)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.Double,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeToggle(System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display or hide the matched elements by animating their opacity.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.Double,System.Double)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.String,System.Double)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.Double,System.Double,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.String,System.Double,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.Double,System.Double,System.String)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.String,System.Double,System.String)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.Double,System.Double,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeTo(System.String,System.Double,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Adjust the opacity of the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.Double,System.String)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.String,System.String)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.Double,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.String,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut()">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.Double)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.String)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.Double,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeOut(System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to transparent.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.Double,System.String)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.String,System.String)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.Double,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.String,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn()">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.Double)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.String)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.Double,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.FadeIn(System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Display the matched elements by fading them to opaque.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Error(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "error" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Error(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "error" JavaScript event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.End()">
+    <summary>End the most recent filtering operation in the current chain and return the set of matched elements to its previous state.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Empty()">
+    <summary>Remove all child nodes of the set of matched elements from the DOM.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Each(System.Action`1&lt;IntelliFactory.WebSharper.Dom.Element&gt;)">
+    <summary>Iterate over a jQuery object, executing a function for each matched element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Each(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,System.Int32,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Iterate over a jQuery object, executing a function for each matched element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Detach()">
+    <summary>Remove the set of matched elements from the DOM.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Detach(System.String)">
+    <summary>Remove the set of matched elements from the DOM.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Dequeue()">
+    <summary>Execute the next function on the queue for the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Dequeue(System.String)">
+    <summary>Execute the next function on the queue for the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Delegate(System.String,IntelliFactory.WebSharper.JQuery.Event,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Attach a handler to one or more events for all elements that match the selector, now or in the future, based on a specific set of root elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Delegate(System.String,IntelliFactory.WebSharper.JQuery.Event,System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Attach a handler to one or more events for all elements that match the selector, now or in the future, based on a specific set of root elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Delay(System.Int32)">
+    <summary>Set a timer to delay execution of subsequent items in the queue</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Delay(System.Int32,System.String)">
+    <summary>Set a timer to delay execution of subsequent items in the queue</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Dblclick(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "dblclick" JavaScript event, or trigger that event on an element</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Dblclick()">
+    <summary>Bind an event handler to the "dblclick" JavaScript event, or trigger that event on an element</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Dblclick(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "dblclick" JavaScript event, or trigger that event on an element</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Data(System.String)">
+    <summary>Store arbitrary data associated with the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Data(System.Object)">
+    <summary>Store arbitrary data associated with the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Data(System.String,System.Object)">
+    <summary>Store arbitrary data associated with the matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Css(System.Object)">
+    <summary>Get the value of a style property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Css(System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;System.Tuple`2&lt;System.Int32,System.String&gt;,System.String&gt;)">
+    <summary>Get the value of a style property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Css(System.String,System.String)">
+    <summary>Get the value of a style property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Css(System.String)">
+    <summary>Get the value of a style property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Css()">
+    <summary>Get the value of a style property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Contents()">
+    <summary>Get the children of each element in the set of matched elements, including text nodes.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Closest(System.String)">
+    <summary>Get the first ancestor element that matches the selector, beginning at the current element and progressing up through the DOM tree.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Closest(System.String,IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Get the first ancestor element that matches the selector, beginning at the current element and progressing up through the DOM tree.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Clone()">
+    <summary>Create a copy of the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Clone(System.Boolean)">
+    <summary>Create a copy of the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Click(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "click" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Click()">
+    <summary>Bind an event handler to the "click" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Click(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "click" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.ClearQueue()">
+    <summary>Remove from the queue all items that have not yet been run.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.ClearQueue(System.String)">
+    <summary>Remove from the queue all items that have not yet been run.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Children()">
+    <summary>Get the children of each element in the set of matched elements, optionally filtered by a selector.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Children(System.String)">
+    <summary>Get the children of each element in the set of matched elements, optionally filtered by a selector.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Change(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "change" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Change()">
+    <summary>Bind an event handler to the "change" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Change(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "change" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Blur(System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "blur" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Blur()">
+    <summary>Bind an event handler to the "blur" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Blur(IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Bind an event handler to the "blur" JavaScript event, or trigger that event on an element.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.BindFalse(System.String,System.Object)">
+    <summary>Attach a handler to an event for the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Bind(System.String,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Attach a handler to an event for the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Bind(System.String,System.Object,IntelliFactory.WebSharper.Core.Functions/Func`3&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Attach a handler to an event for the elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Before(Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,System.String&gt;)">
+    <summary> Insert content, specified by the parameter, before each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Before(IntelliFactory.WebSharper.Dom.Element)">
+    <summary> Insert content, specified by the parameter, before each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Before(System.String)">
+    <summary> Insert content, specified by the parameter, before each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Before(IntelliFactory.WebSharper.JQuery.JQuery)">
+    <summary> Insert content, specified by the parameter, before each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Prop(System.String,T1)">
+    <summary>Set the value of a property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.RemoveProp(System.String)">
+    <summary>Remove a property for the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.RemoveProp(System.String,System.String)">
+    <summary>Remove a property for the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Prop(System.String)">
+    <summary>Get the value of a property for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Attr(System.String,System.String)">
+    <summary>Set the value of an attribute for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Attr(System.String)">
+    <summary>Get the value of an attribute for the first element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AppendTo(IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Insert every element in the set of matched elements to the end of the target.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AppendTo(System.String)">
+    <summary>Insert every element in the set of matched elements to the end of the target.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AppendTo(IntelliFactory.WebSharper.JQuery.JQuery)">
+    <summary>Insert every element in the set of matched elements to the end of the target.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Append(Microsoft.FSharp.Core.FSharpFunc`2&lt;System.Tuple`2&lt;System.Int32,System.String&gt;,System.String&gt;)">
+    <summary>Insert content, specified by the parameter, to the end of each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Append(IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Insert content, specified by the parameter, to the end of each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Append(System.String)">
+    <summary>Insert content, specified by the parameter, to the end of each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Append(IntelliFactory.WebSharper.JQuery.JQuery)">
+    <summary>Insert content, specified by the parameter, to the end of each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.Int32,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.String,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.Int32,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.String,Microsoft.FSharp.Core.FSharpFunc`2&lt;Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit&gt;)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.Int32,System.String)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.String,System.String)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.Int32)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,System.String)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Animate(System.Object,IntelliFactory.WebSharper.JQuery.AnimateConfig)">
+    <summary>Perform a custom animation of a set of CSS properties.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AjaxComplete(Microsoft.FSharp.Core.FSharpFunc`2&lt;IntelliFactory.WebSharper.Core.Functions/Func`5&lt;IntelliFactory.WebSharper.Dom.Element,IntelliFactory.WebSharper.JQuery.Event,System.Object,System.Object,Microsoft.FSharp.Core.Unit&gt;,IntelliFactory.WebSharper.JQuery.JQuery&gt;)">
+    <summary>Register a handler to be called when Ajax requests complete. This is an Ajax Event.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.After(IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Insert content, specified by the parameter, after each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.After(System.String)">
+    <summary>Insert content, specified by the parameter, after each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.After(IntelliFactory.WebSharper.JQuery.JQuery)">
+    <summary>Insert content, specified by the parameter, after each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.After(Microsoft.FSharp.Core.FSharpFunc`2&lt;System.Int32,System.String&gt;)">
+    <summary>Insert content, specified by the parameter, after each element in the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AddClass(Microsoft.FSharp.Core.FSharpFunc`2&lt;System.Tuple`2&lt;System.Int32,System.String&gt;,System.String&gt;)">
+    <summary>Adds the specified class(es) to each of the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.AddClass(System.String)">
+    <summary>Adds the specified class(es) to each of the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Add(IntelliFactory.WebSharper.Dom.Element[])">
+    <summary>Add elements to the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Add(IntelliFactory.WebSharper.Dom.Element)">
+    <summary>Add elements to the set of matched elements.</summary>
+  </member>
+  <member name="M:IntelliFactory.WebSharper.JQuery.JQuery.Add(System.String)">
+    <summary>Add elements to the set of matched elements.</summary>
+  </member>
+  <member name="P:IntelliFactory.WebSharper.JQuery.JQuery.Context">
+    <summary>The DOM node context originally passed to jQuery(); if none was passed then context will likely be the document.</summary>
+  </member>
+</doc>

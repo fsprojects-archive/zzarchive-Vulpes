@@ -13,9 +13,7 @@
      },{
       New:function()
       {
-       var r;
-       r=Runtime.New(this,{});
-       return r;
+       return Runtime.New(this,{});
       }
      }),
      Form:Runtime.Class({
@@ -36,19 +34,14 @@
         Layout:this.Layout,
         Build1:function()
         {
-         var form,objectArg,arg00,state;
+         var form;
          form=_this.Build1.call(null,null);
-         objectArg=_this.Utils.Reactive;
-         (arg00=form.State,function(arg10)
-         {
-          return objectArg.Select(arg00,arg10);
-         })(f);
-         state=form.State;
+         _this.Utils.Reactive.Select(form.State,f);
          return Runtime.New(Form,{
           Body:form.Body,
           Dispose1:form.Dispose1,
           Notify:form.Notify,
-          State:state
+          State:form.State
          });
         },
         Utils:_this.Utils
@@ -62,12 +55,7 @@
      FormletBuilder:Runtime.Class({
       Bind:function(x,f)
       {
-       var objectArg;
-       objectArg=this.F;
-       return function(arg10)
-       {
-        return objectArg.Bind(x,arg10);
-       }(f);
+       return this.F.Bind(x,f);
       },
       Delay:function(f)
       {
@@ -93,59 +81,32 @@
      FormletProvider:Runtime.Class({
       AppendLayout:function(layout,formlet)
       {
-       var x,f,_this=this;
-       x=this.ApplyLayout(formlet);
-       f=function(arg10)
-       {
-        return _this.WithLayout(layout,arg10);
-       };
-       return f(x);
+       return this.WithLayout(layout,this.ApplyLayout(formlet));
       },
       Apply:function(f,x)
       {
        var _this=this;
        return this.New(function()
        {
-        var f1,x1,body,left,objectArg,arg00,right,objectArg1,arg001,objectArg2,state,objectArg3,arg002;
+        var f1,x1,objectArg,arg00;
         f1=_this.BuildForm(f);
         x1=_this.BuildForm(x);
-        body=(left=(objectArg=_this.U.Reactive,(arg00=f1.Body,function(arg10)
-        {
-         return objectArg.Select(arg00,arg10);
-        })(function(arg0)
-        {
-         return Runtime.New(Edit,{
-          $:1,
-          $0:arg0
-         });
-        })),(right=(objectArg1=_this.U.Reactive,(arg001=x1.Body,function(arg10)
-        {
-         return objectArg1.Select(arg001,arg10);
-        })(function(arg0)
-        {
-         return Runtime.New(Edit,{
-          $:2,
-          $0:arg0
-         });
-        })),(objectArg2=_this.U.Reactive,function(arg10)
-        {
-         return objectArg2.Merge(left,arg10);
-        }(right))));
-        state=(objectArg3=_this.U.Reactive,((arg002=x1.State,function(arg10)
-        {
-         return function(arg20)
-         {
-          return objectArg3.CombineLatest(arg002,arg10,arg20);
-         };
-        })(f1.State))(function(r)
-        {
-         return function(f2)
-         {
-          return Result.Apply(f2,r);
-         };
-        }));
+        objectArg=_this.U.Reactive;
+        arg00=f1.Body;
         return Runtime.New(Form,{
-         Body:body,
+         Body:_this.U.Reactive.Merge(objectArg.Select(arg00,function(arg0)
+         {
+          return Runtime.New(Edit,{
+           $:1,
+           $0:arg0
+          });
+         }),_this.U.Reactive.Select(x1.Body,function(arg0)
+         {
+          return Runtime.New(Edit,{
+           $:2,
+           $0:arg0
+          });
+         })),
          Dispose1:function()
          {
           x1.Dispose1.call(null,null);
@@ -156,7 +117,13 @@
           x1.Notify.call(null,o);
           return f1.Notify.call(null,o);
          },
-         State:state
+         State:_this.U.Reactive.CombineLatest(x1.State,f1.State,function(r)
+         {
+          return function(f2)
+          {
+           return Result.Apply(f2,r);
+          };
+         })
         });
        });
       },
@@ -165,11 +132,11 @@
        var _this=this;
        return this.New(function()
        {
-        var form,body,matchValue,disp,body1;
+        var form,matchValue;
         form=formlet.Build();
-        body=(matchValue=formlet.get_Layout().Apply.call(null,form.Body),matchValue.$==0?form.Body:(disp=matchValue.$0[1],(body1=matchValue.$0[0],_this.U.Reactive.Return(Tree.Set(body1)))));
+        matchValue=formlet.get_Layout().Apply.call(null,form.Body);
         return Runtime.New(Form,{
-         Body:body,
+         Body:matchValue.$==0?form.Body:_this.U.Reactive.Return(Tree.Set(matchValue.$0[0])),
          Dispose1:form.Dispose1,
          Notify:form.Notify,
          State:form.State
@@ -178,58 +145,47 @@
       },
       Bind:function(formlet,f)
       {
-       var arg00,f1,_this=this;
-       arg00=(f1=function(arg10)
-       {
-        return _this.Map(f,arg10);
-       },f1(formlet));
-       return _this.Join(arg00);
+       return this.Join(this.Map(f,formlet));
       },
       BindWith:function(hF,formlet,f)
       {
        var _this=this;
        return this.New(function()
        {
-        var formlet1,form,left,x,objectArg,arg00,f1,right,x1,objectArg1,arg001,f2,combB,matchValue,bLeft,bRight,x2,x3,f3,f4,objectArg2;
+        var formlet1,form,objectArg,x,left,objectArg1,x1,right,matchValue,_,bRight;
         formlet1=_this.Bind(formlet,f);
         form=formlet1.Build();
-        left=(x=(objectArg=_this.U.Reactive,(arg00=form.Body,function(arg10)
+        objectArg=_this.U.Reactive;
+        x=objectArg.Where(form.Body,function(edit)
         {
-         return objectArg.Where(arg00,arg10);
-        })(function(edit)
+         return edit.$==1?true:false;
+        });
+        left=_this.U.DefaultLayout.Apply.call(null,x);
+        objectArg1=_this.U.Reactive;
+        x1=objectArg1.Where(form.Body,function(edit)
         {
-         if(edit.$==1)
-          {
-           return true;
-          }
-         else
-          {
-           return false;
-          }
-        })),(f1=_this.U.DefaultLayout.Apply,f1(x)));
-        right=(x1=(objectArg1=_this.U.Reactive,(arg001=form.Body,function(arg10)
-        {
-         return objectArg1.Where(arg001,arg10);
-        })(function(edit)
-        {
-         if(edit.$==2)
-          {
-           return true;
-          }
-         else
-          {
-           return false;
-          }
-        })),(f2=_this.U.DefaultLayout.Apply,f2(x1)));
-        combB=(matchValue=[left,right],matchValue[0].$==1?matchValue[1].$==1?(bLeft=matchValue[0].$0[0],(bRight=matchValue[1].$0[0],(x2=(x3=(hF(bLeft))(bRight),(f3=function(value)
-        {
-         return Tree.Set(value);
-        },f3(x3))),(f4=(objectArg2=_this.U.Reactive,function(arg002)
-        {
-         return objectArg2.Return(arg002);
-        }),f4(x2))))):_this.U.Reactive.Never():_this.U.Reactive.Never());
+         return edit.$==2?true:false;
+        });
+        right=_this.U.DefaultLayout.Apply.call(null,x1);
+        matchValue=[left,right];
+        if(matchValue[0].$==1)
+         {
+          if(matchValue[1].$==1)
+           {
+            bRight=matchValue[1].$0[0];
+            _=_this.U.Reactive.Return(Tree.Set((hF(matchValue[0].$0[0]))(bRight)));
+           }
+          else
+           {
+            _=_this.U.Reactive.Never();
+           }
+         }
+        else
+         {
+          _=_this.U.Reactive.Never();
+         }
         return Runtime.New(Form,{
-         Body:combB,
+         Body:_,
          Dispose1:form.Dispose1,
          Notify:form.Notify,
          State:form.State
@@ -238,15 +194,14 @@
       },
       BuildForm:function(formlet)
       {
-       var form,matchValue,d,body;
+       var form,matchValue,d;
        form=formlet.Build();
        matchValue=formlet.get_Layout().Apply.call(null,form.Body);
        if(matchValue.$==1)
         {
          d=matchValue.$0[1];
-         body=matchValue.$0[0];
          return Runtime.New(Form,{
-          Body:this.U.Reactive.Return(Tree.Set(body)),
+          Body:this.U.Reactive.Return(Tree.Set(matchValue.$0[0])),
           Dispose1:function()
           {
            form.Dispose1.call(null,null);
@@ -263,41 +218,32 @@
       },
       Delay:function(f)
       {
-       var _this=this;
+       var Build,_this=this;
+       Build=function()
+       {
+        return _this.BuildForm(f(null));
+       };
        return Runtime.New(Formlet1,{
-        Layout:this.L.Delay(function()
+        Layout:_this.L.Delay(function()
         {
          return f(null).get_Layout();
         }),
-        Build1:function()
-        {
-         return _this.BuildForm(f(null));
-        },
+        Build1:Build,
         Utils:_this.U
        });
       },
       Deletable:function(formlet)
       {
-       var arg10,_this=this;
-       arg10=function(value)
+       var _this=this;
+       return this.Replace(formlet,function(value)
        {
-        var value1;
-        if(value.$==1)
-         {
-          value1=value.$0;
-          return _this.Return({
-           $:1,
-           $0:value1
-          });
-         }
-        else
-         {
-          return _this.ReturnEmpty({
-           $:0
-          });
-         }
-       };
-       return _this.Replace(formlet,arg10);
+        return value.$==1?_this.Return({
+         $:1,
+         $0:value.$0
+        }):_this.ReturnEmpty({
+         $:0
+        });
+       });
       },
       Empty:function()
       {
@@ -306,13 +252,11 @@
        {
         return Runtime.New(Form,{
          Body:_this.U.Reactive.Return(Tree.Delete()),
-         Dispose1:function(value)
+         Dispose1:function()
          {
-          value;
          },
-         Notify:function(value)
+         Notify:function()
          {
-          value;
          },
          State:_this.U.Reactive.Never()
         });
@@ -322,13 +266,11 @@
       {
        return Runtime.New(Form,{
         Body:this.U.Reactive.Never(),
-        Dispose1:function(value)
+        Dispose1:function()
         {
-         value;
         },
-        Notify:function(value)
+        Notify:function()
         {
-         value;
         },
         State:this.U.Reactive.Never()
        });
@@ -341,9 +283,8 @@
         {
          return x;
         },
-        Notify:function(value)
+        Notify:function()
         {
-         value;
         },
         State:this.U.Reactive.Return(Runtime.New(Result,{
          $:1,
@@ -361,30 +302,22 @@
       },
       FlipBody:function(formlet)
       {
-       var x,_this=this,f,arg001;
-       x=this.New(function()
+       var arg10,_this=this;
+       arg10=this.New(function()
        {
-        var form,body,objectArg,arg00;
+        var form;
         form=formlet.Build();
-        body=(objectArg=_this.U.Reactive,(arg00=form.Body,function(arg10)
-        {
-         return objectArg.Select(arg00,arg10);
-        })(function(edit)
-        {
-         return Tree.FlipEdit(edit);
-        }));
         return Runtime.New(Form,{
-         Body:body,
+         Body:_this.U.Reactive.Select(form.Body,function(edit)
+         {
+          return Tree.FlipEdit(edit);
+         }),
          Dispose1:form.Dispose1,
          Notify:form.Notify,
          State:form.State
         });
        });
-       f=(arg001=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg001,arg10);
-       });
-       return f(x);
+       return _this.WithLayout(formlet.get_Layout(),arg10);
       },
       FromState:function(state)
       {
@@ -393,13 +326,11 @@
        {
         return Runtime.New(Form,{
          Body:_this.U.Reactive.Never(),
-         Dispose1:function(value)
+         Dispose1:function()
          {
-          value;
          },
-         Notify:function(value)
+         Notify:function()
          {
-          value;
          },
          State:state
         });
@@ -407,141 +338,91 @@
       },
       InitWith:function(value,formlet)
       {
-       var x,_this=this,f,arg001;
-       x=this.New(function()
+       var arg10,_this=this;
+       arg10=this.New(function()
        {
-        var form,state,objectArg,arg00;
+        var form,arg101;
         form=formlet.Build();
-        state=(objectArg=_this.U.Reactive,(arg00=_this.U.Reactive.Return(Runtime.New(Result,{
-         $:0,
-         $0:value
-        })),function(arg10)
-        {
-         return objectArg.Concat(arg00,arg10);
-        })(form.State));
+        arg101=form.State;
         return Runtime.New(Form,{
          Body:form.Body,
          Dispose1:form.Dispose1,
          Notify:form.Notify,
-         State:state
+         State:_this.U.Reactive.Concat(_this.U.Reactive.Return(Runtime.New(Result,{
+          $:0,
+          $0:value
+         })),arg101)
         });
        });
-       f=(arg001=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg001,arg10);
-       });
-       return f(x);
+       return _this.WithLayout(formlet.get_Layout(),arg10);
       },
       InitWithFailure:function(formlet)
       {
-       var x,_this=this,f,arg001;
-       x=this.New(function()
+       var arg10,_this=this;
+       arg10=this.New(function()
        {
-        var form,state,objectArg,arg00;
+        var form,arg101;
         form=formlet.Build();
-        state=(objectArg=_this.U.Reactive,(arg00=_this.U.Reactive.Return(Runtime.New(Result,{
-         $:1,
-         $0:Runtime.New(T,{
-          $:0
-         })
-        })),function(arg10)
-        {
-         return objectArg.Concat(arg00,arg10);
-        })(form.State));
+        arg101=form.State;
         return Runtime.New(Form,{
          Body:form.Body,
          Dispose1:form.Dispose1,
          Notify:form.Notify,
-         State:state
+         State:_this.U.Reactive.Concat(_this.U.Reactive.Return(Runtime.New(Result,{
+          $:1,
+          $0:Runtime.New(T,{
+           $:0
+          })
+         })),arg101)
         });
        });
-       f=(arg001=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg001,arg10);
-       });
-       return f(x);
+       return _this.WithLayout(formlet.get_Layout(),arg10);
       },
       Join:function(formlet)
       {
        var _this=this;
        return this.New(function()
        {
-        var form1,formStream,x,objectArg,arg00,f,objectArg1,body,right,value,objectArg2,objectArg4,arg002,objectArg5,arg003,objectArg6,arg004,state,objectArg7,notify,dispose;
+        var form1,objectArg,x,objectArg1,formStream,objectArg2,arg10,right;
         form1=_this.BuildForm(formlet);
-        formStream=(x=(objectArg=_this.U.Reactive,(arg00=form1.State,function(arg10)
+        objectArg=_this.U.Reactive;
+        x=objectArg.Select(form1.State,function(res)
         {
-         return objectArg.Select(arg00,arg10);
-        })(function(res)
-        {
-         var fs,innerF;
-         if(res.$==1)
-          {
-           fs=res.$0;
-           return _this.Fail(fs);
-          }
-         else
-          {
-           innerF=res.$0;
-           return _this.BuildForm(innerF);
-          }
-        })),(f=(objectArg1=_this.U.Reactive,function(arg001)
-        {
-         return objectArg1.Heat(arg001);
-        }),f(x)));
-        body=(right=(value=(objectArg2=_this.U.Reactive,function(arg10)
-        {
-         return objectArg2.Select(formStream,arg10);
-        }(function(f1)
-        {
-         var _delete,objectArg3;
-         _delete=_this.U.Reactive.Return(Tree.Delete());
-         objectArg3=_this.U.Reactive;
-         return function(arg10)
-         {
-          return objectArg3.Concat(_delete,arg10);
-         }(f1.Body);
-        })),(objectArg4=_this.U.Reactive,(arg002=_this.U.Reactive.Switch(value),function(arg10)
-        {
-         return objectArg4.Select(arg002,arg10);
-        })(function(arg0)
+         return res.$==1?_this.Fail(res.$0):_this.BuildForm(res.$0);
+        });
+        objectArg1=_this.U.Reactive;
+        formStream=objectArg1.Heat(x);
+        objectArg2=_this.U.Reactive;
+        arg10=function(arg0)
         {
          return Runtime.New(Edit,{
           $:2,
           $0:arg0
          });
-        }))),(objectArg5=_this.U.Reactive,(arg003=(objectArg6=_this.U.Reactive,(arg004=form1.Body,function(arg10)
-        {
-         return objectArg6.Select(arg004,arg10);
-        })(function(arg0)
-        {
-         return Runtime.New(Edit,{
-          $:1,
-          $0:arg0
-         });
-        })),function(arg10)
-        {
-         return objectArg5.Merge(arg003,arg10);
-        })(right)));
-        state=_this.U.Reactive.Switch((objectArg7=_this.U.Reactive,function(arg10)
-        {
-         return objectArg7.Select(formStream,arg10);
-        }(function(f1)
-        {
-         return f1.State;
-        })));
-        notify=function(o)
-        {
-         return form1.Notify.call(null,o);
         };
-        dispose=function()
+        right=_this.U.Reactive.Select(_this.U.Reactive.Switch(objectArg2.Select(formStream,function(f)
         {
-         return form1.Dispose1.call(null,null);
-        };
+         var arg101;
+         arg101=f.Body;
+         return _this.U.Reactive.Concat(_this.U.Reactive.Return(Tree.Delete()),arg101);
+        })),arg10);
         return Runtime.New(Form,{
-         Body:body,
-         Dispose1:dispose,
-         Notify:notify,
-         State:state
+         Body:_this.U.Reactive.Merge(_this.U.Reactive.Select(form1.Body,function(arg0)
+         {
+          return Runtime.New(Edit,{
+           $:1,
+           $0:arg0
+          });
+         }),right),
+         Dispose1:function()
+         {
+          return form1.Dispose1.call(null,null);
+         },
+         Notify:form1.Notify,
+         State:_this.U.Reactive.Switch(_this.U.Reactive.Select(formStream,function(f)
+         {
+          return f.State;
+         }))
         });
        });
       },
@@ -564,11 +445,11 @@
       },
       MapBody:function(f,formlet)
       {
-       var layout,_this=this;
-       layout={
+       var _this=this;
+       return this.WithLayout({
         Apply:function(o)
         {
-         var matchValue,matchValue1,d,body,d1,body1;
+         var matchValue,matchValue1,d,d1;
          matchValue=formlet.get_Layout().Apply.call(null,o);
          if(matchValue.$==0)
           {
@@ -582,46 +463,40 @@
            else
             {
              d=matchValue1.$0[1];
-             body=matchValue1.$0[0];
              return{
               $:1,
-              $0:[f(body),d]
+              $0:[f(matchValue1.$0[0]),d]
              };
             }
           }
          else
           {
            d1=matchValue.$0[1];
-           body1=matchValue.$0[0];
            return{
             $:1,
-            $0:[f(body1),d1]
+            $0:[f(matchValue.$0[0]),d1]
            };
           }
         }
-       };
-       return _this.WithLayout(layout,formlet);
+       },formlet);
       },
       MapResult:function(f,formlet)
       {
-       var _this=this;
+       var Build,_this=this;
+       Build=function()
+       {
+        var form;
+        form=formlet.Build();
+        return Runtime.New(Form,{
+         Body:form.Body,
+         Dispose1:form.Dispose1,
+         Notify:form.Notify,
+         State:_this.U.Reactive.Select(form.State,f)
+        });
+       };
        return Runtime.New(Formlet1,{
         Layout:formlet.get_Layout(),
-        Build1:function()
-        {
-         var form,state,objectArg,arg00;
-         form=formlet.Build();
-         state=(objectArg=_this.U.Reactive,(arg00=form.State,function(arg10)
-         {
-          return objectArg.Select(arg00,arg10);
-         })(f));
-         return Runtime.New(Form,{
-          Body:form.Body,
-          Dispose1:form.Dispose1,
-          Notify:form.Notify,
-          State:state
-         });
-        },
+        Build1:Build,
         Utils:_this.U
        });
       },
@@ -632,13 +507,11 @@
        {
         return Runtime.New(Form,{
          Body:_this.U.Reactive.Never(),
-         Dispose1:function(value)
+         Dispose1:function()
          {
-          value;
          },
-         Notify:function(value)
+         Notify:function()
          {
-          value;
          },
          State:_this.U.Reactive.Never()
         });
@@ -654,44 +527,29 @@
       },
       Replace:function(formlet,f)
       {
-       var arg00,f1,arg001,_this=this;
-       arg00=(f1=(arg001=f,function(arg10)
-       {
-        return _this.Map(arg001,arg10);
-       }),f1(formlet));
-       return _this.Switch(arg00);
+       return this.Switch(this.Map(f,formlet));
       },
       ReplaceFirstWithFailure:function(formlet)
       {
-       var x,_this=this,f,arg002;
-       x=this.New(function()
+       var arg10,_this=this;
+       arg10=this.New(function()
        {
-        var form,state,state1,objectArg,arg00,objectArg1,arg001;
+        var form,state;
         form=formlet.Build();
-        state=(state1=(objectArg=_this.U.Reactive,(arg00=form.State,function(arg10)
-        {
-         return objectArg.Drop(arg00,arg10);
-        })(1)),(objectArg1=_this.U.Reactive,(arg001=_this.U.Reactive.Return(Runtime.New(Result,{
-         $:1,
-         $0:Runtime.New(T,{
-          $:0
-         })
-        })),function(arg10)
-        {
-         return objectArg1.Concat(arg001,arg10);
-        })(state1)));
+        state=_this.U.Reactive.Drop(form.State,1);
         return Runtime.New(Form,{
          Body:form.Body,
          Dispose1:form.Dispose1,
          Notify:form.Notify,
-         State:state
+         State:_this.U.Reactive.Concat(_this.U.Reactive.Return(Runtime.New(Result,{
+          $:1,
+          $0:Runtime.New(T,{
+           $:0
+          })
+         })),state)
         });
        });
-       f=(arg002=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg002,arg10);
-       });
-       return f(x);
+       return _this.WithLayout(formlet.get_Layout(),arg10);
       },
       Return:function(x)
       {
@@ -704,9 +562,8 @@
          {
           return x1;
          },
-         Notify:function(value)
+         Notify:function()
          {
-          value;
          },
          State:_this.U.Reactive.Return(Runtime.New(Result,{
           $:0,
@@ -726,9 +583,8 @@
          {
           return x1;
          },
-         Notify:function(value)
+         Notify:function()
          {
-          value;
          },
          State:_this.U.Reactive.Return(Runtime.New(Result,{
           $:0,
@@ -742,44 +598,30 @@
        var _this=this;
        return this.New(function()
        {
-        var form1,formStream,x,objectArg,arg00,f,objectArg1,body,left,objectArg2,arg002,right,tag,incrTag,allBodies,objectArg3,objectArg5,state,stateStream,objectArg6,objectArg7,arg003,notify,dispose;
+        var form1,objectArg,x,objectArg1,formStream,objectArg2,arg00,left,tag,arg10;
         form1=_this.BuildForm(formlet);
-        formStream=(x=(objectArg=_this.U.Reactive,(arg00=form1.State,function(arg10)
+        objectArg=_this.U.Reactive;
+        x=objectArg.Choose(form1.State,function(res)
         {
-         return objectArg.Choose(arg00,arg10);
-        })(function(res)
-        {
-         var fs,innerF,arg0;
-         if(res.$==1)
-          {
-           fs=res.$0;
-           return{
-            $:0
-           };
-          }
-         else
-          {
-           innerF=res.$0;
-           arg0=_this.BuildForm(innerF);
-           return{
-            $:1,
-            $0:arg0
-           };
-          }
-        })),(f=(objectArg1=_this.U.Reactive,function(arg001)
-        {
-         return objectArg1.Heat(arg001);
-        }),f(x)));
-        body=(left=(objectArg2=_this.U.Reactive,(arg002=form1.Body,function(arg10)
-        {
-         return objectArg2.Select(arg002,arg10);
-        })(function(arg0)
+         return res.$==1?{
+          $:0
+         }:{
+          $:1,
+          $0:_this.BuildForm(res.$0)
+         };
+        });
+        objectArg1=_this.U.Reactive;
+        formStream=objectArg1.Heat(x);
+        objectArg2=_this.U.Reactive;
+        arg00=form1.Body;
+        left=objectArg2.Select(arg00,function(arg0)
         {
          return Runtime.New(Edit,{
           $:1,
           $0:arg0
          });
-        })),(right=(tag={
+        });
+        tag={
          contents:function(arg0)
          {
           return Runtime.New(Edit,{
@@ -787,63 +629,34 @@
            $0:arg0
           });
          }
-        },(incrTag=function()
-        {
-         var f1,f2;
-         f1=tag.contents;
-         tag.contents=(f2=function(arg0)
-         {
-          return Runtime.New(Edit,{
-           $:2,
-           $0:arg0
-          });
-         },function(x1)
-         {
-          return f2(f1(x1));
-         });
-        },(allBodies=(objectArg3=_this.U.Reactive,function(arg10)
-        {
-         return objectArg3.Select(formStream,arg10);
-        }(function(f1)
-        {
-         var tagLocal,objectArg4,arg001;
-         incrTag(null);
-         tagLocal=tag.contents;
-         objectArg4=_this.U.Reactive;
-         return(arg001=f1.Body,function(arg10)
-         {
-          return objectArg4.Select(arg001,arg10);
-         })(tagLocal);
-        })),_this.U.Reactive.SelectMany(allBodies)))),(objectArg5=_this.U.Reactive,function(arg10)
-        {
-         return objectArg5.Merge(left,arg10);
-        }(right))));
-        state=(stateStream=(objectArg6=_this.U.Reactive,function(arg10)
-        {
-         return objectArg6.Select(formStream,arg10);
-        }(function(f1)
-        {
-         return f1.State;
-        })),(objectArg7=_this.U.Reactive,(arg003=_this.U.Reactive.CollectLatest(stateStream),function(arg10)
-        {
-         return objectArg7.Select(arg003,arg10);
-        })(function(arg001)
+        };
+        arg10=function(arg001)
         {
          return Result.Sequence(arg001);
-        })));
-        notify=function(o)
-        {
-         return form1.Notify.call(null,o);
-        };
-        dispose=function()
-        {
-         return form1.Dispose1.call(null,null);
         };
         return Runtime.New(Form,{
-         Body:body,
-         Dispose1:dispose,
-         Notify:notify,
-         State:state
+         Body:_this.U.Reactive.Merge(left,_this.U.Reactive.SelectMany(_this.U.Reactive.Select(formStream,function(f)
+         {
+          var g;
+          g=tag.contents;
+          tag.contents=function(x1)
+          {
+           return Runtime.New(Edit,{
+            $:2,
+            $0:g(x1)
+           });
+          };
+          return _this.U.Reactive.Select(f.Body,tag.contents);
+         }))),
+         Dispose1:function()
+         {
+          return form1.Dispose1.call(null,null);
+         },
+         Notify:form1.Notify,
+         State:_this.U.Reactive.Select(_this.U.Reactive.CollectLatest(_this.U.Reactive.Select(formStream,function(f)
+         {
+          return f.State;
+         })),arg10)
         });
        });
       },
@@ -881,125 +694,71 @@
        var _this=this;
        return this.New(function()
        {
-        var formlet1,x,f,form1,formStream,x1,objectArg,arg001,f1,objectArg1,body,objectArg2,arg002,objectArg3,state,objectArg4,notify,dispose;
-        formlet1=(x=_this.WithLayoutOrDefault(formlet),(f=function(arg00)
-        {
-         return _this.ApplyLayout(arg00);
-        },f(x)));
+        var x,formlet1,form1,objectArg,x1,objectArg1,formStream;
+        x=_this.WithLayoutOrDefault(formlet);
+        formlet1=_this.ApplyLayout(x);
         form1=_this.BuildForm(formlet1);
-        formStream=(x1=(objectArg=_this.U.Reactive,(arg001=form1.State,function(arg10)
+        objectArg=_this.U.Reactive;
+        x1=objectArg.Choose(form1.State,function(res)
         {
-         return objectArg.Choose(arg001,arg10);
-        })(function(res)
-        {
-         var fs,innerF,arg0;
-         if(res.$==1)
-          {
-           fs=res.$0;
-           return{
-            $:0
-           };
-          }
-         else
-          {
-           innerF=res.$0;
-           arg0=_this.BuildForm(innerF);
-           return{
-            $:1,
-            $0:arg0
-           };
-          }
-        })),(f1=(objectArg1=_this.U.Reactive,function(arg00)
-        {
-         return objectArg1.Heat(arg00);
-        }),f1(x1)));
-        body=(objectArg2=_this.U.Reactive,(arg002=form1.Body,function(arg10)
-        {
-         return objectArg2.Concat(arg002,arg10);
-        })(_this.U.Reactive.Switch((objectArg3=_this.U.Reactive,function(arg10)
-        {
-         return objectArg3.Select(formStream,arg10);
-        }(function(f2)
-        {
-         return f2.Body;
-        })))));
-        state=_this.U.Reactive.Switch((objectArg4=_this.U.Reactive,function(arg10)
-        {
-         return objectArg4.Select(formStream,arg10);
-        }(function(f2)
-        {
-         return f2.State;
-        })));
-        notify=function(o)
-        {
-         return form1.Notify.call(null,o);
-        };
-        dispose=function()
-        {
-         return form1.Dispose1.call(null,null);
-        };
+         return res.$==1?{
+          $:0
+         }:{
+          $:1,
+          $0:_this.BuildForm(res.$0)
+         };
+        });
+        objectArg1=_this.U.Reactive;
+        formStream=objectArg1.Heat(x1);
         return Runtime.New(Form,{
-         Body:body,
-         Dispose1:dispose,
-         Notify:notify,
-         State:state
+         Body:_this.U.Reactive.Concat(form1.Body,_this.U.Reactive.Switch(_this.U.Reactive.Select(formStream,function(f)
+         {
+          return f.Body;
+         }))),
+         Dispose1:function()
+         {
+          return form1.Dispose1.call(null,null);
+         },
+         Notify:form1.Notify,
+         State:_this.U.Reactive.Switch(_this.U.Reactive.Select(formStream,function(f)
+         {
+          return f.State;
+         }))
         });
        });
       },
       WithCancelation:function(formlet,cancelFormlet)
       {
-       var f1,f2,f3,f,x,f4,arg00,_this=this;
+       var f1,f2,f3;
        f1=this.Return(function(r1)
        {
         return function(r2)
         {
-         var matchValue,fs,s;
+         var matchValue;
          matchValue=[r1,r2];
-         if(matchValue[1].$==0)
-          {
-           return Runtime.New(Result,{
-            $:0,
-            $0:{
-             $:0
-            }
-           });
+         return matchValue[1].$==0?Runtime.New(Result,{
+          $:0,
+          $0:{
+           $:0
           }
-         else
-          {
-           if(matchValue[0].$==1)
-            {
-             fs=matchValue[0].$0;
-             return Runtime.New(Result,{
-              $:1,
-              $0:fs
-             });
-            }
-           else
-            {
-             s=matchValue[0].$0;
-             return Runtime.New(Result,{
-              $:0,
-              $0:{
-               $:1,
-               $0:s
-              }
-             });
-            }
+         }):matchValue[0].$==1?Runtime.New(Result,{
+          $:1,
+          $0:matchValue[0].$0
+         }):Runtime.New(Result,{
+          $:0,
+          $0:{
+           $:1,
+           $0:matchValue[0].$0
           }
+         });
         };
        });
        f2=this.LiftResult(formlet);
        f3=this.LiftResult(cancelFormlet);
-       f=this.Apply(f1,f2);
-       x=this.Apply(f,f3);
-       f4=(arg00=function(arg001)
+       return this.MapResult(function(arg00)
        {
-        return Result.Join(arg001);
-       },function(arg10)
-       {
-        return _this.MapResult(arg00,arg10);
-       });
-       return f4(x);
+        return Result.Join(arg00);
+       },this.Apply(this.Apply(f1,f2),f3));
       },
       WithLayout:function(layout,formlet)
       {
@@ -1021,59 +780,46 @@
       },
       WithNotification:function(notify,formlet)
       {
-       var x,_this=this,f,arg00;
-       x=this.New(function()
+       var arg10,_this=this;
+       arg10=this.New(function()
        {
-        var form,Notify;
+        var form;
         form=_this.BuildForm(formlet);
-        Notify=function(obj)
+        return Runtime.New(Form,{
+         Body:form.Body,
+         Dispose1:form.Dispose1,
+         Notify:function(obj)
+         {
+          form.Notify.call(null,obj);
+          return notify(obj);
+         },
+         State:form.State
+        });
+       });
+       return _this.WithLayout(formlet.get_Layout(),arg10);
+      },
+      WithNotificationChannel:function(formlet)
+      {
+       var arg10,_this=this;
+       arg10=this.New(function()
+       {
+        var form,arg00;
+        form=formlet.Build();
+        arg00=function(v)
         {
-         form.Notify.call(null,obj);
-         return notify(obj);
+         return[v,form.Notify];
         };
         return Runtime.New(Form,{
          Body:form.Body,
          Dispose1:form.Dispose1,
-         Notify:Notify,
-         State:form.State
+         Notify:form.Notify,
+         State:_this.U.Reactive.Select(form.State,function(arg101)
+         {
+          return Result.Map(arg00,arg101);
+         })
         });
        });
-       f=(arg00=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg00,arg10);
-       });
-       return f(x);
-      },
-      WithNotificationChannel:function(formlet)
-      {
-       var x,_this=this,f,arg002;
-       x=this.New(function()
-       {
-        var form,state,objectArg,arg00,arg001,Notify;
-        form=formlet.Build();
-        state=(objectArg=_this.U.Reactive,(arg00=form.State,function(arg10)
-        {
-         return objectArg.Select(arg00,arg10);
-        })((arg001=function(v)
-        {
-         return[v,form.Notify];
-        },function(arg10)
-        {
-         return Result.Map(arg001,arg10);
-        })));
-        Notify=form.Notify;
-        return Runtime.New(Form,{
-         Body:form.Body,
-         Dispose1:form.Dispose1,
-         Notify:Notify,
-         State:state
-        });
-       });
-       f=(arg002=formlet.get_Layout(),function(arg10)
-       {
-        return _this.WithLayout(arg002,arg10);
-       });
-       return f(x);
+       return _this.WithLayout(formlet.get_Layout(),arg10);
       }
      },{
       New:function(U)
@@ -1113,36 +859,30 @@
        return{
         Apply:function(event)
         {
-         var panel,tree,disp;
+         var panel,tree;
          panel=container(null);
          tree={
           contents:Runtime.New(Tree1,{
            $:0
           })
          };
-         disp=Util.subscribeTo(event,function(edit)
-         {
-          var deletedTree,patternInput,off,f,action;
-          deletedTree=Tree.ReplacedTree(edit,tree.contents);
-          tree.contents=Tree.Apply(edit,tree.contents);
-          patternInput=Tree.Range(edit,tree.contents);
-          off=patternInput[0];
-          panel.Remove.call(null,deletedTree.get_Sequence());
-          f=(action=function(i)
-          {
-           return function(e)
-           {
-            return(panel.Insert.call(null,off+i))(e);
-           };
-          },function(source)
-          {
-           return Seq.iteri(action,source);
-          });
-          return f(edit);
-         });
          return{
           $:1,
-          $0:[panel.Body,disp]
+          $0:[panel.Body,Util.subscribeTo(event,function(edit)
+          {
+           var deletedTree,off;
+           deletedTree=Tree.ReplacedTree(edit,tree.contents);
+           tree.contents=Tree.Apply(edit,tree.contents);
+           off=(Tree.Range(edit,tree.contents))[0];
+           panel.Remove.call(null,deletedTree.get_Sequence());
+           return Seq.iteri(function(i)
+           {
+            return function(e)
+            {
+             return(panel.Insert.call(null,off+i))(e);
+            };
+           },edit);
+          })]
          };
         }
        };
@@ -1150,115 +890,56 @@
      },{
       New:function()
       {
-       var r;
-       r=Runtime.New(this,{});
-       return r;
+       return Runtime.New(this,{});
       }
      }),
      Result:Runtime.Class({},{
       Apply:function(f,r)
       {
-       var matchValue,fs1,fs2,fs,fs3,f1,v;
+       var matchValue;
        matchValue=[f,r];
-       if(matchValue[0].$==1)
-        {
-         if(matchValue[1].$==1)
-          {
-           fs1=matchValue[0].$0;
-           fs2=matchValue[1].$0;
-           return Runtime.New(Result,{
-            $:1,
-            $0:List.append(fs1,fs2)
-           });
-          }
-         else
-          {
-           fs=matchValue[0].$0;
-           return Runtime.New(Result,{
-            $:1,
-            $0:fs
-           });
-          }
-        }
-       else
-        {
-         if(matchValue[1].$==1)
-          {
-           matchValue[0].$0;
-           fs3=matchValue[1].$0;
-           return Runtime.New(Result,{
-            $:1,
-            $0:fs3
-           });
-          }
-         else
-          {
-           f1=matchValue[0].$0;
-           v=matchValue[1].$0;
-           return Runtime.New(Result,{
-            $:0,
-            $0:f1(v)
-           });
-          }
-        }
+       return matchValue[0].$==1?matchValue[1].$==1?Runtime.New(Result,{
+        $:1,
+        $0:List.append(matchValue[0].$0,matchValue[1].$0)
+       }):Runtime.New(Result,{
+        $:1,
+        $0:matchValue[0].$0
+       }):matchValue[1].$==1?Runtime.New(Result,{
+        $:1,
+        $0:matchValue[1].$0
+       }):Runtime.New(Result,{
+        $:0,
+        $0:matchValue[0].$0.call(null,matchValue[1].$0)
+       });
       },
       Join:function(res)
       {
-       var fs,s;
-       if(res.$==1)
-        {
-         fs=res.$0;
-         return Runtime.New(Result,{
-          $:1,
-          $0:fs
-         });
-        }
-       else
-        {
-         s=res.$0;
-         return s;
-        }
+       return res.$==1?Runtime.New(Result,{
+        $:1,
+        $0:res.$0
+       }):res.$0;
       },
       Map:function(f,res)
       {
-       var fs,v;
-       if(res.$==1)
-        {
-         fs=res.$0;
-         return Runtime.New(Result,{
-          $:1,
-          $0:fs
-         });
-        }
-       else
-        {
-         v=res.$0;
-         return Runtime.New(Result,{
-          $:0,
-          $0:f(v)
-         });
-        }
+       return res.$==1?Runtime.New(Result,{
+        $:1,
+        $0:res.$0
+       }):Runtime.New(Result,{
+        $:0,
+        $0:f(res.$0)
+       });
       },
       OfOption:function(o)
       {
-       var v;
-       if(o.$==0)
-        {
-         return Runtime.New(Result,{
-          $:1,
-          $0:Runtime.New(T,{
-           $:0
-          })
-         });
-        }
-       else
-        {
-         v=o.$0;
-         return Runtime.New(Result,{
-          $:0,
-          $0:v
-         });
-        }
+       return o.$==0?Runtime.New(Result,{
+        $:1,
+        $0:Runtime.New(T,{
+         $:0
+        })
+       }):Runtime.New(Result,{
+        $:0,
+        $0:o.$0
+       });
       },
       Sequence:function(rs)
       {
@@ -1266,46 +947,28 @@
        {
         return function(r)
         {
-         var fs1,fs2,v,vs,fs,v1,b;
+         var fs1,vs;
          if(rs1.$==1)
           {
            fs1=rs1.$0;
-           if(r.$==1)
-            {
-             fs2=r.$0;
-             return Runtime.New(Result,{
-              $:1,
-              $0:List.append(fs1,fs2)
-             });
-            }
-           else
-            {
-             v=r.$0;
-             return Runtime.New(Result,{
-              $:1,
-              $0:fs1
-             });
-            }
+           return r.$==1?Runtime.New(Result,{
+            $:1,
+            $0:List.append(fs1,r.$0)
+           }):Runtime.New(Result,{
+            $:1,
+            $0:fs1
+           });
           }
          else
           {
            vs=rs1.$0;
-           if(r.$==1)
-            {
-             fs=r.$0;
-             return Runtime.New(Result,{
-              $:1,
-              $0:fs
-             });
-            }
-           else
-            {
-             v1=r.$0;
-             return Runtime.New(Result,{
-              $:0,
-              $0:(b=List.ofArray([v1]),List.append(vs,b))
-             });
-            }
+           return r.$==1?Runtime.New(Result,{
+            $:1,
+            $0:r.$0
+           }):Runtime.New(Result,{
+            $:0,
+            $0:List.append(vs,List.ofArray([r.$0]))
+           });
           }
         };
        },Runtime.New(Result,{
@@ -1322,17 +985,16 @@
        var apply;
        apply=function(edit1,input1)
        {
-        var edit2,r,l,edit3,r1,l1,output;
+        var edit2,r,edit3;
         if(edit1.$==1)
          {
           edit2=edit1.$0;
           if(input1.$==2)
            {
             r=input1.$1;
-            l=input1.$0;
             return Runtime.New(Tree1,{
              $:2,
-             $0:apply(edit2,l),
+             $0:apply(edit2,input1.$0),
              $1:r
             });
            }
@@ -1355,34 +1017,24 @@
           if(edit1.$==2)
            {
             edit3=edit1.$0;
-            if(input1.$==2)
-             {
-              r1=input1.$1;
-              l1=input1.$0;
-              return Runtime.New(Tree1,{
-               $:2,
-               $0:l1,
-               $1:apply(edit3,r1)
-              });
-             }
-            else
-             {
-              return apply(Runtime.New(Edit,{
-               $:2,
-               $0:edit3
-              }),Runtime.New(Tree1,{
-               $:2,
-               $0:input1,
-               $1:Runtime.New(Tree1,{
-                $:0
-               })
-              }));
-             }
+            return input1.$==2?Runtime.New(Tree1,{
+             $:2,
+             $0:input1.$0,
+             $1:apply(edit3,input1.$1)
+            }):apply(Runtime.New(Edit,{
+             $:2,
+             $0:edit3
+            }),Runtime.New(Tree1,{
+             $:2,
+             $0:input1,
+             $1:Runtime.New(Tree1,{
+              $:0
+             })
+            }));
            }
           else
            {
-            output=edit1.$0;
-            return output;
+            return edit1.$0;
            }
          }
        };
@@ -1390,7 +1042,7 @@
       },
       Count:function(t)
       {
-       var loop,_;
+       var loop,_,a,_1,_2,tree,k,ts,_3;
        loop=[];
        _=Runtime.New(T,{
         $:0
@@ -1399,50 +1051,56 @@
        loop[2]=_;
        loop[1]=0;
        loop[0]=1;
-       Runtime.While(function()
-       {
-        return loop[0];
-       },function()
-       {
-        var b,a,_1,_2,tree,k,ts,t1,_3;
-        loop[3].$==2?(b=loop[3].$1,(a=loop[3].$0,(_1=Runtime.New(T,{
-         $:1,
-         $0:b,
-         $1:loop[2]
-        }),(_2=loop[1],(loop[3]=a,(loop[2]=_1,(loop[1]=_2,loop[0]=1))))))):(tree=loop[3],(k=tree.$==0?0:1,loop[2].$==1?(ts=loop[2].$1,(t1=loop[2].$0,(_3=loop[1]+k,(loop[3]=t1,(loop[2]=ts,(loop[1]=_3,loop[0]=1)))))):(loop[0]=0,loop[1]=loop[1]+k)));
-       });
+       while(loop[0])
+        {
+         if(loop[3].$==2)
+          {
+           a=loop[3].$0;
+           _1=Runtime.New(T,{
+            $:1,
+            $0:loop[3].$1,
+            $1:loop[2]
+           });
+           _2=loop[1];
+           loop[3]=a;
+           loop[2]=_1;
+           loop[1]=_2;
+           loop[0]=1;
+          }
+         else
+          {
+           tree=loop[3];
+           k=tree.$==0?0:1;
+           if(loop[2].$==1)
+            {
+             ts=loop[2].$1;
+             _3=loop[1]+k;
+             loop[3]=loop[2].$0;
+             loop[2]=ts;
+             loop[1]=_3;
+             loop[0]=1;
+            }
+           else
+            {
+             loop[0]=0;
+             loop[1]=loop[1]+k;
+            }
+          }
+        }
        return loop[1];
       },
       DeepFlipEdit:function(edit)
       {
-       var e,e1,t;
-       if(edit.$==1)
-        {
-         e=edit.$0;
-         return Runtime.New(Edit,{
-          $:2,
-          $0:Tree.DeepFlipEdit(e)
-         });
-        }
-       else
-        {
-         if(edit.$==2)
-          {
-           e1=edit.$0;
-           return Runtime.New(Edit,{
-            $:1,
-            $0:Tree.DeepFlipEdit(e1)
-           });
-          }
-         else
-          {
-           t=edit.$0;
-           return Runtime.New(Edit,{
-            $:0,
-            $0:t
-           });
-          }
-        }
+       return edit.$==1?Runtime.New(Edit,{
+        $:2,
+        $0:Tree.DeepFlipEdit(edit.$0)
+       }):edit.$==2?Runtime.New(Edit,{
+        $:1,
+        $0:Tree.DeepFlipEdit(edit.$0)
+       }):Runtime.New(Edit,{
+        $:0,
+        $0:edit.$0
+       });
       },
       Delete:function()
       {
@@ -1464,65 +1122,25 @@
        },
        get_Sequence:function()
        {
-        var edit,edit1,tree;
-        if(this.$==1)
-         {
-          edit=this.$0;
-          return edit.get_Sequence();
-         }
-        else
-         {
-          if(this.$==2)
-           {
-            edit1=this.$0;
-            return edit1.get_Sequence();
-           }
-          else
-           {
-            tree=this.$0;
-            return tree.get_Sequence();
-           }
-         }
+        return this.$==1?this.$0.get_Sequence():this.$==2?this.$0.get_Sequence():this.$0.get_Sequence();
        }
       }),
       FlipEdit:function(edit)
       {
-       var e,e1,t;
-       if(edit.$==1)
-        {
-         e=edit.$0;
-         return Runtime.New(Edit,{
-          $:2,
-          $0:e
-         });
-        }
-       else
-        {
-         if(edit.$==2)
-          {
-           e1=edit.$0;
-           return Runtime.New(Edit,{
-            $:1,
-            $0:e1
-           });
-          }
-         else
-          {
-           t=edit.$0;
-           return Runtime.New(Edit,{
-            $:0,
-            $0:t
-           });
-          }
-        }
+       return edit.$==1?Runtime.New(Edit,{
+        $:2,
+        $0:edit.$0
+       }):edit.$==2?Runtime.New(Edit,{
+        $:1,
+        $0:edit.$0
+       }):Runtime.New(Edit,{
+        $:0,
+        $0:edit.$0
+       });
       },
       FromSequence:function(vs)
       {
-       var x,f,folder;
-       x=Runtime.New(Tree1,{
-        $:0
-       });
-       f=(folder=function(state)
+       return Seq.fold(function(state)
        {
         return function(v)
         {
@@ -1535,91 +1153,112 @@
           })
          });
         };
-       },function(state)
-       {
-        return function(source)
-        {
-         return Seq.fold(folder,state,source);
-        };
-       });
-       return(f(x))(vs);
+       },Runtime.New(Tree1,{
+        $:0
+       }),vs);
       },
       Range:function(edit,input)
       {
-       var loop;
+       var loop,edit1,l,_,_1,edit2,r,_2,_3;
        loop=[];
        loop[3]=0;
        loop[2]=input;
        loop[1]=edit;
        loop[0]=1;
-       Runtime.While(function()
-       {
-        return loop[0];
-       },function()
-       {
-        var edit1,l,_,_1,_2,edit2,r,l1,_3,tree,_4,_5;
-        loop[1].$==1?(edit1=loop[1].$0,loop[2].$==2?(loop[2].$1,(l=loop[2].$0,(_=loop[3],(loop[3]=_,(loop[2]=l,(loop[1]=edit1,loop[0]=1)))))):(_1=loop[3],(_2=Runtime.New(Tree1,{
-         $:0
-        }),(loop[3]=_1,(loop[2]=_2,(loop[1]=edit1,loop[0]=1)))))):loop[1].$==2?(edit2=loop[1].$0,loop[2].$==2?(r=loop[2].$1,(l1=loop[2].$0,(_3=loop[3]+Tree.Count(l1),(loop[3]=_3,(loop[2]=r,(loop[1]=edit2,loop[0]=1)))))):(tree=loop[2],(_4=loop[3]+Tree.Count(tree),(_5=Runtime.New(Tree1,{
-         $:0
-        }),(loop[3]=_4,(loop[2]=_5,(loop[1]=edit2,loop[0]=1))))))):(loop[1].$0,(loop[0]=0,loop[1]=[loop[3],Tree.Count(loop[2])]));
-       });
+       while(loop[0])
+        {
+         if(loop[1].$==1)
+          {
+           edit1=loop[1].$0;
+           if(loop[2].$==2)
+            {
+             l=loop[2].$0;
+             loop[3]=loop[3];
+             loop[2]=l;
+             loop[1]=edit1;
+             loop[0]=1;
+            }
+           else
+            {
+             _=loop[3];
+             _1=Runtime.New(Tree1,{
+              $:0
+             });
+             loop[3]=_;
+             loop[2]=_1;
+             loop[1]=edit1;
+             loop[0]=1;
+            }
+          }
+         else
+          {
+           if(loop[1].$==2)
+            {
+             edit2=loop[1].$0;
+             if(loop[2].$==2)
+              {
+               r=loop[2].$1;
+               loop[3]=loop[3]+Tree.Count(loop[2].$0);
+               loop[2]=r;
+               loop[1]=edit2;
+               loop[0]=1;
+              }
+             else
+              {
+               _2=loop[3]+Tree.Count(loop[2]);
+               _3=Runtime.New(Tree1,{
+                $:0
+               });
+               loop[3]=_2;
+               loop[2]=_3;
+               loop[1]=edit2;
+               loop[0]=1;
+              }
+            }
+           else
+            {
+             loop[0]=0;
+             loop[1]=[loop[3],Tree.Count(loop[2])];
+            }
+          }
+        }
        return loop[1];
       },
       ReplacedTree:function(edit,input)
       {
-       var edit1,l,edit2,r;
+       var edit1,edit2;
        if(edit.$==1)
         {
          edit1=edit.$0;
-         if(input.$==2)
-          {
-           input.$1;
-           l=input.$0;
-           return Tree.ReplacedTree(edit1,l);
-          }
-         else
-          {
-           return Tree.ReplacedTree(Runtime.New(Edit,{
-            $:1,
-            $0:edit1
-           }),Runtime.New(Tree1,{
-            $:2,
-            $0:Runtime.New(Tree1,{
-             $:0
-            }),
-            $1:input
-           }));
-          }
+         return input.$==2?Tree.ReplacedTree(edit1,input.$0):Tree.ReplacedTree(Runtime.New(Edit,{
+          $:1,
+          $0:edit1
+         }),Runtime.New(Tree1,{
+          $:2,
+          $0:Runtime.New(Tree1,{
+           $:0
+          }),
+          $1:input
+         }));
         }
        else
         {
          if(edit.$==2)
           {
            edit2=edit.$0;
-           if(input.$==2)
-            {
-             r=input.$1;
-             input.$0;
-             return Tree.ReplacedTree(edit2,r);
-            }
-           else
-            {
-             return Tree.ReplacedTree(Runtime.New(Edit,{
-              $:2,
-              $0:edit2
-             }),Runtime.New(Tree1,{
-              $:2,
-              $0:input,
-              $1:Runtime.New(Tree1,{
-               $:0
-              })
-             }));
-            }
+           return input.$==2?Tree.ReplacedTree(edit2,input.$1):Tree.ReplacedTree(Runtime.New(Edit,{
+            $:2,
+            $0:edit2
+           }),Runtime.New(Tree1,{
+            $:2,
+            $0:input,
+            $1:Runtime.New(Tree1,{
+             $:0
+            })
+           }));
           }
          else
           {
-           edit.$0;
            return input;
           }
         }
@@ -1639,59 +1278,22 @@
        var showE;
        showE=function(edit1)
        {
-        var l,r;
-        if(edit1.$==1)
-         {
-          l=edit1.$0;
-          return"Left > "+showE(l);
-         }
-        else
-         {
-          if(edit1.$==2)
-           {
-            r=edit1.$0;
-            return"Right > "+showE(r);
-           }
-          else
-           {
-            return"Replace";
-           }
-         }
+        return edit1.$==1?"Left > "+showE(edit1.$0):edit1.$==2?"Right > "+showE(edit1.$0):"Replace";
        };
        return showE(edit);
       },
       Transform:function(f,edit)
       {
-       var e,arg0,e1,arg01,t;
-       if(edit.$==1)
-        {
-         e=edit.$0;
-         arg0=Tree.Transform(f,e);
-         return Runtime.New(Edit,{
-          $:1,
-          $0:arg0
-         });
-        }
-       else
-        {
-         if(edit.$==2)
-          {
-           e1=edit.$0;
-           arg01=Tree.Transform(f,e1);
-           return Runtime.New(Edit,{
-            $:2,
-            $0:arg01
-           });
-          }
-         else
-          {
-           t=edit.$0;
-           return Runtime.New(Edit,{
-            $:0,
-            $0:f(t)
-           });
-          }
-        }
+       return edit.$==1?Runtime.New(Edit,{
+        $:1,
+        $0:Tree.Transform(f,edit.$0)
+       }):edit.$==2?Runtime.New(Edit,{
+        $:2,
+        $0:Tree.Transform(f,edit.$0)
+       }):Runtime.New(Edit,{
+        $:0,
+        $0:f(edit.$0)
+       });
       },
       Tree:Runtime.Class({
        GetEnumerator:function()
@@ -1704,13 +1306,12 @@
        },
        Map:function(f)
        {
-        var t,right,left;
+        var right;
         if(this.$==1)
          {
-          t=this.$0;
           return Runtime.New(Tree1,{
            $:1,
-           $0:f(t)
+           $0:f(this.$0)
           });
          }
         else
@@ -1718,10 +1319,9 @@
           if(this.$==2)
            {
             right=this.$1;
-            left=this.$0;
             return Runtime.New(Tree1,{
              $:2,
-             $0:left.Map(f),
+             $0:this.$0.Map(f),
              $1:right.Map(f)
             });
            }
@@ -1735,19 +1335,17 @@
        },
        get_Sequence:function()
        {
-        var x,y,x1;
+        var y;
         if(this.$==1)
          {
-          x=this.$0;
-          return[x];
+          return[this.$0];
          }
         else
          {
           if(this.$==2)
            {
             y=this.$1;
-            x1=this.$0;
-            return Seq.append(x1.get_Sequence(),y.get_Sequence());
+            return Seq.append(this.$0.get_Sequence(),y.get_Sequence());
            }
           else
            {
@@ -1760,11 +1358,7 @@
      Validator:Runtime.Class({
       Is:function(f,m,flet)
       {
-       var _this=this;
-       return function(arg20)
-       {
-        return _this.Validate(f,m,arg20);
-       }(flet);
+       return this.Validate(f,m,flet);
       },
       IsEmail:function(msg)
       {
@@ -1776,14 +1370,10 @@
       },
       IsEqual:function(value,msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(i)
        {
-        return _this.Validate(function(i)
-        {
-         return Unchecked.Equals(i,value);
-        },msg,arg20);
-       }(flet);
+        return Unchecked.Equals(i,value);
+       },msg,flet);
       },
       IsFloat:function(msg)
       {
@@ -1795,14 +1385,10 @@
       },
       IsGreaterThan:function(min,msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(i)
        {
-        return _this.Validate(function(i)
-        {
-         return Unchecked.Compare(i,min)===1;
-        },msg,arg20);
-       }(flet);
+        return Unchecked.Compare(i,min)===1;
+       },msg,flet);
       },
       IsInt:function(msg)
       {
@@ -1814,98 +1400,64 @@
       },
       IsLessThan:function(max,msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(i)
        {
-        return _this.Validate(function(i)
-        {
-         return Unchecked.Compare(i,max)===-1;
-        },msg,arg20);
-       }(flet);
+        return Unchecked.Compare(i,max)===-1;
+       },msg,flet);
       },
       IsNotEmpty:function(msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(s)
        {
-        return _this.Validate(function(s)
-        {
-         return s!=="";
-        },msg,arg20);
-       }(flet);
+        return s!=="";
+       },msg,flet);
       },
       IsNotEqual:function(value,msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(i)
        {
-        return _this.Validate(function(i)
-        {
-         return!Unchecked.Equals(i,value);
-        },msg,arg20);
-       }(flet);
+        return!Unchecked.Equals(i,value);
+       },msg,flet);
       },
       IsRegexMatch:function(regex,msg,flet)
       {
        var _this=this;
-       return function(arg20)
+       return this.Validate(function(x)
        {
-        return _this.Validate(function(x)
-        {
-         var objectArg;
-         objectArg=_this.VP;
-         return function(arg10)
-         {
-          return objectArg.Matches(regex,arg10);
-         }(x);
-        },msg,arg20);
-       }(flet);
+        return _this.VP.Matches(regex,x);
+       },msg,flet);
       },
       IsTrue:function(msg,flet)
       {
-       var _this=this;
-       return function(arg20)
+       return this.Validate(function(x)
        {
-        return _this.Validate(function(x)
-        {
-         return x;
-        },msg,arg20);
-       }(flet);
+        return x;
+       },msg,flet);
       },
       Validate:function(f,msg,flet)
       {
-       var value;
-       value=flet.MapResult(function(res)
+       return flet.MapResult(function(res)
        {
-        var fs,v;
+        var v;
         if(res.$==1)
          {
-          fs=res.$0;
           return Runtime.New(Result,{
            $:1,
-           $0:fs
+           $0:res.$0
           });
          }
         else
          {
           v=res.$0;
-          if(f(v))
-           {
-            return Runtime.New(Result,{
-             $:0,
-             $0:v
-            });
-           }
-          else
-           {
-            return Runtime.New(Result,{
-             $:1,
-             $0:List.ofArray([msg])
-            });
-           }
+          return f(v)?Runtime.New(Result,{
+           $:0,
+           $0:v
+          }):Runtime.New(Result,{
+           $:1,
+           $0:List.ofArray([msg])
+          });
          }
        });
-       return value;
       }
      },{
       New:function(VP)
@@ -1941,5 +1493,6 @@
  });
  Runtime.OnLoad(function()
  {
+  return;
  });
 }());

@@ -8,14 +8,14 @@
      Assert:{
       For:function(times,gen,attempt)
       {
-       Runtime.For(0,gen.Base.length-1,function(i)
-       {
+       var i,i1;
+       for(i=0;i<=gen.Base.length-1;i++){
         attempt(gen.Base[i]);
-       });
-       Runtime.For(1,times,function()
-       {
+       }
+       for(i1=1;i1<=times;i1++){
         attempt(gen.Next.call(null,null));
-       });
+       }
+       return;
       },
       Raises:function(f)
       {
@@ -119,9 +119,7 @@
         Base:[],
         Next:function()
         {
-         var p;
-         p=Random.StandardUniform().Next.call(null,null);
-         return-Math.log(1-p)/lambda;
+         return-Math.log(1-Random.StandardUniform().Next.call(null,null))/lambda;
         }
        };
       },
@@ -131,9 +129,7 @@
         Base:[0],
         Next:function()
         {
-         var sign;
-         sign=Random.Boolean().Next.call(null,null)?1:-1;
-         return sign*Random.Exponential(0.1).Next.call(null,null);
+         return(Random.Boolean().Next.call(null,null)?1:-1)*Random.Exponential(0.1).Next.call(null,null);
         }
        };
       }),
@@ -159,14 +155,7 @@
       },
       Implies:function(a,b)
       {
-       if(!a)
-        {
-         return true;
-        }
-       else
-        {
-         return b;
-        }
+       return!a?true:b;
       },
       Imply:function(a,b)
       {
@@ -184,75 +173,60 @@
       }),
       ListOf:function(generator)
       {
-       var x,f;
-       x=Random.ArrayOf(generator);
-       f=function(gen)
+       return Random.Map(function(array)
        {
-        return Random.Map(function(array)
-        {
-         return List.ofArray(array);
-        },gen);
-       };
-       return f(x);
+        return List.ofArray(array);
+       },Random.ArrayOf(generator));
       },
       Map:function(f,gen)
       {
-       var arr,f1;
+       var f1;
+       f1=gen.Next;
        return{
-        Base:(arr=gen.Base,arr.map(function(x)
-        {
-         return f(x);
-        })),
-        Next:(f1=gen.Next,function(x)
+        Base:Arrays.map(f,gen.Base),
+        Next:function(x)
         {
          return f(f1(x));
-        })
+        }
        };
       },
       Mix:function(a,b)
       {
        var left;
+       left={
+        contents:false
+       };
        return{
         Base:a.Base.concat(b.Base),
-        Next:(left={
-         contents:false
-        },function()
+        Next:function()
         {
          left.contents=!left.contents;
-         if(left.contents)
-          {
-           return a.Next.call(null,null);
-          }
-         else
-          {
-           return b.Next.call(null,null);
-          }
-        })
+         return left.contents?a.Next.call(null,null):b.Next.call(null,null);
+        }
        };
       },
       Natural:Runtime.Field(function()
       {
        var g;
+       g=Random.Int().Next;
        return{
         Base:[0,1],
-        Next:(g=Random.Int().Next,function(x)
+        Next:function(x)
         {
-         return function(value)
-         {
-          return Math.abs(value);
-         }(g(x));
-        })
+         return Math.abs(g(x));
+        }
        };
       }),
       OneOf:function(seeds)
       {
        var index;
+       index=Random.Within(1,seeds.length);
        return{
         Base:seeds,
-        Next:(index=Random.Within(1,seeds.length),function()
+        Next:function()
         {
          return seeds[index.Next.call(null,null)-1];
-        })
+        }
        };
       },
       OptionOf:function(generator)
@@ -283,13 +257,10 @@
         Base:[""],
         Next:function()
         {
-         var len,cs;
-         len=Random.Natural().Next.call(null,null)%100;
-         cs=Arrays.init(len,function()
+         return String.fromCharCode.apply(undefined,Arrays.init(Random.Natural().Next.call(null,null)%100,function()
          {
           return Random.Int().Next.call(null,null)%256;
-         });
-         return String.fromCharCode.apply(undefined,cs);
+         }));
         }
        };
       }),
@@ -386,5 +357,6 @@
   Random.FloatExhaustive();
   Random.Float();
   Random.Boolean();
+  return;
  });
 }());

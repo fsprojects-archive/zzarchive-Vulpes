@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.WebSharper.Testing</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Testing.Assert">
+<summary>
+ Implements testing assertions.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Testing.Pervasives.TestBuilder">
+<summary>
+ A syntactic utility for delaying test code.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Pervasives.op_LessGreaterQmark``1(``0,``0)">
+<summary>
+ Performs an inequality test.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Pervasives.op_EqualsQmark``1(``0,``0)">
+<summary>
+ Performs an equality test.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Pervasives.Section(System.String)">
+<summary>
+ Starts a new test section.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Pervasives.Test(System.String)">
+<summary>
+ Creates a test with a given name.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Pervasives.op_BarQmark(System.Boolean,System.String)">
+<summary>
+ Tests a given assertion.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Testing.Pervasives">
+<summary>
+ Common utilities for testing.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Testing.Random.Generator`1.Next">
+<summary>
+ A function generating a new random value.
+</summary>
+</member>
+<member name="F:IntelliFactory.WebSharper.Testing.Random.Generator`1.Base">
+<summary>
+ An array of values that must be tested against.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Testing.Random.Generator`1">
+<summary>
+ A test case generator.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.OptionOf``1(IntelliFactory.WebSharper.Testing.Random.Generator{``0})">
+<summary>
+ Promotes a generator to a generator of options.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Const``1(``0)">
+<summary>
+ Creates a generator that always generates the given value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Mix``1(IntelliFactory.WebSharper.Testing.Random.Generator{``0},IntelliFactory.WebSharper.Testing.Random.Generator{``0})">
+<summary>
+ Mixes two generators without bias.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.OneOf``1(``0[])">
+<summary>
+ Creates a generator with a random uniform distribution over a set
+ of values supplied in the `seeds` array.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Tuple3Of``3(IntelliFactory.WebSharper.Testing.Random.Generator{``0},IntelliFactory.WebSharper.Testing.Random.Generator{``1},IntelliFactory.WebSharper.Testing.Random.Generator{``2})">
+<summary>
+ Promotes a triple of generators to a generator of triples.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Tuple2Of``2(IntelliFactory.WebSharper.Testing.Random.Generator{``0},IntelliFactory.WebSharper.Testing.Random.Generator{``1})">
+<summary>
+ Promotes a tuple of generators to a generator of tuples.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.StringExhaustive">
+<summary>
+ Generates random strings including nulls.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.String">
+<summary>
+ Generates random strings.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.ListOf``1(IntelliFactory.WebSharper.Testing.Random.Generator{``0})">
+<summary>
+ Generates random lists.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.ArrayOf``1(IntelliFactory.WebSharper.Testing.Random.Generator{``0})">
+<summary>
+ Generates random arrays.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.FloatWithin(System.Double,System.Double)">
+<summary>
+ Generates integers within a range.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Within(System.Int32,System.Int32)">
+<summary>
+ Generates integers within a range.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.Natural">
+<summary>
+ Generates random natural numbers (0, 1, ..).
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.Int">
+<summary>
+ Generates random int values.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.FloatExhaustive">
+<summary>
+ Generates random doubles, including corner cases.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.Float">
+<summary>
+ Generates random doubles.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.Boolean">
+<summary>
+ Generates random booleans.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Exponential(System.Double)">
+<summary>
+ Exponential distribution sampler.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Testing.Random.StandardUniform">
+<summary>
+ Standard uniform distribution sampler.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.op_EqualsEqualsGreater(System.Boolean,System.Boolean)">
+<summary>
+ Logical implication (alias).
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Implies(System.Boolean,System.Boolean)">
+<summary>
+ Logical implication.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Testing.Random.Map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},IntelliFactory.WebSharper.Testing.Random.Generator{``0})">
+<summary>
+ Maps a function over a generator.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Testing.Random">
+<summary>
+ Random test case generators and their combinators.
+</summary>
+</member>
+</members>
+</doc>

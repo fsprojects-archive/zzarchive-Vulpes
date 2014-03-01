@@ -1,0 +1,1121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<doc>
+<assembly><name>IntelliFactory.WebSharper.Formlet</name></assembly>
+<members>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Body">
+<summary>
+ Represents the visual element of a formlet.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.ElementStore`1">
+<summary>
+ Class usable for storing elements for removal.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.FormletBuilder">
+<summary>
+ Formlet builder.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.LayoutProvider.Vertical">
+<summary>
+ Vertical layout component.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.LayoutProvider.Horizontal">
+<summary>
+ Horizontal layout component.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.LayoutProvider.Flowlet">
+<summary>
+ Flowlet layout for rendering subsequent formlets by replacing
+ previous ones.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.LayoutProvider.LabelLayout(IntelliFactory.WebSharper.Formlet.Layout.LabelConfiguration)">
+<summary>
+ Produces a layout with the given label configuration.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.LayoutProvider">
+<summary>
+ Defines formlets and their operations.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.Button(System.String)">
+<summary>
+ Creates a button formlet with the given label.
+ The first time the button is clicked the formlet will yield
+ the value &quot;0&quot;. For every additional click the value is
+ incremented by one.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ElementButton(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.WebSharper.Html.Element})">
+<summary>
+ Creates a button formlet with the given label.
+ The first time the button is clicked the formlet will yield
+ the value &quot;0&quot;. For every additional click the value is
+ incremented by one.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ReadOnlyInput(System.String)">
+<summary>
+ Creates an input text control formlet with a default value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.Input(System.String)">
+<summary>
+ Creates an input text control formlet with a default value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.Password(System.String)">
+<summary>
+ Creates a password control formlet with a default value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ReadOnlyRadioButtonGroup``1(Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,``0}})">
+<summary>
+ Given an optional value for the default selected index and a list of name and value pairs,
+ creates a radio button group control. The formlet produces a value corresponding to
+ the selected radio button.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.RadioButtonGroup``1(Microsoft.FSharp.Core.FSharpOption{System.Int32},Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,``0}})">
+<summary>
+ Given an optional value for the default selected index and a list of name and value pairs,
+ creates a radio button group control. The formlet produces a value corresponding to
+ the selected radio button.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.CheckboxGroup``1(Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,``0,System.Boolean}})">
+<summary>
+ Given a list of labels, values and bools indicating if the default value,
+ constructs a checkbox group control formlet. The formlet produces a
+ a list of values corresponding to the checked components.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ReadOnlyCheckbox(System.Boolean)">
+<summary>
+ Creates a read only check box formlet with the state
+ given by the provided value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.Checkbox(System.Boolean)">
+<summary>
+ Creates a check box formlet with the initial state
+ given by the provided value.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ReadOnlyTextArea(System.String)">
+<summary>
+ Read only text area.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.TextArea(System.String)">
+<summary>
+ Given an initial value creates a text area formlet control.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.ReadOnlySelect``1(System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,``0}})">
+<summary>
+ Given an optional value for the default selected index and a list of name and value pairs,
+ creates a select box control. The formlet produces a value corresponding to
+ the selected radio button.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Controls.Select``1(System.Int32,Microsoft.FSharp.Collections.FSharpList{System.Tuple{System.String,``0}})">
+<summary>
+ Given an optional value for the default selected index and a list of name and value pairs,
+ creates a select box control. The formlet produces a value corresponding to
+ the selected radio button.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Controls">
+<summary>
+ Defines formlets and their operations.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.CssConstants">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Data.Result`1">
+<summary>
+ Formlet result type.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Data.Formlet`1.Body">
+<summary>
+ IPagelet implementation.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Data.Formlet`1.Run(Microsoft.FSharp.Core.FSharpFunc{`0,Microsoft.FSharp.Core.Unit})">
+<summary>
+ Returns the internal element. Multiple invocations of `Run` will
+ return the same element.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Data.Formlet`1.IntelliFactory-Formlet-Base-IFormlet`2-Build">
+<summary>
+ IFormlet implementation.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Data.op_LessMultiplyGreater``2(IntelliFactory.WebSharper.Formlet.Data.Formlet{Microsoft.FSharp.Core.FSharpFunc{``0,``1}},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Changes a function inside the formlet to a
+ function over values of the formlet.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Data.Validator">
+<summary>
+ Basic validation provider.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Data.OfIFormlet``1(IntelliFactory.Formlet.Base.IFormlet{IntelliFactory.WebSharper.Formlet.Body,``0})">
+<summary>
+ Construct a formlet from an IFormlet.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Data.DefaultLayout">
+<summary>
+ Default provider of Reactive implementation and layout.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Data">
+<summary>
+ Defines formlets and their operations.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.JsonPostConfiguration">
+<summary>
+ Represents configuration settings for
+ posting form data as JSON.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Enhance.FormContainerConfiguration.Default">
+<summary>
+ Default form container configuration.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.FormContainerConfiguration">
+<summary>
+ Represents form container configuration settings.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.FormPart">
+<summary>
+ Represents a constant visual part of a web form.
+ Either text or an element produced by the given
+ element generator function.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.Padding">
+<summary>
+ Represents padding settings for an Html element.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Enhance.ValidationFrameConfiguration.Default">
+<summary>
+ Default validator configuration.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.ValidationFrameConfiguration">
+<summary>
+ Represents validation styling configuration.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.ValidationIconConfiguration">
+<summary>
+ Represents validation icon configuration. Contains
+ Css classes for &quot;valid icon&quot; and &quot;error icon&quot;.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration.Default">
+<summary>
+ Default form button configuration.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration">
+<summary>
+ Represents form button configuration settings.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithJsonPost``1(IntelliFactory.WebSharper.Formlet.Enhance.JsonPostConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Wrap in form container with a post submit to the given URL
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.Many``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet for inputting a multiple values using the
+ given formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.CustomMany``1(IntelliFactory.WebSharper.Formlet.Enhance.ManyConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet for inputting a multiple values using the
+ given formlet. The first argument specifies the css classes for
+ remove and add icons.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithRowConfiguration``1(IntelliFactory.WebSharper.Formlet.Layout.FormRowConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with the given form row configuration.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLegend``1(System.String,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet wrapped inside a legend element with the
+ given label. This function merges the internal form body components.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithFormContainer``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet wrapped inside a form container.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomFormContainer``1(IntelliFactory.WebSharper.Formlet.Enhance.FormContainerConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet wrapped inside a form container specified by the given
+ configuration object.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLabelLeft``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet displaying labels on the left
+ hand side of the components.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLabelAbove``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates formlets displaying labels above the components.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithTextLabel``1(System.String,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Create a formlet enhanced with a text label.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLabelAndInfo``1(System.String,System.String,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a label with the given text and an info icon containing
+ additional information as a tooltip.
+ This function merges the internal form body components.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLabelConfiguration``1(IntelliFactory.WebSharper.Formlet.Layout.LabelConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a label specified by the given label configuration.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithLabel``1(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.WebSharper.Html.Element},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a label component.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithErrorFormlet``2(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Collections.FSharpList{System.String},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}},IntelliFactory.WebSharper.Formlet.Data.Formlet{``1})">
+<summary>
+ Enhances a formlet with a custom formlet for displaying error messages.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithValidationFrame``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet wrapped inside a validation frame reflecting the state of the
+ formlet using the default validation frame configuration settings.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithErrorSummary``1(System.String,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet outputting a list error messages when
+ entering a failing state.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithSubmitButton``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a submit button.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomSubmitButton``1(IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a submit button specified according to
+ the given form button configuration object.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithResetButton``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a reset button.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomResetButton``1(IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with a reset button specified according to
+ the given form button configuration object.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomValidationFrame``1(IntelliFactory.WebSharper.Formlet.Enhance.ValidationFrameConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a fomlet wrapped inside a validation frame, reflecting the current state of the
+ form. The validation frame settings are specified by the given configuration object.
+ This function merges the internal form body components.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithValidationIcon``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with validation icon reflecting the state of the formlet
+ using the default validation icon configuration settings.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomValidationIcon``1(IntelliFactory.WebSharper.Formlet.Enhance.ValidationIconConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with validation icon reflecting the current state of the
+ form value. The validation icon configuration is specified by the given configuration
+ object.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithSubmitAndResetButtons``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with submit and reset buttons named
+ &quot;Submit&quot; and &quot;Reset&quot;.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithCustomSubmitAndResetButtons``1(IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration,IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet enhanced with submit and reset buttons specified by
+ the given form button configuration objects.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.InputButton(IntelliFactory.WebSharper.Formlet.Enhance.FormButtonConfiguration,System.Boolean)">
+<summary>
+ Creates a button formlet with the given label.
+ The first time the button is clicked the formlet will yield
+ the value &quot;0&quot;. For every additional click the value is
+ incremented by one until reset.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithSubmitAndReset``2(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit},Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.Formlet.Base.Result{``0},IntelliFactory.WebSharper.Formlet.Data.Formlet{``1}}})">
+<summary>
+ Enhances a formlet with a submit and a reset formlet depending on
+ the result of the given formlet and the a reset function.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithSubmitFormlet``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.Formlet.Base.Result{``0},IntelliFactory.WebSharper.Formlet.Data.Formlet{Microsoft.FSharp.Core.Unit}})">
+<summary>
+ Creates a formlet enhanced with a a submit form depending on the
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithResetAction``1(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,System.Boolean},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Invokes the given callback function on every reset. Only if the function returns true
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Enhance.WithResetFormlet``2(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},IntelliFactory.WebSharper.Formlet.Data.Formlet{``1})">
+<summary>
+ Creates a formlet enhanced with reset capabilities defined by the second argument.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Enhance">
+<summary>
+ Defines formlets and their operations.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Choose``1(System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Given a sequenec of formlets, returns a formlet whose result
+ is the last triggered formlet value of any of the
+ formlets of the sequence.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Render(IntelliFactory.WebSharper.Formlet.Data.Formlet{Microsoft.FSharp.Core.Unit})">
+<summary>
+ Renders a formlet. Ignores the values produced by
+ the formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.BindWith``2(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Formlet.Body,Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Formlet.Body,IntelliFactory.WebSharper.Formlet.Body}},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},Microsoft.FSharp.Core.FSharpFunc{``0,IntelliFactory.WebSharper.Formlet.Data.Formlet{``1}})">
+<summary>
+ Generalized bind, with the ability to group the
+ customize the layout of the body parts.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Run``1(Microsoft.FSharp.Core.FSharpFunc{``0,Microsoft.FSharp.Core.Unit},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Given a callback function for handling results,
+ and a formlet, produces an IPagelet containing the
+ generated form component.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.OfElement(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.WebSharper.Html.Element})">
+<summary>
+ Given an element generator function, creates a formlet
+ containing the element as the form body and a successful unit value state.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.MapElement``1(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Html.Element,IntelliFactory.WebSharper.Html.Element},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Maps the HTML elements of the body component of a formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.ApplyLayout``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Applies the current layout component.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.WithNotificationChannel``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Constructs a formlet and its associated notification handler.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.WithNotification``1(Microsoft.FSharp.Core.FSharpFunc{System.Object,Microsoft.FSharp.Core.Unit},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a function to be invoked
+ on all notification events.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.WithLayout``1(IntelliFactory.Formlet.Base.Layout{IntelliFactory.WebSharper.Formlet.Body},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a layout component.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Sequence``1(System.Collections.Generic.IEnumerable{IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Given a list of formlets produce a composed formlet
+ producing a list of values.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.LiftResult``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Lifts the result of a formlet to its output value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.SelectMany``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Converts a formlet producing formlet into
+ a formlet producing a list of values corresponding
+ to results of all the generated formlets.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.FlipBody``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Changes the order of produced body stream.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Switch``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Joins the result of a formlet producing formlet
+ by only considering the results of the latest
+ produced formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Join``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Joins the results of a formlet producing formlet,
+ into a sequence of formlets, all propagating their
+ results to the outer resulting formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Replace``2(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},Microsoft.FSharp.Core.FSharpFunc{``0,IntelliFactory.WebSharper.Formlet.Data.Formlet{``1}})">
+<summary>
+ Given a formlet and a function, creates a formlet that is replaced
+ the first time the formlet value is triggered.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Bind``2(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},Microsoft.FSharp.Core.FSharpFunc{``0,IntelliFactory.WebSharper.Formlet.Data.Formlet{``1}})">
+<summary>
+ Given a formlet and a function, creates a formlet that is updated
+ every time the formlet value changes by applying the function.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Delay``1(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0}})">
+<summary>
+ Construct a formlet from a formlet generating function.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.MapResult``2(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.Formlet.Base.Result{``0},IntelliFactory.Formlet.Base.Result{``1}},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Maps the results of a formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.MapBody``1(Microsoft.FSharp.Core.FSharpFunc{IntelliFactory.WebSharper.Formlet.Body,IntelliFactory.WebSharper.Formlet.Body},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Maps the body component of a formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Map``2(Microsoft.FSharp.Core.FSharpFunc{``0,``1},IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Maps the successful results of a formlet.
+</summary>
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Formlet.Do">
+<summary>
+ Formlet builder
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.FailWith``1(Microsoft.FSharp.Collections.FSharpList{System.String})">
+<summary>
+ Creates an empty failing formlet with
+ the given list of error messages.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Deletable``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{Microsoft.FSharp.Core.FSharpOption{``0}})">
+<summary>
+ Given a formlet yielding optional values,
+ creates a formlet that removes its visual
+ component when the value None is triggered.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.BuildForm``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Builds a form component from a formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.ReturnEmpty``1(``0)">
+<summary>
+ Creates an empty formlet.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Empty``1">
+<summary>
+ Creates an empty formlet not firing any value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Never``1">
+<summary>
+ Creates a formlet that never fires a value.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Flowlet``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a flowlet layout-manager.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Vertical``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a vertical layout-manager.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Horizontal``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Enhances a formlet with a horizontal layout-manager.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.InitWithFailure``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Initializes a formlet with a failing state.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.InitWith``1(``0,IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Initializes a formlet with a default value
+ that is triggered first.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.WithCancelation``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0},IntelliFactory.WebSharper.Formlet.Data.Formlet{Microsoft.FSharp.Core.Unit})">
+<summary>
+ Converts the given formlet into a formlet enhanced
+ with a cancelation formlet. When the canecelation formlet
+ fires, the formlet will produce the value None.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Yield``1(``0)">
+<summary>
+ Lifts a value into a formlet with an empty body,
+ yielding that value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.Return``1(``0)">
+<summary>
+ Lifts a value into a formlet with an empty body,
+ yielding that value.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.WithLayoutOrDefault``1(IntelliFactory.WebSharper.Formlet.Data.Formlet{``0})">
+<summary>
+ Creates a formlet by either applying the layout component
+ of the given formlet or the default layout.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.New``1(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,IntelliFactory.Formlet.Base.Form{IntelliFactory.WebSharper.Formlet.Body,``0}})">
+<summary>
+ Utility function for constructing a formlet from a
+ form generating function.
+</summary>
+</member>
+<member name="M:IntelliFactory.WebSharper.Formlet.Formlet.BuildFormlet``3(Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,System.Tuple{``0,Microsoft.FSharp.Core.FSharpFunc{Microsoft.FSharp.Core.Unit,Microsoft.FSharp.Core.Unit},``1}})">
+<summary>
+ Utility for constructing new formlets from a function
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Formlet">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="P:IntelliFactory.WebSharper.Formlet.Layout.FormRowConfiguration.Default">
+<summary>
+ Default form row configuration.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.FormRowConfiguration">
+<summary>
+ Represents form row configuration settings.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.LabelConfiguration">
+<summary>
+ Represents label configuration
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.VerticalAlign">
+<summary>
+ Represents vertical alignment.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.Align">
+<summary>
+ Represents horizontal alignment.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.Placement">
+<summary>
+ Represents horizontal or vertical placement.
+</summary>
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout.Padding">
+<summary>
+ Represents padding settings for an Html element.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Layout">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Resources.SkinResource">
+<summary>
+ Default CSS skin.
+</summary>
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Resources">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="">
+
+</member>
+<member name="T:IntelliFactory.WebSharper.Formlet.Utils">
+
+</member>
+</members>
+</doc>

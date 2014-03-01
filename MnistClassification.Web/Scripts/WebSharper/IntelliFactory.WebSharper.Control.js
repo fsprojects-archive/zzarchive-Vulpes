@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Unchecked,Arrays,List,Control,Disposable,FSharpEvent,Util,Event,Event1,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,T,ObservableModule,Observer1;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,List,Arrays,Unchecked,Control,Disposable,FSharpEvent,Util,Event,Event1,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,T,ObservableModule,Observer1;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -21,48 +21,23 @@
        },
        RemoveHandler:function(h)
        {
-        var x,array,x1,x2,f,f2;
-        x=(array=(x1=(x2=this.Handlers,(f=function(array1)
+        var x;
+        x=List.ofArray(Arrays.choose(function(x1)
         {
-         var f1;
-         f1=function(i)
+         return x1;
+        },Arrays.mapi(function(i)
+        {
+         return function(x1)
          {
-          return function(x3)
-          {
-           if(Unchecked.Equals(x3,h))
-            {
-             return{
-              $:1,
-              $0:i
-             };
-            }
-           else
-            {
-             return{
-              $:0
-             };
-            }
+          return Unchecked.Equals(x1,h)?{
+           $:1,
+           $0:i
+          }:{
+           $:0
           };
          };
-         return array1.map(function(x3,i)
-         {
-          return(f1(i))(x3);
-         });
-        },f(x2))),(f2=function(array1)
-        {
-         return Arrays.choose(function(x3)
-         {
-          return x3;
-         },array1);
-        },f2(x1))),List.ofArray(array));
-        if(x.$==1)
-         {
-          return this.Handlers.splice(x.$0,1);
-         }
-        else
-         {
-          return null;
-         }
+        },this.Handlers)));
+        return x.$==1?this.Handlers.splice(x.$0,1):null;
        },
        Subscribe:function(observer)
        {
@@ -79,11 +54,11 @@
        },
        Trigger:function(x)
        {
-        var _this=this;
-        Runtime.For(0,this.Handlers.length-1,function(i)
-        {
-         _this.Handlers[i].call(null,x);
-        });
+        var i;
+        for(i=0;i<=this.Handlers.length-1;i++){
+         this.Handlers[i].call(null,x);
+        }
+        return;
        }
       })
      },
@@ -94,17 +69,9 @@
        r=FSharpEvent.New();
        Util.addListener(e,function(x)
        {
-        var matchValue,y;
+        var matchValue;
         matchValue=c(x);
-        if(matchValue.$==0)
-         {
-          return null;
-         }
-        else
-         {
-          y=matchValue.$0;
-          return r.event.Trigger(y);
-         }
+        return matchValue.$==0?null:r.event.Trigger(matchValue.$0);
        });
        return r.event;
       },
@@ -116,14 +83,7 @@
        });
        Util.addListener(e,function(x)
        {
-        if(ok(x))
-         {
-          return r.Trigger(x);
-         }
-        else
-         {
-          return null;
-         }
+        return ok(x)?r.Trigger(x):null;
        });
        return r;
       },
@@ -185,20 +145,17 @@
            $:1,
            $0:x
           };
+          return;
          }
        });
        return ev;
       },
       Partition:function(f,e)
       {
-       var g;
-       return[EventModule.Filter(f,e),EventModule.Filter((g=function(value)
+       return[EventModule.Filter(f,e),EventModule.Filter(function(x)
        {
-        return!value;
-       },function(x)
-       {
-        return g(f(x));
-       }),e)];
+        return!f(x);
+       },e)];
       },
       Scan:function(fold,seed,e)
       {
@@ -214,50 +171,27 @@
       },
       Split:function(f,e)
       {
-       var f1,chooser,f2,chooser1;
-       return[(f1=(chooser=function(x)
+       return[EventModule.Choose(function(x)
        {
-        var matchValue,x1;
+        var matchValue;
         matchValue=f(x);
-        if(matchValue.$==0)
-         {
-          x1=matchValue.$0;
-          return{
-           $:1,
-           $0:x1
-          };
-         }
-        else
-         {
-          return{
-           $:0
-          };
-         }
-       },function(sourceEvent)
+        return matchValue.$==0?{
+         $:1,
+         $0:matchValue.$0
+        }:{
+         $:0
+        };
+       },e),EventModule.Choose(function(x)
        {
-        return EventModule.Choose(chooser,sourceEvent);
-       }),f1(e)),(f2=(chooser1=function(x)
-       {
-        var matchValue,x1;
+        var matchValue;
         matchValue=f(x);
-        if(matchValue.$==1)
-         {
-          x1=matchValue.$0;
-          return{
-           $:1,
-           $0:x1
-          };
-         }
-        else
-         {
-          return{
-           $:0
-          };
-         }
-       },function(sourceEvent)
-       {
-        return EventModule.Choose(chooser1,sourceEvent);
-       }),f2(e))];
+        return matchValue.$==1?{
+         $:1,
+         $0:matchValue.$0
+        }:{
+         $:0
+        };
+       },e)];
       }
      },
      FSharpEvent:Runtime.Class({},{
@@ -275,26 +209,22 @@
       HotStream:Runtime.Class({
        Subscribe:function(o)
        {
-        var disp,_this;
         if(this.Latest.contents.$==1)
          {
           o.OnNext(this.Latest.contents.$0);
          }
-        disp=Util.subscribeTo((_this=this.Event,_this.event),function(v)
+        return Util.subscribeTo(this.Event.event,function(v)
         {
          return o.OnNext(v);
         });
-        return disp;
        },
        Trigger:function(v)
        {
-        var _this;
         this.Latest.contents={
          $:1,
          $0:v
         };
-        _this=this.Event;
-        return _this.event.Trigger(v);
+        return this.Event.event.Trigger(v);
        }
       },{
        New:function()
@@ -330,36 +260,25 @@
       {
        return Observable.New(function(o1)
        {
-        var on,arg00;
-        on=function(v)
+        return io.Subscribe(Observer.New(function(v)
         {
-         var matchValue,v1;
+         var matchValue;
          matchValue=f(v);
-         if(matchValue.$==0)
-          {
-           return null;
-          }
-         else
-          {
-           v1=matchValue.$0;
-           return o1.OnNext(v1);
-          }
-        };
-        arg00=Observer.New(on,function(arg001)
+         return matchValue.$==0?null:o1.OnNext(matchValue.$0);
+        },function(arg00)
         {
-         return o1.OnError(arg001);
+         return o1.OnError(arg00);
         },function()
         {
          return o1.OnCompleted();
-        });
-        return io.Subscribe(arg00);
+        }));
        });
       },
       CombineLatest:function(io1,io2,f)
       {
        return Observable.New(function(o)
        {
-        var lv1,lv2,update,o1,onNext,o2,onNext1,d1,d2;
+        var lv1,lv2,update,o1,o2,d1,d2;
         lv1={
          contents:{
           $:0
@@ -372,15 +291,14 @@
         };
         update=function()
         {
-         var matchValue,v1,v2;
+         var matchValue,v2;
          matchValue=[lv1.contents,lv2.contents];
          if(matchValue[0].$==1)
           {
            if(matchValue[1].$==1)
             {
-             v1=matchValue[0].$0;
              v2=matchValue[1].$0;
-             return o.OnNext((f(v1))(v2));
+             return o.OnNext((f(matchValue[0].$0))(v2));
             }
            else
             {
@@ -392,34 +310,30 @@
            return null;
           }
         };
-        o1=(onNext=function(x)
+        o1=Observer.New(function(x)
         {
          lv1.contents={
           $:1,
           $0:x
          };
          return update(null);
-        },Observer.New(onNext,function(value)
+        },function()
         {
-         value;
-        },function(value)
+        },function()
         {
-         value;
-        }));
-        o2=(onNext1=function(y)
+        });
+        o2=Observer.New(function(y)
         {
          lv2.contents={
           $:1,
           $0:y
          };
          return update(null);
-        },Observer.New(onNext1,function(value)
+        },function()
         {
-         value;
-        },function(value)
+        },function()
         {
-         value;
-        }));
+        });
         d1=io1.Subscribe(o1);
         d2=io2.Subscribe(o2);
         return Disposable.Of(function()
@@ -433,7 +347,7 @@
       {
        return Observable.New(function(o)
        {
-        var innerDisp,outerDisp,dispose;
+        var innerDisp,outerDisp;
         innerDisp={
          contents:{
           $:0
@@ -442,156 +356,109 @@
         outerDisp=io1.Subscribe(Observer.New(function(arg00)
         {
          return o.OnNext(arg00);
-        },function(value)
-        {
-         value;
         },function()
         {
-         var arg0;
-         innerDisp.contents=(arg0=io2.Subscribe(o),{
+        },function()
+        {
+         innerDisp.contents={
           $:1,
-          $0:arg0
-         });
+          $0:io2.Subscribe(o)
+         };
         }));
-        dispose=function()
+        return Disposable.Of(function()
         {
          if(innerDisp.contents.$==1)
           {
            innerDisp.contents.$0.Dispose();
           }
          return outerDisp.Dispose();
-        };
-        return Disposable.Of(dispose);
+        });
        });
       },
       Drop:function(count,io)
       {
        return Observable.New(function(o1)
        {
-        var index,on,arg00;
+        var index;
         index={
          contents:0
         };
-        on=function(v)
+        return io.Subscribe(Observer.New(function(v)
         {
          Operators.Increment(index);
-         if(index.contents>count)
-          {
-           return o1.OnNext(v);
-          }
-         else
-          {
-           return null;
-          }
-        };
-        arg00=Observer.New(on,function(arg001)
+         return index.contents>count?o1.OnNext(v):null;
+        },function(arg00)
         {
-         return o1.OnError(arg001);
+         return o1.OnError(arg00);
         },function()
         {
          return o1.OnCompleted();
-        });
-        return io.Subscribe(arg00);
+        }));
        });
       },
       Filter:function(f,io)
       {
        return Observable.New(function(o1)
        {
-        var on,arg00;
-        on=function(v)
+        return io.Subscribe(Observer.New(function(v)
         {
-         if(f(v))
-          {
-           return o1.OnNext(v);
-          }
-         else
-          {
-           return null;
-          }
-        };
-        arg00=Observer.New(on,function(arg001)
+         return f(v)?o1.OnNext(v):null;
+        },function(arg00)
         {
-         return o1.OnError(arg001);
+         return o1.OnError(arg00);
         },function()
         {
          return o1.OnCompleted();
-        });
-        return io.Subscribe(arg00);
+        }));
        });
       },
       Map:function(f,io)
       {
        return Observable.New(function(o1)
        {
-        var on,arg00;
-        on=function(v)
+        return io.Subscribe(Observer.New(function(v)
         {
          return o1.OnNext(f(v));
-        };
-        arg00=Observer.New(on,function(arg001)
+        },function(arg00)
         {
-         return o1.OnError(arg001);
+         return o1.OnError(arg00);
         },function()
         {
          return o1.OnCompleted();
-        });
-        return io.Subscribe(arg00);
+        }));
        });
       },
       Merge:function(io1,io2)
       {
        return Observable.New(function(o)
        {
-        var completed1,completed2,disp1,x,f,disp2,x1,f1;
+        var completed1,completed2,disp1,disp2;
         completed1={
          contents:false
         };
         completed2={
          contents:false
         };
-        disp1=(x=Observer.New(function(arg00)
+        disp1=io1.Subscribe(Observer.New(function(arg00)
         {
          return o.OnNext(arg00);
-        },function(value)
+        },function()
         {
-         value;
         },function()
         {
          completed1.contents=true;
-         if(completed1.contents?completed2.contents:false)
-          {
-           return o.OnCompleted();
-          }
-         else
-          {
-           return null;
-          }
-        }),(f=function(arg00)
-        {
-         return io1.Subscribe(arg00);
-        },f(x)));
-        disp2=(x1=Observer.New(function(arg00)
+         return(completed1.contents?completed2.contents:false)?o.OnCompleted():null;
+        }));
+        disp2=io2.Subscribe(Observer.New(function(arg00)
         {
          return o.OnNext(arg00);
-        },function(value)
+        },function()
         {
-         value;
         },function()
         {
          completed2.contents=true;
-         if(completed1.contents?completed2.contents:false)
-          {
-           return o.OnCompleted();
-          }
-         else
-          {
-           return null;
-          }
-        }),(f1=function(arg00)
-        {
-         return io2.Subscribe(arg00);
-        },f1(x1)));
+         return(completed1.contents?completed2.contents:false)?o.OnCompleted():null;
+        }));
         return Disposable.Of(function()
         {
          disp1.Dispose();
@@ -603,9 +470,8 @@
       {
        return Observable.New(function()
        {
-        return Disposable.Of(function(value)
+        return Disposable.Of(function()
         {
-         value;
         });
        });
       },
@@ -635,13 +501,12 @@
       {
        return Observable.New(function(o)
        {
-        Runtime.For(start,start+count,function(i)
-        {
+        var i;
+        for(i=start;i<=start+count;i++){
          o.OnNext(i);
-        });
-        return Disposable.Of(function(value)
+        }
+        return Disposable.Of(function()
         {
-         value;
         });
        });
       },
@@ -651,9 +516,8 @@
        {
         o.OnNext(x);
         o.OnCompleted();
-        return Disposable.Of(function(value)
+        return Disposable.Of(function()
         {
-         value;
         });
        });
       },
@@ -663,9 +527,8 @@
        {
         var disp,d;
         disp={
-         contents:function(value)
+         contents:function()
          {
-          value;
          }
         };
         d=Util.subscribeTo(io,function(o1)
@@ -680,6 +543,7 @@
           disp.contents.call(null,null);
           return d1.Dispose();
          };
+         return;
         });
         return Disposable.Of(function()
         {
@@ -693,30 +557,19 @@
        var sequence;
        sequence=function(ios1)
        {
-        var xs,x,rest;
-        if(ios1.$==1)
+        return ios1.$==1?Observable.CombineLatest(ios1.$0,sequence(ios1.$1),function(x)
+        {
+         return function(y)
          {
-          xs=ios1.$1;
-          x=ios1.$0;
-          rest=sequence(xs);
-          return Observable.CombineLatest(x,rest,function(x1)
-          {
-           return function(y)
-           {
-            return Runtime.New(T,{
-             $:1,
-             $0:x1,
-             $1:y
-            });
-           };
+          return Runtime.New(T,{
+           $:1,
+           $0:x,
+           $1:y
           });
-         }
-        else
-         {
-          return Observable.Return(Runtime.New(T,{
-           $:0
-          }));
-         }
+         };
+        }):Observable.Return(Runtime.New(T,{
+         $:0
+        }));
        };
        return sequence(List.ofSeq(ios));
       },
@@ -724,54 +577,48 @@
       {
        return Observable.New(function(o)
        {
-        var disp,index,disp1;
-        disp=(index={
+        var index,disp;
+        index={
          contents:0
-        },(disp1={
+        };
+        disp={
          contents:{
           $:0
          }
-        },Util.subscribeTo(io,function(o1)
+        };
+        return Util.subscribeTo(io,function(o1)
         {
-         var currentIndex,d,arg0;
+         var currentIndex;
          Operators.Increment(index);
-         if(disp1.contents.$==1)
+         if(disp.contents.$==1)
           {
-           disp1.contents.$0.Dispose();
+           disp.contents.$0.Dispose();
           }
          currentIndex=index.contents;
-         d=(arg0=Util.subscribeTo(o1,function(v)
-         {
-          if(currentIndex===index.contents)
-           {
-            return o.OnNext(v);
-           }
-          else
-           {
-            return null;
-           }
-         }),{
+         disp.contents={
           $:1,
-          $0:arg0
-         });
-         disp1.contents=d;
-        })));
-        return disp;
+          $0:Util.subscribeTo(o1,function(v)
+          {
+           return currentIndex===index.contents?o.OnNext(v):null;
+          })
+         };
+         return;
+        });
        });
       }
      },
      ObservableModule:{
       Pairwise:function(e)
       {
-       var x,x1,f,collector,f1,chooser;
-       x=(x1=[{
+       var x,collector,source;
+       x=[{
         $:0
        },{
         $:0
-       }],(f=(collector=Runtime.Tupled(function(tupledArg)
+       }];
+       collector=Runtime.Tupled(function(tupledArg)
        {
-        var _arg1,o;
-        _arg1=tupledArg[0];
+        var o;
         o=tupledArg[1];
         return function(n)
         {
@@ -780,118 +627,70 @@
           $0:n
          }];
         };
-       }),Runtime.Tupled(function(state)
-       {
-        return function(source)
-        {
-         return ObservableModule.Scan(collector,state,source);
-        };
-       })),(f(x1))(e)));
-       f1=(chooser=Runtime.Tupled(function(_arg1)
-       {
-        var x2,y;
-        if(_arg1[0].$==1)
-         {
-          if(_arg1[1].$==1)
-           {
-            x2=_arg1[0].$0;
-            y=_arg1[1].$0;
-            return{
-             $:1,
-             $0:[x2,y]
-            };
-           }
-          else
-           {
-            return{
-             $:0
-            };
-           }
-         }
-        else
-         {
-          return{
-           $:0
-          };
-         }
-       }),function(source)
-       {
-        return Observable.Choose(chooser,source);
        });
-       return f1(x);
+       source=((Runtime.Tupled(function(state)
+       {
+        return function(source1)
+        {
+         return ObservableModule.Scan(collector,state,source1);
+        };
+       }))(x))(e);
+       return Observable.Choose(Runtime.Tupled(function(_arg1)
+       {
+        return _arg1[0].$==1?_arg1[1].$==1?{
+         $:1,
+         $0:[_arg1[0].$0,_arg1[1].$0]
+        }:{
+         $:0
+        }:{
+         $:0
+        };
+       }),source);
       },
       Partition:function(f,e)
       {
-       var g;
-       return[Observable.Filter(f,e),Observable.Filter((g=function(value)
+       return[Observable.Filter(f,e),Observable.Filter(function(x)
        {
-        return!value;
-       },function(x)
-       {
-        return g(f(x));
-       }),e)];
+        return!f(x);
+       },e)];
       },
       Scan:function(fold,seed,e)
       {
-       var state,f;
+       var state;
        state={
         contents:seed
        };
-       f=function(value)
+       return Observable.Map(function(value)
        {
         state.contents=(fold(state.contents))(value);
         return state.contents;
-       };
-       return Observable.Map(f,e);
+       },e);
       },
       Split:function(f,e)
       {
-       var left,f1,chooser,right,f2,chooser1;
-       left=(f1=(chooser=function(x)
+       var chooser;
+       chooser=function(x)
        {
-        var matchValue,x1;
+        var matchValue;
         matchValue=f(x);
-        if(matchValue.$==0)
-         {
-          x1=matchValue.$0;
-          return{
-           $:1,
-           $0:x1
-          };
-         }
-        else
-         {
-          return{
-           $:0
-          };
-         }
-       },function(source)
+        return matchValue.$==1?{
+         $:1,
+         $0:matchValue.$0
+        }:{
+         $:0
+        };
+       };
+       return[Observable.Choose(function(x)
        {
-        return Observable.Choose(chooser,source);
-       }),f1(e));
-       right=(f2=(chooser1=function(x)
-       {
-        var matchValue,x1;
+        var matchValue;
         matchValue=f(x);
-        if(matchValue.$==1)
-         {
-          x1=matchValue.$0;
-          return{
-           $:1,
-           $0:x1
-          };
-         }
-        else
-         {
-          return{
-           $:0
-          };
-         }
-       },function(source)
-       {
-        return Observable.Choose(chooser1,source);
-       }),f2(e));
-       return[left,right];
+        return matchValue.$==0?{
+         $:1,
+         $0:matchValue.$0
+        }:{
+         $:0
+        };
+       },e),Observable.Choose(chooser,e)];
       }
      },
      Observer:{
@@ -939,9 +738,9 @@
  Runtime.OnInit(function()
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
-  Unchecked=Runtime.Safe(WebSharper.Unchecked);
-  Arrays=Runtime.Safe(WebSharper.Arrays);
   List=Runtime.Safe(WebSharper.List);
+  Arrays=Runtime.Safe(WebSharper.Arrays);
+  Unchecked=Runtime.Safe(WebSharper.Unchecked);
   Control=Runtime.Safe(WebSharper.Control);
   Disposable=Runtime.Safe(Control.Disposable);
   FSharpEvent=Runtime.Safe(Control.FSharpEvent);
@@ -961,5 +760,6 @@
  });
  Runtime.OnLoad(function()
  {
+  return;
  });
 }());

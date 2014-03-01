@@ -11,5 +11,7 @@ declare module IntelliFactory {
             }
         }
     }
+}
+declare module __ABBREV {
     
 }
