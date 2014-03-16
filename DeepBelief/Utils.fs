@@ -26,6 +26,7 @@ module Utils =
     open Microsoft.FSharp.Quotations
     open MathNet.Numerics.Random
     open MathNet.Numerics.Distributions
+    open System
     open System.Threading.Tasks
     open Alea.CUDA.Utilities
 
@@ -152,7 +153,7 @@ module Utils =
     let prepend value vector = value :: List.ofArray vector |> Array.ofList
     let prependForBias = prepend 1.0f
 
-    let rand = new MersenneTwister()
+    let rand = new Random()
 
     let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
     let logitFunction x = log x - log (1.0f - x)
@@ -258,7 +259,7 @@ module Utils =
         Seq.groupBy fst >> Seq.map snd >>
         Seq.map (Seq.map snd >> Seq.toArray) >> Seq.toArray
     
-    let nextSingle (rnd : AbstractRandomNumberGenerator) =
+    let nextSingle (rnd : Random) =
         rnd.NextDouble() |> float32
 
     let permutation rnd arr =

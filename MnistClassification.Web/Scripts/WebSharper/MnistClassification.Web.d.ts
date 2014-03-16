@@ -12,12 +12,21 @@ declare module MnistClassification {
             }
         }
         module Client {
+            interface Margin {
+                Top: number;
+                Right: number;
+                Bottom: number;
+                Left: number;
+            }
             var Start : {
                 (input: string, k: {
                     (x: string): void;
                 }): void;
             };
             var Main : {
+                (): __ABBREV.__Html1.Element;
+            };
+            var TrainingSet : {
                 (): __ABBREV.__Html1.Element;
             };
         }

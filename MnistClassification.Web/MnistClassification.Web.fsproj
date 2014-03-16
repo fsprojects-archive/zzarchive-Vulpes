@@ -9,7 +9,7 @@
     <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{F2A71F9B-5D33-465A-A702-920D77279786}</ProjectTypeGuids>
     <WebSharperProject>Site</WebSharperProject>
     <UseIISExpress>true</UseIISExpress>
-    <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
+    <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -51,6 +51,10 @@
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
   <Import Project="$(FSharpTargetsPath)" Condition="Exists('$(FSharpTargetsPath)')" />
   <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
@@ -95,6 +99,13 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
+  <Import Project="..\packages\WebSharper.2.5.98.29\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.98.29\build\WebSharper.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\WebSharper.2.5.98.29\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.2.5.98.29\build\WebSharper.targets'))" />
+  </Target>
   <ItemGroup>
     <Compile Include="Remoting.fs" />
     <Compile Include="Client.fs" />
@@ -106,7 +117,8 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+    <Reference Include="IntelliFactory.WebSharper">
+      <HintPath>..\packages\WebSharper.2.5.98.29\lib\net40\IntelliFactory.Html.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="IntelliFactory.WebSharper.D3">
@@ -115,14 +127,6 @@
     </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
-    <Reference Include="System.Data.DataSetExtensions.dll" />
-    <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
-    <Reference Include="System.Web.ApplicationServices.dll" />
-    <Reference Include="System.Web.DynamicData.dll" />
-    <Reference Include="System.Web.Entity.dll" />
-    <Reference Include="System.Web.Extensions" />
-    <Reference Include="System.Xml.Linq.dll" />
   </ItemGroup>
-  <Import Project="..\packages\WebSharper.2.5.98.29\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.98.29\build\WebSharper.targets')" />
 </Project>

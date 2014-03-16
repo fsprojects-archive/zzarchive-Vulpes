@@ -23,6 +23,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
     <DocumentationFile>bin\Debug\DeepBelief.Tests.XML</DocumentationFile>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -45,18 +47,6 @@
     </Reference>
     <Reference Include="FsUnit.Xunit">
       <HintPath>..\packages\FsUnit.xUnit.1.2.2.1\Lib\net40\FsUnit.Xunit.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics">
-      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics.FSharp">
-      <HintPath>..\packages\MathNet.Numerics.FSharp.2.6.0\lib\net40\MathNet.Numerics.FSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics.IO">
-      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.IO.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="mscorlib" />
@@ -92,7 +82,7 @@
   <ItemGroup>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
       <Name>DeepBelief</Name>
-      <Project>{50f4eb00-a650-4854-b53b-3c919d36eab5}</Project>
+      <Project>{f223ebc5-05a0-40fe-8559-3dc79bc6dd0d}</Project>
       <Private>True</Private>
     </ProjectReference>
   </ItemGroup>

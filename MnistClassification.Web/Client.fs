@@ -23,6 +23,7 @@ namespace MnistClassification.Web
 
 open IntelliFactory.WebSharper
 open IntelliFactory.WebSharper.Html
+open IntelliFactory.WebSharper.D3
 
 [<JavaScript>]
 module Client =
@@ -35,6 +36,7 @@ module Client =
         |> Async.Start
 
     let Main () =
+
         let input = Input [Text ""]
         let label = Div [Text ""]
         Div [
@@ -45,3 +47,23 @@ module Client =
                 Start input.Value (fun out ->
                     label.Text <- out))
         ]
+
+    type Margin =
+        {
+            Top    : float
+            Right  : float
+            Bottom : float
+            Left   : float
+        }
+
+    let TrainingSet () =
+        let margin  = { Top = 10.; Right = 10.; Bottom = 100.; Left = 40. }
+        let width   = 800. - margin.Left - margin.Right
+        let height  = 500. - margin.Top - margin.Bottom
+
+        let svg = 
+            D3.Select("body").Append("svg")
+                .Attr("width", width + margin.Left + margin.Right)
+                .Attr("height", height + margin.Top + margin.Bottom)
+
+        Div []

@@ -23,7 +23,6 @@ namespace DeepBelief
 
 module DeepBeliefNet =
 
-    open MathNet.Numerics.Random
     open System
     open Utils
 
@@ -90,7 +89,7 @@ module DeepBeliefNet =
     let forward weightsAndBiases v = multiplyByTranspose weightsAndBiases v
     let backward weightsAndBiases h = transposeAndMultiply h weightsAndBiases
 
-    let activate (rnd : AbstractRandomNumberGenerator) activation xInputs =
+    let activate (rnd : Random) activation xInputs =
         xInputs |> mapMatrix (fun x -> activation x > float32 (rnd.NextDouble()) |> Convert.ToInt32 |> float32)
 
     let updateWeights rnd alpha momentum rbm batch =

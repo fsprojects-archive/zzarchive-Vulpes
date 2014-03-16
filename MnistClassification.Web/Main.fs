@@ -24,10 +24,12 @@ namespace MnistClassification.Web
 open IntelliFactory.Html
 open IntelliFactory.WebSharper
 open IntelliFactory.WebSharper.Sitelets
+open IntelliFactory.WebSharper.D3
 
 type Action =
     | Home
     | About
+    | TrainingSet
 
 module Controls =
 
@@ -69,6 +71,7 @@ module Site =
         UL [
             LI ["Home" => ctx.Link Home]
             LI ["About" => ctx.Link About]
+            LI ["Training Set" => ctx.Link TrainingSet]
         ]
 
     let HomePage =
@@ -86,10 +89,18 @@ module Site =
                 Links ctx
             ]
 
+    let TrainingSetPage =
+        Skin.WithTemplate "TrainingSetPage" <| fun ctx ->
+            [
+                Div [Text "TRAINING SET"]
+                Links ctx
+            ]
+
     let Main =
         Sitelet.Sum [
             Sitelet.Content "/" Home HomePage
             Sitelet.Content "/About" About AboutPage
+            Sitelet.Content "/TrainingSet" TrainingSet TrainingSetPage
         ]
 
 [<Sealed>]

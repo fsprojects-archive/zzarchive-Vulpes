@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,d3,T;
  Runtime.Define(Global,{
   MnistClassification:{
    Web:{
@@ -33,6 +33,22 @@
         return Concurrency.Return(k(_arg1));
        });
       }));
+     },
+     TrainingSet:function()
+     {
+      var margin,width,height;
+      margin={
+       Top:10,
+       Right:10,
+       Bottom:100,
+       Left:40
+      };
+      width=800-margin.Left-margin.Right;
+      height=500-margin.Top-margin.Bottom;
+      d3.select("body").append("svg").attr("width",width+margin.Left+margin.Right).attr("height",height+margin.Top+margin.Bottom);
+      return Default.Div(Runtime.New(T,{
+       $:0
+      }));
      }
     },
     Controls:{
@@ -57,7 +73,9 @@
   Client=Runtime.Safe(Web.Client);
   EventsPervasives=Runtime.Safe(Html.EventsPervasives);
   Concurrency=Runtime.Safe(WebSharper.Concurrency);
-  return Remoting=Runtime.Safe(WebSharper.Remoting);
+  Remoting=Runtime.Safe(WebSharper.Remoting);
+  d3=Runtime.Safe(Global.d3);
+  return T=Runtime.Safe(List.T);
  });
  Runtime.OnLoad(function()
  {

@@ -24,8 +24,6 @@ namespace DeepBelief
 module NeuralNet =
 
     open System
-    open MathNet.Numerics.Random
-    open MathNet.Numerics.Distributions
     open Utils
 
     /// precision for calculating the derivatives
@@ -110,7 +108,7 @@ module NeuralNet =
         let Gs = gradients netProps.Weights layeroutputs input target
         (updateWeights netProps.Weights Gs prevDs)
 
-    let nnetTrain (rnd : AbstractRandomNumberGenerator) props samples epochs = 
+    let nnetTrain (rnd : Random) props samples epochs = 
         let count = samples |> Array.length
         let Ws, fs = props.Weights, props.Activations
         let rec loop Ws Ds i =
