@@ -19,11 +19,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-namespace DeepBelief
+namespace MnistClassification
 
 module MnistDataLoad =
 
+    open DeepBelief.Utils
+    open DeepBelief.ImageClassification
     open Microsoft.FSharp.Collections
+
     open System
     open System.IO
 
@@ -43,11 +46,11 @@ module MnistDataLoad =
         [1..4] |> List.fold (fun res item -> (res <<< 8) ||| (int)(b.ReadByte())) 0
 
     let readImage (b : BinaryReader) =
-        (b.ReadByte() |> int |> float32)/255.0f
+        (b.ReadByte() |> int |> float32)/255.0f |> createImagePixel
 
     let readLabel (b : BinaryReader) =
         let digit = int (b.ReadByte())
-        [|0..9|] |> Array.map(fun i -> if i = digit then 1.0f else 0.0f)
+        [|0..9|] |> Array.map(fun i -> if i = digit then 1.0f else 0.0f) |> createLabel
 
     // TRAINING SET IMAGE FILE (train-images-idx3-ubyte):
     // [offset] [type]          [value]          [description] 
@@ -78,7 +81,7 @@ module MnistDataLoad =
         let nImages = readInt(reader)
         let nRows = readInt(reader)
         let nCols = readInt(reader)
-        Array2D.init nImages (nRows * nCols) (fun _ _ -> readImage reader) |> Utils.prependColumnOfOnes
+        Array2D.init nImages (nRows * nCols) (fun _ _ -> readImage reader) |> ImagePixels
 
     // TRAINING SET LABEL FILE (train-labels-idx1-ubyte):
     // [offset] [type]          [value]          [description] 

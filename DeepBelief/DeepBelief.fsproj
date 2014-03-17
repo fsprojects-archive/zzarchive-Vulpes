@@ -68,8 +68,7 @@
     <Compile Include="NeuralNet.fs" />
     <Compile Include="CudaTemplates.fs" />
     <Compile Include="CudaDeepBeliefNet.fs" />
-    <Compile Include="MnistDataLoad.fs" />
-    <Compile Include="MnistClassification.fs" />
+    <Compile Include="ImageClassification.fs" />
     <None Include="Regression.fsx" />
     <None Include="DeepBeliefNet.fsx" />
     <None Include="MnistData.fsx" />

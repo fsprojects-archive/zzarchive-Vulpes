@@ -11,8 +11,6 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MnistClassification", "Mnis
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MnistClassification.Web", "MnistClassification.Web\MnistClassification.Web.fsproj", "{E7B10D56-0F0F-4F17-A5C8-03E9F020BFAE}"
 EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MnistClassification.Web.Tests", "MnistClassification.Web.Tests\MnistClassification.Web.Tests.fsproj", "{506F2B90-5BCB-438E-B316-40651CE4EEA2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -63,16 +61,6 @@ Global
 		{E7B10D56-0F0F-4F17-A5C8-03E9F020BFAE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{E7B10D56-0F0F-4F17-A5C8-03E9F020BFAE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{E7B10D56-0F0F-4F17-A5C8-03E9F020BFAE}.Release|x86.ActiveCfg = Release|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{506F2B90-5BCB-438E-B316-40651CE4EEA2}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

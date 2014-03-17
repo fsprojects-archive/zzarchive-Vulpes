@@ -121,10 +121,6 @@
       <HintPath>..\packages\WebSharper.2.5.98.29\lib\net40\IntelliFactory.Html.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="IntelliFactory.WebSharper.D3">
-      <HintPath>..\packages\WebSharper.D3.2.5.38.39\lib\net40\IntelliFactory.WebSharper.D3.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="System" />
     <Reference Include="System.Web" />

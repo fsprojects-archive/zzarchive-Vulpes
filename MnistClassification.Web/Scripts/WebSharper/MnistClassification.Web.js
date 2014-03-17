@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,d3,T;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,HTML5,T,Unchecked,G_vmlCanvasManager,Operators;
  Runtime.Define(Global,{
   MnistClassification:{
    Web:{
@@ -36,7 +36,7 @@
      },
      TrainingSet:function()
      {
-      var margin,width,height;
+      var margin,width,height,Example;
       margin={
        Top:10,
        Right:10,
@@ -45,7 +45,33 @@
       };
       width=800-margin.Left-margin.Right;
       height=500-margin.Top-margin.Bottom;
-      d3.select("body").append("svg").attr("width",width+margin.Left+margin.Right).attr("height",height+margin.Top+margin.Bottom);
+      Example=function(draw)
+      {
+       return function(width1)
+       {
+        return function(height1)
+        {
+         return function(caption)
+         {
+          var _this,arg10,element,canvas;
+          _this=HTML5.Tags();
+          arg10=Runtime.New(T,{
+           $:0
+          });
+          element=_this.NewTag("canvas",arg10);
+          canvas=element.Body;
+          if(Unchecked.Equals(canvas.getContext,undefined))
+           {
+            G_vmlCanvasManager.initElement(canvas);
+           }
+          canvas.height=height1;
+          canvas.width=width1;
+          draw(canvas.getContext("2d"));
+          return Operators.add(Default.Div(List.ofArray([Default.Attr().NewAttr("style","float: left")])),List.ofArray([element,Operators.add(Default.P(List.ofArray([Default.Align("center")])),List.ofArray([Default.I(List.ofArray([Default.Text("Example "+caption)]))]))]));
+         };
+        };
+       };
+      };
       return Default.Div(Runtime.New(T,{
        $:0
       }));
@@ -74,8 +100,11 @@
   EventsPervasives=Runtime.Safe(Html.EventsPervasives);
   Concurrency=Runtime.Safe(WebSharper.Concurrency);
   Remoting=Runtime.Safe(WebSharper.Remoting);
-  d3=Runtime.Safe(Global.d3);
-  return T=Runtime.Safe(List.T);
+  HTML5=Runtime.Safe(Default.HTML5);
+  T=Runtime.Safe(List.T);
+  Unchecked=Runtime.Safe(WebSharper.Unchecked);
+  G_vmlCanvasManager=Runtime.Safe(Global.G_vmlCanvasManager);
+  return Operators=Runtime.Safe(Html.Operators);
  });
  Runtime.OnLoad(function()
  {

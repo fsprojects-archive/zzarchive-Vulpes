@@ -22,11 +22,19 @@
 namespace MnistClassification.Web
 
 open IntelliFactory.WebSharper
+open IntelliFactory.WebSharper.Html
+open IntelliFactory.WebSharper.Sitelets
+
+open System.Web
 
 module Remoting =
 
+    let pageKey page =
+        "td" + page
+
     [<Remote>]
-    let Process input =
+    let TrainingData page =
         async {
-            return "You said: " + input
+            let s = HttpContext.Current.Cache.Get <| pageKey page
+            return "You said: " + page
         }

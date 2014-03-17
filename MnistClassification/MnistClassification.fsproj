@@ -50,6 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
+    <Compile Include="MnistDataLoad.fs" />
+    <Compile Include="DbnClassification.fs" />
     <Compile Include="Program.fs" />
     <None Include="MnistData.fsx" />
     <None Include="t10k-images.idx3-ubyte">

@@ -24,12 +24,13 @@ namespace MnistClassification.Web
 open IntelliFactory.Html
 open IntelliFactory.WebSharper
 open IntelliFactory.WebSharper.Sitelets
-open IntelliFactory.WebSharper.D3
+open IntelliFactory.WebSharper.Sitelets.Http
 
 type Action =
     | Home
     | About
     | TrainingSet
+    | TrainingData
 
 module Controls =
 
@@ -96,6 +97,16 @@ module Site =
                 Links ctx
             ]
 
+    let TrainingData : Content<Action> =
+        CustomContent <| fun context ->
+            {
+                Status = Http.Status.Ok
+                Headers = [Http.Header.Custom "Content-Type" "application/json"]
+                WriteBody = fun stream ->
+                    use tw = new System.IO.StreamWriter(stream)
+                    tw.WriteLine "{X: 10, Y: 20}"
+            }
+
     let Main =
         Sitelet.Sum [
             Sitelet.Content "/" Home HomePage
@@ -107,7 +118,7 @@ module Site =
 type Website() =
     interface IWebsite<Action> with
         member this.Sitelet = Site.Main
-        member this.Actions = [Home; About]
+        member this.Actions = [Home; About; TrainingSet]
 
 type Global() =
     inherit System.Web.HttpApplication()

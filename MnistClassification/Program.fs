@@ -27,7 +27,7 @@ module Main =
     open DeepBeliefNet
     open CudaDeepBeliefNet
     open NeuralNet
-    open MnistClassification
+    open DbnClassification
     open Utils
 
     let dbnSizes = [500; 300; 10]

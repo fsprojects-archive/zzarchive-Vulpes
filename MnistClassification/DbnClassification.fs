@@ -19,24 +19,23 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-namespace DeepBelief
+namespace MnistClassification
 
-module MnistClassification =
+module DbnClassification =
 
-    open Alea.CUDA
-    open Alea.CUDA.Utilities
-    open NeuralNet
-    open Utils
+    open DeepBelief.NeuralNet
+    open DeepBelief.Utils
+    open DeepBelief.DeepBeliefNet
+    open DeepBelief.CudaDeepBeliefNet
+    open DeepBelief.CudaTemplates
+    open DeepBelief.ImageClassification
     open MnistDataLoad
-    open DeepBeliefNet
-    open CudaDeepBeliefNet
-    open CudaTemplates
 
-    let mnistTrainingImages = loadMnistImage MnistTrainingImageData
-    let mnistTrainingLabels = loadMnistLabel MnistTrainingLabelData
+    let mnistTrainingImages = loadMnistImage MnistTrainingImageData |> to2dFloat32Array
+    let mnistTrainingLabels = loadMnistLabel MnistTrainingLabelData |> Array.map (fun x -> value x)
 
-    let mnistTestImages = loadMnistImage MnistTestImageData
-    let mnistTestLabels = loadMnistLabel MnistTestLabelData
+    let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
+    let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
 
     let mnistDbn dbnSizes = dbn dbnSizes mnistTrainingImages
     let trainedDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
