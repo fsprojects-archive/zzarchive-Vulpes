@@ -45,11 +45,11 @@ type ``CUDA Neural Net``()=
     let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
     let gpuInputs = [| (xInput |> prependForBias, None) |]
     let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-    let layeredDbn = dbn sizes xInputs
+    let layeredDbn = initDbn sizes xInputs
     let nnetProps = 
         {
-            Weights = layeredDbn |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-            Activations = layeredDbn |> List.map (fun _ -> (sigmoid, dSigmoid1))
+            Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
+            Activations = layeredDbn.Machines |> List.map (fun _ -> (sigmoid, dSigmoid1))
         }
 
     let sigmoidTemplate (blockSize:int) = cuda {

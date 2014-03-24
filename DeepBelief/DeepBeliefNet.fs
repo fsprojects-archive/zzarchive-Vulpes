@@ -35,6 +35,10 @@ module DeepBeliefNet =
         DHiddenBiases : Vector
     }
     
+    type DeepBeliefNetwork = {
+        Machines : RestrictedBoltzmannMachine list
+    }
+
     let toWeightsAndBiases rbm =
         let prependedVisibleBiases = rbm.VisibleBiases |> prepend 0.0f
         rbm.Weights |> prependColumn rbm.HiddenBiases |> prependRow prependedVisibleBiases
@@ -75,13 +79,13 @@ module DeepBeliefNet =
             DHiddenBiases = Array.zeroCreate nHidden
         }
 
-    let dbn sizes xInputs =
-        sizes |> List.fold(fun acc element -> 
+    let initDbn sizes xInputs =
+        { Machines = sizes |> List.fold(fun acc element -> 
             let nVisible = fst acc
             let nHidden = element
             (element, (initRbm nVisible nHidden) :: snd acc))
             (width xInputs, [])
-            |> snd |> List.rev
+            |> snd |> List.rev }
 
     let activateFirstRow (v:Matrix) = v.[1..,0..] |> prependRowOfOnes
     let activateFirstColumn (h:Matrix) = h.[0..,1..] |> prependColumnOfOnes
@@ -141,12 +145,12 @@ module DeepBeliefNet =
         [1..epochs] |> List.fold(fun acc i ->
             snd (rbmEpoch rnd alpha momentum batchSize acc xInputs)) initialisedRbm
 
-    let cpuDbnTrain rnd alpha momentum batchSize epochs rbms xInputs =
+    let cpuDbnTrain rnd alpha momentum batchSize epochs (dbn : DeepBeliefNetwork) xInputs =
         let prependedInputs = xInputs |> prependColumnOfOnes
-        let start = cpuRbmTrain rnd alpha momentum batchSize epochs (List.head rbms) prependedInputs
-        rbms.Tail |> List.fold(fun acc element -> 
+        let start = cpuRbmTrain rnd alpha momentum batchSize epochs (List.head dbn.Machines) prependedInputs
+        { Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
             let currentTuple = List.head acc
             let x = cpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
             let nextRbm = cpuRbmTrain rnd alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
-            |> List.map fst |> List.rev
+            |> List.map fst |> List.rev }

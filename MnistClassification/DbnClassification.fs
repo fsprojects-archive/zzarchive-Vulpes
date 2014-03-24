@@ -37,17 +37,14 @@ module DbnClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
     let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
 
-    let mnistDbn dbnSizes = dbn dbnSizes mnistTrainingImages
-    let trainedDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
+    let mnistDbn dbnSizes = initDbn dbnSizes mnistTrainingImages
+    let trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
 
-    let rbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
-        trainedDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs
+    let mnistRbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
+        trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs
+        |> fun dbn -> dbn.Machines
         |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, (sigmoidFunction, sigmoidDerivative)))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
-
-    let props dbnSizes dbnAlpha dbnMomentum batchSize epochs =
-        let dbnOutput = rbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs
-        { Weights = dbnOutput.Weights; Activations = dbnOutput.Activations }
 
     let mnistTrainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
     let mnistTestSet = Array.zip (toArray mnistTestImages) mnistTestLabels

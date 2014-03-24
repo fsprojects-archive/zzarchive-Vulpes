@@ -38,8 +38,8 @@ type ``CUDA RBM Epoch``() =
     let alpha = 0.5f
     let momentum = 0.9f
     let xInputs = Array2D.init 3000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let layeredDbn = dbn sizes xInputs
-    let firstRbm = layeredDbn.[0]
+    let layeredDbn = initDbn sizes xInputs
+    let firstRbm = layeredDbn.Machines.[0]
 
     let runEpoch rbm =
         use cudaRbmEpochProgram = 32 |> runRbmEpochTemplate |> Compiler.load Worker.Default
@@ -54,7 +54,3 @@ type ``CUDA RBM Epoch``() =
     [<Fact>] member test.
         ``The output of the 5 Epoch run is valid.``()=
             result.Weights |> flattenMatrix |> Array.filter Single.IsNaN |> Array.length |> should equal 0
-
-
-
-

@@ -37,22 +37,22 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
     let momentum = 0.9f
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|]
-    let layeredDbn = dbn sizes xInputs
-    let sinTrainedRbm = cpuRbmTrain rand alpha momentum 1 2 layeredDbn.[0] (sinInput |> prependColumnOfOnes)
+    let layeredDbn = initDbn sizes xInputs
+    let sinTrainedRbm = cpuRbmTrain rand alpha momentum 1 2 layeredDbn.Machines.[0] (sinInput |> prependColumnOfOnes)
 
-    let (rows0, Drows0) = (height layeredDbn.[0].Weights, height layeredDbn.[0].DWeights)
-    let (columns0, Dcolumns0) = (width layeredDbn.[0].Weights, width layeredDbn.[0].DWeights)
-    let (v0, Dv0) = (layeredDbn.[0].VisibleBiases, layeredDbn.[0].DVisibleBiases)
-    let (h0, Dh0) = (layeredDbn.[0].HiddenBiases, layeredDbn.[0].DHiddenBiases)
+    let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
+    let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
+    let (v0, Dv0) = (layeredDbn.Machines.[0].VisibleBiases, layeredDbn.Machines.[0].DVisibleBiases)
+    let (h0, Dh0) = (layeredDbn.Machines.[0].HiddenBiases, layeredDbn.Machines.[0].DHiddenBiases)
 
-    let (rows1, Drows1) = (height layeredDbn.[1].Weights, height layeredDbn.[1].DWeights)
-    let (columns1, Dcolumns1) = (width layeredDbn.[1].Weights, width layeredDbn.[1].DWeights)
-    let (v1, Dv1) = (layeredDbn.[1].VisibleBiases, layeredDbn.[1].DVisibleBiases)
-    let (h1, Dh1) = (layeredDbn.[1].HiddenBiases, layeredDbn.[1].DHiddenBiases)
+    let (rows1, Drows1) = (height layeredDbn.Machines.[1].Weights, height layeredDbn.Machines.[1].DWeights)
+    let (columns1, Dcolumns1) = (width layeredDbn.Machines.[1].Weights, width layeredDbn.Machines.[1].DWeights)
+    let (v1, Dv1) = (layeredDbn.Machines.[1].VisibleBiases, layeredDbn.Machines.[1].DVisibleBiases)
+    let (h1, Dh1) = (layeredDbn.Machines.[1].HiddenBiases, layeredDbn.Machines.[1].DHiddenBiases)
 
     [<Fact>] member test.
         ``The length of the DBN should be 4.``()=
-        layeredDbn.Length |> should equal 4
+        layeredDbn.Machines.Length |> should equal 4
 
     [<Fact>] member test.
         ``The weights of the first RBM should be a 500 by 784 matrix.``()=
@@ -80,22 +80,22 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
 
     [<Fact>] member test.
         ``The weight differences of all RBMs should be initialised to zero.``()=
-        layeredDbn |> List.map(fun x -> x.DWeights |> allElementsOfMatrix (fun v -> v = 0.0f))
-        |> should equal (layeredDbn |> List.map(fun x -> true))
+        layeredDbn.Machines |> List.map(fun x -> x.DWeights |> allElementsOfMatrix (fun v -> v = 0.0f))
+        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))
     
     [<Fact>] member test.
         ``The visible bias differences of all RBMs should be initialised to zero.``()=
-        layeredDbn |> List.map(fun x -> x.DVisibleBiases |> allElementsOfVector (fun v -> v >= 0.0f))
-        |> should equal (layeredDbn |> List.map(fun x -> true))    
+        layeredDbn.Machines |> List.map(fun x -> x.DVisibleBiases |> allElementsOfVector (fun v -> v >= 0.0f))
+        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))    
 
     [<Fact>] member test.
         ``The hidden bias differences of all RBMs should be initialised to zero.``()=
-        layeredDbn |> List.map(fun x -> x.DHiddenBiases |> allElementsOfVector (fun v -> v = 0.0f))
-        |> should equal (layeredDbn |> List.map(fun x -> true))
+        layeredDbn.Machines |> List.map(fun x -> x.DHiddenBiases |> allElementsOfVector (fun v -> v = 0.0f))
+        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))
 
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
-        cpuDbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+        cpuDbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> fun dbn -> dbn.Machines |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
 type ``Given a single RBM``()=
     let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32) |> prependColumnOfOnes

@@ -36,6 +36,6 @@ module Main =
 
     [<EntryPoint>]
     let main argv = 
-        let nnetProps = props dbnSizes dbnAlpha dbnMomentum 30 3
-        printfn "%A" (gpuComputeResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f 10)
+        let nnetProps = mnistRbmProps dbnSizes dbnAlpha dbnMomentum 30 3
+        printfn "%A" (gpuComputeResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f 2)
         0

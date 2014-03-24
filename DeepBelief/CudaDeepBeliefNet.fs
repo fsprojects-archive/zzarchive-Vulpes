@@ -47,15 +47,15 @@ module CudaDeepBeliefNet =
         [1..epochs] |> List.fold(fun acc i ->
             cudaRbmEpochProgram.Run alpha momentum batchSize acc xInputs) initialisedRbm
 
-    let gpuDbnTrain alpha momentum batchSize epochs rbms xInputs =
+    let gpuDbnTrain alpha momentum batchSize epochs (dbn : DeepBeliefNetwork) xInputs =
         let prependedInputs = xInputs |> prependColumnOfOnes
-        let start = gpuRbmTrain alpha momentum batchSize epochs (List.head rbms) prependedInputs
-        rbms.Tail |> List.fold(fun acc element -> 
+        let start = gpuRbmTrain alpha momentum batchSize epochs (List.head dbn.Machines) prependedInputs
+        { Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
             let currentTuple = List.head acc
             let x = gpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
             let nextRbm = gpuRbmTrain alpha momentum batchSize epochs element x
             (nextRbm, x) :: acc) [(start, prependedInputs)]
-            |> List.map fst |> List.rev
+            |> List.map fst |> List.rev }
 
     let gpuComputeResults netProps trainingSet testSet nnEta nnAlpha epochs = 
         use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate nnEta nnAlpha epochs |> Compiler.load Worker.Default
