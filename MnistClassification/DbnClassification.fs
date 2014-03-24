@@ -49,5 +49,5 @@ module DbnClassification =
         let dbnOutput = rbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs
         { Weights = dbnOutput.Weights; Activations = dbnOutput.Activations }
 
-    let trainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
-    let testSet = Array.zip (toArray mnistTestImages) mnistTestLabels
+    let mnistTrainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
+    let mnistTestSet = Array.zip (toArray mnistTestImages) mnistTestLabels
