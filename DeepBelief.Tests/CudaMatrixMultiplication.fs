@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 namespace DeepBelief.Tests
 
+open System
 open Alea.CUDA
 open Alea.CUDA.Utilities
 open Xunit
@@ -33,6 +34,7 @@ open TestUtils
 
 type ``CUDA Matrix Multiplication``()=
 
+    let rand = new Random()
     let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
     let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
     let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
@@ -82,9 +84,11 @@ type ``CUDA Matrix Multiplication``()=
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
     let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
 
-    let largeRandomMatrix = Array2D.init 50 100 (fun _ _ -> rand.NextDouble() |> float32)
-    let largeRandomVector = Array.init 100 (fun _ -> rand.NextDouble() |> float32)
-    let transposeOfLargeRandomMatrix = largeRandomMatrix |> transpose
+    let largeRandomMatrix (rand : Random) = Array2D.init 50 100 (fun _ _ -> rand.NextDouble() |> float32)
+    let largeRandomVector (rand : Random) = Array.init 100 (fun _ -> rand.NextDouble() |> float32)
+    let lrm = largeRandomMatrix rand
+    let lrv = largeRandomVector rand
+    let transposeOfLargeRandomMatrix = lrm |> transpose
 
     let UpperTriangle a b =
         array2D [ [a; b]; [0.0f; a] ]
@@ -575,37 +579,37 @@ type ``CUDA Matrix Multiplication``()=
             scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
 
     [<Fact>] member test.
-        ``Multipliying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
-            multiplyVectorByMatrixBlock32Program.Run largeRandomMatrix largeRandomVector 
-            |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
+        ``Multiplying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            multiplyVectorByMatrixBlock32Program.Run lrm lrv
+            |> arraysMatch (multiplyVectorByMatrix lrm lrv)
             |> should equal true
 
     [<Fact>] member test.
-        ``Multipliying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
-            multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix largeRandomVector 
-            |> arraysMatch (multiplyVectorByMatrix largeRandomMatrix largeRandomVector)
+        ``Multiplying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix lrv
+            |> arraysMatch (multiplyVectorByMatrix lrm lrv)
             |> should equal true
 
     [<Fact>] member test.
-        ``Multipliying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 1).``()=
-            multiplyVectorByMatrixAndTransformBlock1Program.Run largeRandomMatrix largeRandomVector 
-            |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid)
+        ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 1).``()=
+            multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
+            |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
             |> should equal true
 
     [<Fact>] member test.
-        ``Multipliying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 32).``()=
-            multiplyVectorByMatrixAndTransformBlock32Program.Run largeRandomMatrix largeRandomVector 
-            |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid)
+        ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 32).``()=
+            multiplyVectorByMatrixAndTransformBlock32Program.Run lrm lrv 
+            |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
             |> should equal true
 
     [<Fact>] member test.
-        ``Multipliying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=
-            multiplyVectorByMatrixAndTransformTwiceBlock1Program.Run largeRandomMatrix largeRandomVector 
-            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map dSigmoid1))
+        ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=
+            multiplyVectorByMatrixAndTransformTwiceBlock1Program.Run lrm lrv 
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map dSigmoid1))
             |> should equal (true, true)
 
     [<Fact>] member test.
-        ``Multipliying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 32).``()=
-            multiplyVectorByMatrixAndTransformTwiceBlock32Program.Run largeRandomMatrix largeRandomVector 
-            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix largeRandomMatrix largeRandomVector) |> Array.map dSigmoid1))
+        ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 32).``()=
+            multiplyVectorByMatrixAndTransformTwiceBlock32Program.Run lrm lrv 
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map dSigmoid1))
             |> should equal (true, true)

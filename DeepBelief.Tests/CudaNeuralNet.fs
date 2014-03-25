@@ -42,6 +42,7 @@ type ``CUDA Neural Net``()=
     let sizes = [500; 300; 10]
     let alpha = 0.5f
     let momentum = 0.9f
+    let rand = new Random()
     let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
     let gpuInputs = [| (xInput |> prependForBias, None) |]
     let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
@@ -92,11 +93,13 @@ type ``CUDA Neural Net``()=
     let resultsMatch cpu gpu =
         List.zip cpu gpu |> levelResultsMatch
 
-    let temp = (feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]
+    let cpuRand = new Random()
+
+    let gpuRand = new Random()
 
     [<Fact>] member test.
         ``The feedForward block 1 GPU program matches the outputs of the feedForward CPU function.``()=
-            resultsMatch cpuFeedForwardOutputs (temp) |> should equal true
+            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]) |> should equal true
 
     [<Fact>] member test.
         ``The feedForward block 2 GPU program matches the outputs of the feedForward CPU function.``()=
@@ -129,3 +132,9 @@ type ``CUDA Neural Net``()=
     [<Fact>] member test.
         ``The sigmoid block 32 program reproduces the restricted vector.``()=
             sigmoidProgramBlock32.Run logitVector 1 5 |> should equal restrictedVector
+
+    // This is not testing anything in the app; just making sure that the inputs to the CPU and
+    // GPU neural nets are the same.
+    [<Fact>] member test.
+        ``The CPU and GPU random inputs match.``()=
+            [1..100] |> List.map (fun _ -> cpuRand.Next(200)) |> should equal ([1..100] |> List.map (fun _ -> gpuRand.Next(200)))

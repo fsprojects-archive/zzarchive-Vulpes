@@ -155,8 +155,6 @@ module Utils =
     let prepend value vector = value :: List.ofArray vector |> Array.ofList
     let prependForBias = prepend 1.0f
 
-    let rand = new Random()
-
     let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
     let logitFunction x = log x - log (1.0f - x)
     let sigmoidDerivative x = 

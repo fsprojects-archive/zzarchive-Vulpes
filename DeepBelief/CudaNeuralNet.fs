@@ -29,9 +29,9 @@ module CudaNeuralNet =
     open Alea.CUDA.Utilities
     open Utils
 
-    let gpuComputeResults netProps trainingSet testSet nnEta nnAlpha epochs = 
+    let gpuComputeResults netProps trainingSet testSet nnEta nnAlpha rand epochs = 
         use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate nnEta nnAlpha epochs |> Compiler.load Worker.Default
-        let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps trainingSet testSet
+        let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps rand trainingSet testSet
         let targets = testSet |> Array.map (fun x -> snd x)
 
         let testError = 

@@ -37,13 +37,14 @@ type ``CUDA RBM Epoch``() =
     let sizes = [500; 250; 100; 50]
     let alpha = 0.5f
     let momentum = 0.9f
+    let rand = new Random()
     let xInputs = Array2D.init 3000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let layeredDbn = initDbn sizes xInputs
     let firstRbm = layeredDbn.Machines.[0]
 
     let trainRbmEpoch rbm =
         use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
-        cudaRbmEpochProgram.Run alpha momentum 1000 rbm xInputs
+        cudaRbmEpochProgram.Run alpha momentum 1000 rand rbm xInputs
 
     let result = [1..5] |> List.fold (fun acc element -> trainRbmEpoch acc) firstRbm
 

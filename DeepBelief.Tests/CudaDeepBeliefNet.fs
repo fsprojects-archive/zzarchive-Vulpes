@@ -36,6 +36,7 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
     let sizes = [500; 250; 100; 50]
     let alpha = 0.5f
     let momentum = 0.9f
+    let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let layeredDbn = initDbn sizes xInputs
 
@@ -51,4 +52,4 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
     
     [<Fact>] member test.
         ``Training 10 epochs of the DBN gives an RBM with non-zero weights.``()=
-        gpuDbnTrain alpha momentum 100 10 layeredDbn xInputs |> fun dbn -> dbn.Machines |> List.map (fun r -> r.Weights |> nonZeroEntries |> Array.length |> float32) |> Array.ofList |> allElementsOfVector (fun e -> e > 0.0f) |> should equal true 
+        gpuDbnTrain alpha momentum 100 10 rand layeredDbn xInputs |> fun dbn -> dbn.Machines |> List.map (fun r -> r.Weights |> nonZeroEntries |> Array.length |> float32) |> Array.ofList |> allElementsOfVector (fun e -> e > 0.0f) |> should equal true 

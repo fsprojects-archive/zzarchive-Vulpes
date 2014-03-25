@@ -23,6 +23,7 @@ namespace MnistClassification
 
 module Main =
 
+    open System
     open DeepBelief
     open DeepBeliefNet
     open CudaDeepBeliefNet
@@ -38,5 +39,6 @@ module Main =
     [<EntryPoint>]
     let main argv = 
         let nnetProps = mnistRbmProps dbnSizes dbnAlpha dbnMomentum 30 3
-        printfn "%A" (gpuComputeResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f 2)
+        let rand = new Random()
+        printfn "%A" (gpuComputeResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f rand 2)
         0

@@ -35,6 +35,7 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
     let sizes = [500; 250; 100; 50]
     let alpha = 0.5f
     let momentum = 0.9f
+    let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|]
     let layeredDbn = initDbn sizes xInputs
@@ -98,6 +99,7 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
         cpuDbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> fun dbn -> dbn.Machines |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
 type ``Given a single RBM``()=
+    let rand = new Random()
     let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32) |> prependColumnOfOnes
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] |> prependColumnOfOnes
 

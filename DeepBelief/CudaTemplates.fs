@@ -176,10 +176,10 @@ module CudaTemplates =
             // calculations, to the device memory.
             let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
 
-            fun (alpha:float32) momentum batchSize rbm xInputs -> 
+            fun (alpha:float32) momentum batchSize rand rbm xInputs -> 
                 let nRows = Utils.height xInputs
                 let nCols = Utils.width xInputs
-                let xRand = Utils.permuteRows Utils.rand xInputs
+                let xRand = Utils.permuteRows rand xInputs
                 let samples = 
                     xRand |> Utils.batchesOf batchSize 
                     |> Array.map (array2D >> Utils.prependColumnOfOnes >> Utils.padToMultiplesOf blockSize)
@@ -289,7 +289,6 @@ module CudaTemplates =
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
-        let! rngKernel = <@ Utils.toFloat32 @> |> xorShiftKernel |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
         let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
         let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
@@ -300,7 +299,6 @@ module CudaTemplates =
 
         return Entry(fun program ->
             let worker = program.Worker
-            let rngKernel = program.Apply rngKernel
             let multiplyVectorByMatrixAndTransformKernel = program.Apply multiplyVectorByMatrixAndTransformKernel
             let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
@@ -312,7 +310,7 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (netProps : NnetProperties) trainingSet testSet -> 
+            fun (netProps : NnetProperties) (rand : Random) trainingSet testSet -> 
                 let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
                 
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
@@ -333,7 +331,6 @@ module CudaTemplates =
                 let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 
                 let N = weights.Length - 1
-                let rand = new Random()
                 for i in 0..(Array.length trainingSet * epochs) - 1 do
                     let index = rand.Next (Array.length trainingSet)
                     inputs0.Scatter(fst trainingSet.[index] |> Utils.padToMultipleOf blockSize)

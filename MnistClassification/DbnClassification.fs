@@ -23,6 +23,7 @@ namespace MnistClassification
 
 module DbnClassification =
 
+    open System
     open DeepBelief.NeuralNet
     open DeepBelief.Utils
     open DeepBelief.DeepBeliefNet
@@ -39,7 +40,8 @@ module DbnClassification =
 
     let trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
         let mnistDbn sizes = initDbn sizes mnistTrainingImages
-        gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
+        let rand = new Random()
+        gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs rand (mnistDbn dbnSizes) mnistTrainingImages
 
     let mnistRbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
         trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs

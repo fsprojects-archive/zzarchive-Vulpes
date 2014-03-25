@@ -21,12 +21,15 @@
 // THE SOFTWARE.
 namespace DeepBelief.Tests
 
+open System
 open Xunit
 open FsUnit.Xunit
 open DeepBelief.Utils
 open TestUtils
 
 type ``Numerical Utilities``() =
+
+    let rand = new Random()
 
     let M = array2D   [ [1.0f; 2.0f; 3.0f]; 
                         [4.0f; 5.0f; 6.0f] ]
