@@ -147,7 +147,7 @@ module CudaTemplates =
                 result |> Utils.rebuildMatrix wC finalHeight finalWidth
             ) }
 
-    let runRbmEpochTemplate (blockSize:int) = cuda {
+    let trainRbmEpochTemplate (blockSize:int) = cuda {
         let! multiplyKernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! multiplyByTransposeKernel = multiplyByTransposeStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
         let! transposeAndMultiplyKernel = transposeAndMultiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel

@@ -32,6 +32,8 @@ module Utils =
 
     type [<ReflectedDefinition>] Matrix = float32[,]
     type [<ReflectedDefinition>] Vector = float32[]
+    
+    type IWrappedType<'T> = abstract Value : 'T
 
     let LCG_A = 1664525u
     let LCG_C = 1013904223u

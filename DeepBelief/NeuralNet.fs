@@ -34,6 +34,12 @@ module NeuralNet =
         Activations : ((float32 -> float32) * (float32 -> float32)) list
     }
 
+    type NnetInput = NnetInput of Matrix
+
+    type NnetOutput = NnetOutput of Matrix
+
+    type SupervisedLearning = SupervisedLearning of (NnetInput -> NnetOutput)
+
     let toNnetProperties weights =
         {
             Weights = weights;
@@ -86,13 +92,10 @@ module NeuralNet =
             ||> List.zip 
             |> List.map (fun (zs, ds) -> outerProduct ds (prependForBias zs))
 
-    let eta = 0.8f
-    let alpha = 0.25f
-
     /// updates the weights matrices with the given deltas 
     /// of timesteps (t) and (t-1)
     /// returns the new weights matrices
-    let updateWeights Ws (Gs : Matrix list) (prevDs : Matrix list) = 
+    let updateWeights Ws (Gs : Matrix list) (prevDs : Matrix list) eta alpha = 
         (List.zip3 Ws Gs prevDs) 
             |> List.map (fun (W, G, prevD) ->
                 let dW = addMatrices (multiplyMatrixByScalar eta G) (multiplyMatrixByScalar alpha prevD)
@@ -103,12 +106,12 @@ module NeuralNet =
     let initDeltaWeights (Ws : Matrix list) = 
         Ws |> List.map (fun W -> initGaussianWeights (height W) (width W))
 
-    let step netProps prevDs input target = 
+    let step netProps prevDs input target eta alpha = 
         let layeroutputs = feedForward netProps input
         let Gs = gradients netProps.Weights layeroutputs input target
-        (updateWeights netProps.Weights Gs prevDs)
+        (updateWeights netProps.Weights Gs prevDs eta alpha)
 
-    let nnetTrain (rnd : Random) props samples epochs = 
+    let nnetTrain (rnd : Random) props samples eta alpha epochs = 
         let count = samples |> Array.length
         let Ws, fs = props.Weights, props.Activations
         let rec loop Ws Ds i =
@@ -116,7 +119,7 @@ module NeuralNet =
             | true -> 
                 let input, target = samples.[rnd.Next(count)]
                 let netProps = { Weights = Ws; Activations = fs }
-                let ws, ds = List.unzip (step netProps Ds input target)
+                let ws, ds = List.unzip (step netProps Ds input target eta alpha)
                 loop ws ds (i + 1)
             | _    -> Ws
         let Ws' = loop Ws (initDeltaWeights Ws) 0
@@ -124,8 +127,8 @@ module NeuralNet =
 
     let netoutput (layeroutputs : ('a * 'a) list) = fst (layeroutputs.Head)
 
-    let computeResults rnd netProps trainingSet testSet epochs = 
-        let netProps' = nnetTrain rnd netProps trainingSet epochs
+    let cpuComputeResults rnd netProps trainingSet testSet eta alpha epochs = 
+        let netProps' = nnetTrain rnd netProps trainingSet eta alpha epochs
         let setSize = trainingSet.Length
 
         let testError = 

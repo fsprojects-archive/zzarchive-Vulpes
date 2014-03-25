@@ -24,9 +24,7 @@ namespace DeepBelief
 module ImageClassification =
 
     open System
-
-    type IWrappedType<'T> = 
-        abstract Value : 'T
+    open Utils
 
     type ImageWidth = ImageWidth of int with
         interface IWrappedType<int> with

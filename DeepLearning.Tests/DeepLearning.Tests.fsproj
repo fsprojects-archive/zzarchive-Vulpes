@@ -5,13 +5,13 @@
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>f223ebc5-05a0-40fe-8559-3dc79bc6dd0d</ProjectGuid>
+    <ProjectGuid>68d537f9-2bda-4da9-bf77-9e0034ee3b90</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>DeepBelief</RootNamespace>
-    <AssemblyName>DeepBelief</AssemblyName>
+    <RootNamespace>DeepLearning.Tests</RootNamespace>
+    <AssemblyName>DeepLearning.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFSharpCoreVersion>4.3.1.0</TargetFSharpCoreVersion>
-    <Name>DeepBelief</Name>
+    <Name>DeepLearning.Tests</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -21,9 +21,7 @@
     <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Debug\DeepBelief.XML</DocumentationFile>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-    <WarningsAsErrors />
+    <DocumentationFile>bin\Debug\DeepLearning.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -32,25 +30,9 @@
     <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <WarningLevel>3</WarningLevel>
-    <DocumentationFile>bin\Release\DeepBelief.XML</DocumentationFile>
+    <DocumentationFile>bin\Release\DeepLearning.Tests.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Alea.CUDA">
-      <HintPath>..\packages\Alea.cuBase.1.2.740\lib\net40\Alea.CUDA.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics">
-      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics.FSharp">
-      <HintPath>..\packages\MathNet.Numerics.FSharp.2.6.0\lib\net40\MathNet.Numerics.FSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="MathNet.Numerics.IO">
-      <HintPath>..\packages\MathNet.Numerics.2.6.2\lib\net40\MathNet.Numerics.IO.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="mscorlib" />
     <Reference Include="FSharp.Core, Version=$(TargetFSharpCoreVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>True</Private>
@@ -60,21 +42,15 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Library1.fs" />
     <None Include="Script.fsx" />
-    <Compile Include="Data.fs" />
-    <Compile Include="Utils.fs" />
-    <Compile Include="Kernels.fs" />
-    <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="NeuralNet.fs" />
-    <Compile Include="CudaTemplates.fs" />
-    <Compile Include="CudaDeepBeliefNet.fs" />
-    <Compile Include="CudaNeuralNet.fs" />
-    <Compile Include="ImageClassification.fs" />
-    <None Include="Regression.fsx" />
-    <None Include="DeepBeliefNet.fsx" />
-    <None Include="MnistData.fsx" />
-    <None Include="packages.config" />
-    <None Include="app.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DeepLearning\DeepLearning.fsproj">
+      <Name>DeepLearning</Name>
+      <Project>{bb445a07-904b-4a98-9d1d-df20ea5fdcb4}</Project>
+      <Private>True</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>

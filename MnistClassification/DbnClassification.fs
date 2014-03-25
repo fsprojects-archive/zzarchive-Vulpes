@@ -37,8 +37,9 @@ module DbnClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
     let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
 
-    let mnistDbn dbnSizes = initDbn dbnSizes mnistTrainingImages
-    let trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
+    let trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
+        let mnistDbn sizes = initDbn sizes mnistTrainingImages
+        gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs (mnistDbn dbnSizes) mnistTrainingImages
 
     let mnistRbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
         trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs

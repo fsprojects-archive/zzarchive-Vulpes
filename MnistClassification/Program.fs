@@ -26,6 +26,7 @@ module Main =
     open DeepBelief
     open DeepBeliefNet
     open CudaDeepBeliefNet
+    open CudaNeuralNet
     open NeuralNet
     open DbnClassification
     open Utils

@@ -41,11 +41,11 @@ type ``CUDA RBM Epoch``() =
     let layeredDbn = initDbn sizes xInputs
     let firstRbm = layeredDbn.Machines.[0]
 
-    let runEpoch rbm =
-        use cudaRbmEpochProgram = 32 |> runRbmEpochTemplate |> Compiler.load Worker.Default
+    let trainRbmEpoch rbm =
+        use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
         cudaRbmEpochProgram.Run alpha momentum 1000 rbm xInputs
 
-    let result = [1..5] |> List.fold (fun acc element -> runEpoch acc) firstRbm
+    let result = [1..5] |> List.fold (fun acc element -> trainRbmEpoch acc) firstRbm
 
     [<Fact>] member test.
         ``The RBM Epoch template runs 5 epochs on the GPU.``()=
