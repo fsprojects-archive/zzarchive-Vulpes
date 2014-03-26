@@ -82,7 +82,7 @@
     <Compile Include="CudaMatrixActivation.fs" />
     <Compile Include="CudaRbmEpoch.fs" />
     <Compile Include="CudaNeuralNetTests.fs" />
-    <None Include="CudaNeuralNet.fsx" />
+    <None Include="CudaNeuralNetTests.fsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
