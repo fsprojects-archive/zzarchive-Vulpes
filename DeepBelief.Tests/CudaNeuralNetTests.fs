@@ -40,7 +40,7 @@ type ``CUDA Neural Net``()=
     let restrictedVector = [|0.0f; 0.2f; 0.3f; 0.4f; 0.5f; 0.7f; 0.0f; 0.0f|]
     let logitVector = vector |> Array.map logitFunction
 
-    let sizes = [500; 300; 10]
+    let sizes = [500; 300; 100; 10]
     let alpha = 0.5f
     let momentum = 0.9f
     let rand = new Random()
@@ -57,7 +57,7 @@ type ``CUDA Neural Net``()=
     let mod10Plus1 i = 1 + i % 10
     let sineCurve i = Array.init 784 (fun j -> Math.Sin(float j * (mod10Plus1 i |> float) * 2.0 * Math.PI / 784.0) |> float32)
     let label i = Array.init 10 (fun j -> if j + 1 = i then 1.0f else 0.0f)
-    let trainingSet = [|1..100|] |> Array.map (fun i -> (sineCurve i, label i))
+    let trainingSet = [|1..50|] |> Array.map (fun i -> (sineCurve i, label i))
     let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
     let sigmoidTemplate (blockSize:int) = cuda {
@@ -148,5 +148,5 @@ type ``CUDA Neural Net``()=
 
     [<Fact>] member test.
         ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
-            cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 2 
-            |> should equal (gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 2)
+            cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 1 
+            |> should equal (gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 1)

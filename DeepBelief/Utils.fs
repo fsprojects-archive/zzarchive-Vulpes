@@ -270,3 +270,7 @@ module Utils =
 
     let proportionOfVisibleUnits v =
         v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
+
+    let disposeAll ([<ParamArray>] arr : 'a list array when 'a :> IDisposable) =
+        for items in arr do
+            for item in items do item.Dispose()

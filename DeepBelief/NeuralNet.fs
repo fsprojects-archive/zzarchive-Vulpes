@@ -136,13 +136,5 @@ module NeuralNet =
 
     let cpuComputeNnetResults netProps trainingSet testSet eta alpha rnd epochs = 
         let netProps' = nnetTrain rnd netProps trainingSet eta alpha epochs
-        let setSize = trainingSet.Length
-
-        let testError = 
-            testSet 
-            |> Array.fold (fun E (x, t) -> 
-                let outs = feedForward netProps' x
-                let En = error t (netoutput outs)
-                E + En) 0.0f
-
-        testError / (float32 setSize)
+        let cpuOutput = testSet |> Array.map (fun (x, t) -> netoutput (feedForward netProps' x))
+        cpuOutput

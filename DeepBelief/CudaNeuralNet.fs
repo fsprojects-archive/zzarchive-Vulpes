@@ -32,12 +32,4 @@ module CudaNeuralNet =
     let gpuComputeNnetResults netProps trainingSet testSet nnEta nnAlpha rand epochs = 
         use runTrainNeuralNetEpochProgram = 32 |> runTrainNeuralNetEpochTemplate nnEta nnAlpha epochs |> Compiler.load Worker.Default
         let gpuOutput = runTrainNeuralNetEpochProgram.Run netProps rand trainingSet testSet
-        let targets = testSet |> Array.map (fun x -> snd x)
-
-        let testError = 
-            Array.zip targets gpuOutput
-            |> Array.fold (fun E (x, t) -> 
-                let En = error t x
-                E + En) 0.0f
-
-        testError / (float32 testSet.Length)
+        gpuOutput

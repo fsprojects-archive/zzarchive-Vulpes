@@ -318,10 +318,10 @@ module CudaTemplates =
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
                 let simpleMatrixLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (Utils.height w) (Utils.width w))
 
-                let inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
-                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
+                use inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
 
                 // The contents of these lists will need to be disposed at the end of the run.
+                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
                 let prevDWeights = paddedWeights |> List.map (fun w -> Array2D.zeroCreate (Utils.height w) (Utils.width w) |> Utils.flattenMatrix |> worker.Malloc)
                 let grads = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w * Utils.width w))
@@ -365,11 +365,9 @@ module CudaTemplates =
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         multiplyVectorByMatrixAndTransformKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
 
-                    let rawOutput = Array.sub (outputs.[N].Gather()) 1 (Array.length (snd testSet.[i]))
-                    let maxIndex = rawOutput |> Array.mapi (fun i x -> i, x) |> Array.maxBy snd |> fst
-                    let testOutput = rawOutput |> Array.mapi (fun i x -> if i = maxIndex then 1.0f else 0.0f)
-                    testOutputs <- Array.append testOutputs [|testOutput|]
+                    testOutputs <- Array.append testOutputs [|(Array.sub (outputs.[N].Gather()) 1 (Array.length (snd testSet.[i])))|]
 
+                Utils.disposeAll [|outputs; weights; prevDWeights; grads; inputs; dOutputs; errorSignals; diffs|]
                 testOutputs
         ) }
 
