@@ -28,6 +28,13 @@ module NeuralNet =
 
     /// precision for calculating the derivatives
     let prc = 1e-6f
+    
+    type TwiceDifferentiableFunction = TwiceDifferentiableFunction of ((float32 -> float32) * (float32 -> float32) * (float32 -> float32 -> float32))
+
+    type Layer = {
+        Weight : Matrix
+        Activation : TwiceDifferentiableFunction
+    }
 
     type NnetProperties = {
         Weights : Matrix list
@@ -127,7 +134,7 @@ module NeuralNet =
 
     let netoutput (layeroutputs : ('a * 'a) list) = fst (layeroutputs.Head)
 
-    let cpuComputeResults rnd netProps trainingSet testSet eta alpha epochs = 
+    let cpuComputeNnetResults netProps trainingSet testSet eta alpha rnd epochs = 
         let netProps' = nnetTrain rnd netProps trainingSet eta alpha epochs
         let setSize = trainingSet.Length
 

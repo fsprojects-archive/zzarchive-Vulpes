@@ -33,6 +33,7 @@ obj/
 bin/
 [Rr]elease*/
 _ReSharper*/
+packages/
 [Tt]est[Rr]esult*
 
 *.metaproj

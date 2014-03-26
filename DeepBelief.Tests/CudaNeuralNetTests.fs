@@ -25,6 +25,7 @@ open Alea.CUDA
 open Alea.CUDA.Utilities
 open Xunit
 open FsUnit.Xunit
+open DeepBelief.CudaNeuralNet
 open DeepBelief.CudaTemplates
 open DeepBelief.DeepBeliefNet
 open DeepBelief.Utils
@@ -52,6 +53,12 @@ type ``CUDA Neural Net``()=
             Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
             Activations = layeredDbn.Machines |> List.map (fun _ -> (sigmoid, dSigmoid1))
         }
+    
+    let mod10Plus1 i = 1 + i % 10
+    let sineCurve i = Array.init 784 (fun j -> Math.Sin(float j * (mod10Plus1 i |> float) * 2.0 * Math.PI / 784.0) |> float32)
+    let label i = Array.init 10 (fun j -> if j + 1 = i then 1.0f else 0.0f)
+    let trainingSet = [|1..100|] |> Array.map (fun i -> (sineCurve i, label i))
+    let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
     let sigmoidTemplate (blockSize:int) = cuda {
         let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
@@ -133,8 +140,13 @@ type ``CUDA Neural Net``()=
         ``The sigmoid block 32 program reproduces the restricted vector.``()=
             sigmoidProgramBlock32.Run logitVector 1 5 |> should equal restrictedVector
 
-    // This is not testing anything in the app; just making sure that the inputs to the CPU and
-    // GPU neural nets are the same.
+    // This is not testing anything in the app; 
+    // just making sure that the inputs to the CPU and GPU neural nets are the same.
     [<Fact>] member test.
         ``The CPU and GPU random inputs match.``()=
             [1..100] |> List.map (fun _ -> cpuRand.Next(200)) |> should equal ([1..100] |> List.map (fun _ -> gpuRand.Next(200)))
+
+    [<Fact>] member test.
+        ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
+            cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 2 
+            |> should equal (gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 2)

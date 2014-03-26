@@ -40,5 +40,5 @@ module Main =
     let main argv = 
         let nnetProps = mnistRbmProps dbnSizes dbnAlpha dbnMomentum 30 3
         let rand = new Random()
-        printfn "%A" (gpuComputeResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f rand 2)
+        printfn "%A" (gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f rand 2)
         0
