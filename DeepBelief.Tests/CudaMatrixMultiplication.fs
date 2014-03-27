@@ -493,102 +493,127 @@ type ``CUDA Matrix Multiplication``()=
         use subtractVectorProgram = i |> subtractVectorTemplate |> Compiler.load Worker.Default in
         subtractVectorProgram.Run b a |> should equal bMinusa
 
-    [<Fact>] member test.
-        ``The pointwiseMultiplyVectorTemplate multiplies a by b.``() =
-            use pointwiseMultiplyVectorProgram = 2 |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default in
-            pointwiseMultiplyVectorProgram.Run a b |> should equal aPointwiseTimesb
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The pointwiseMultiplyVectorTemplate multiplies a by b.``(i) =
+        use pointwiseMultiplyVectorProgram = i |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default in
+        pointwiseMultiplyVectorProgram.Run a b |> should equal aPointwiseTimesb
 
-    [<Fact>] member test.
-        ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 1.``() =
-            use multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The multiplyVectorByMatrixTemplate multiplies A by x.``(i) =
+        use multiplyVectorByMatrixBlock1Program = i |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
+        multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
 
-    [<Fact>] member test.
-        ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 32.``() =
-            use multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x.``(i) =
+        use multiplyVectorByTransposeOfMatrixBlock1Program = i |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
+        multiplyVectorByTransposeOfMatrixBlock1Program.Run At x |> should equal y
 
-    [<Fact>] member test.
-        ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 1.``() =
-            use multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByTransposeOfMatrixBlock1Program.Run At x |> should equal y
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadAndMultiplyTemplate multiplies A by B.``(i) =
+        use loadAndMultiplyMatricesBlock1Program = i |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
+        loadAndMultiplyMatricesBlock1Program.Run A B |> should equal C
 
-    [<Fact>] member test.
-        ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 32.``() =
-            use multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByTransposeOfMatrixBlock32Program.Run At x |> should equal y
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadAndMultiplyTemplate multiplies D by E.``(i) =
+        use loadAndMultiplyMatricesBlock1Program = i |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
+        loadAndMultiplyMatricesBlock1Program.Run D E |> should equal DE
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
-            use loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyMatricesBlock1Program.Run A B |> should equal C
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The powerOfNTemplate raises M to the power of 10.``(i) =
+        use powerProgram = i |> powerOfNTemplate |> Compiler.load Worker.Default in
+        powerProgram.Run M 10 |> should equal (MtoN 10)
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyTemplate multiplies D by E with a block size of 1.``() =
-            use loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyMatricesBlock1Program.Run D E |> should equal DE
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The powerOfNTemplate raises an Upper Triangular matrix to the power of 10.``(i) =
+        use powerProgram = i |> powerOfNTemplate |> Compiler.load Worker.Default in
+        UpperTriangle 2.0f 3.0f |> fun m -> powerProgram.Run m 10 |> should equal (UpperTriangleToN 10 2.0f 3.0f)
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyTemplate multiplies A by B with a block size of 32.``() =
-            use loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyMatricesBlock32Program.Run A B |> should equal C
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadAndMultiplyByTransposeTemplate multiplies A by the transpose of (B Transpose) to give AB.``(i) =
+        use loadAndMultiplyByTransposeProgram = i |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
+        loadAndMultiplyByTransposeProgram.Run A Bt |> should equal C
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyTemplate multiplies D by E with a block size of 32.``() =
-            use loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyMatricesBlock32Program.Run D E |> should equal DE
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadAndMultiplyByTransposeTemplate multiplies D by the transpose of (E Transpose) to give DE.``(i) =
+        use loadAndMultiplyByTransposeProgram = i |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
+        loadAndMultiplyByTransposeProgram.Run D Et |> should equal DE
 
-    [<Fact>] member test.
-        ``The powerOfNTemplate raises M to the power of 10.``() =
-            use powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default in
-            powerProgram.Run M 10 |> should equal (MtoN 10)
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadTransposeAndMultiplyTemplate multiplies the transpose of (A Transpose) by B to give AB.``(i) =
+        use loadTransposeAndMultiplyProgram = i |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
+        loadTransposeAndMultiplyProgram.Run At B |> should equal C
 
-    [<Fact>] member test.
-        ``The powerOfNTemplate raises an Upper Triangular matrix to the power of 10.``() =
-            use powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default in
-            UpperTriangle 2.0f 3.0f |> fun m -> powerProgram.Run m 10 |> should equal (UpperTriangleToN 10 2.0f 3.0f)
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``(i) =
+        use loadTransposeAndMultiplyProgram = i |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
+        loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyByTransposeTemplate multiplies A by the transpose of (B Transpose) to give AB.``() =
-            use loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyByTransposeProgram.Run A Bt |> should equal C
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The addMatrixTemplate adds A to 2A to give 3A.``(i) =
+        use addMatrixProgram = i |> addMatrixTemplate |> Compiler.load Worker.Default in
+        addMatrixProgram.Run A ATimes2 |> should equal ATimes3
 
-    [<Fact>] member test.
-        ``The loadAndMultiplyByTransposeTemplate multiplies D by the transpose of (E Transpose) to give DE.``() =
-            use loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
-            loadAndMultiplyByTransposeProgram.Run D Et |> should equal DE
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The subtractMatrixTemplate subtracts A from 3A to give 2A.``(i) =
+        use subtractMatrixProgram = i |> subtractMatrixTemplate |> Compiler.load Worker.Default in
+        subtractMatrixProgram.Run ATimes3 A |> should equal ATimes2
 
-    [<Fact>] member test.
-        ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (A Transpose) by B to give AB.``() =
-            use loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadTransposeAndMultiplyProgram.Run At B |> should equal C
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``(i) =
+        use scalarMultiplyMatrixProgram = i |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default in
+        scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
 
-    [<Fact>] member test.
-        ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``() =
-            use loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
-            loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
-
-    [<Fact>] member test.
-        ``The addMatrixTemplate adds A to 2A to give 3A.``() =
-            use addMatrixProgram = 2 |> addMatrixTemplate |> Compiler.load Worker.Default in
-            addMatrixProgram.Run A ATimes2 |> should equal ATimes3
-
-    [<Fact>] member test.
-        ``The subtractMatrixTemplate subtracts A from 3A to give 2A.``() =
-            use subtractMatrixProgram = 2 |> subtractMatrixTemplate |> Compiler.load Worker.Default in
-            subtractMatrixProgram.Run ATimes3 A |> should equal ATimes2
-
-    [<Fact>] member test.
-        ``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``() =
-            use scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default in
-            scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
-
-    [<Fact>] member test.
-        ``Multiplying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
-            use multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByMatrixBlock32Program.Run lrm lrv
-            |> arraysMatch (multiplyVectorByMatrix lrm lrv)
-            |> should equal true
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``Multiplying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``(i)=
+        use multiplyVectorByMatrixBlock32Program = i |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
+        multiplyVectorByMatrixBlock32Program.Run lrm lrv
+        |> arraysMatch (multiplyVectorByMatrix lrm lrv)
+        |> should equal true
 
     [<Theory>]
     [<InlineData(1)>]
