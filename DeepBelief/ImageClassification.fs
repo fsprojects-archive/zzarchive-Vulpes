@@ -68,11 +68,6 @@ module ImageClassification =
     let createLabel value =
         value |> ImageLabel
 
-    let apply f (s:IWrappedType<'T>) = 
-        s.Value |> f 
-
-    let value x = apply id x
-
     let to2dFloat32Array (imagePixels : ImagePixels) =
         let image = value imagePixels
         let h = Array2D.length1 image

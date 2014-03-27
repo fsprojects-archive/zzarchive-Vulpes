@@ -415,10 +415,7 @@ module Kernels =
                 index <- index + numThreads @>
 
     let [<ReflectedDefinition>] sigmoid x = 1.0f / (1.0f + exp(-x))
-    let [<ReflectedDefinition>] dSigmoid1 x = 
-        let s = sigmoid x
-        s * (1.0f - s)
-    let [<ReflectedDefinition>] dSigmoid2 s x = s * (1.0f - s)
+    let [<ReflectedDefinition>] dSigmoid s x = s * (1.0f - s)
 
     let [<ReflectedDefinition>] pointwiseAdd (a : float32) (b : float32) = a + b
     let [<ReflectedDefinition>] pointwiseSubtract (a : float32) (b : float32) = a - b

@@ -29,16 +29,26 @@ module NeuralNet =
     /// precision for calculating the derivatives
     let prc = 1e-6f
     
-    type TwiceDifferentiableFunction = TwiceDifferentiableFunction of ((float32 -> float32) * (float32 -> float32) * (float32 -> float32 -> float32))
+    type FloatingPointFunction = FloatingPointFunction of (float32 -> float32) with
+        interface IWrappedType<float32 -> float32> with
+            member this.Value = let (FloatingPointFunction f) = this in f
+
+    type FloatingPointDerivative = FloatingPointDerivative of (float32 -> float32 -> float32) with
+        interface IWrappedType<float32 -> float32 -> float32> with
+            member this.Value = let (FloatingPointDerivative f) = this in f
+
+    type DifferentiableFunction = DifferentiableFunction of (FloatingPointFunction * FloatingPointDerivative) with
+        interface IWrappedType<FloatingPointFunction * FloatingPointDerivative> with
+            member this.Value = let (DifferentiableFunction f) = this in f
 
     type Layer = {
         Weight : Matrix
-        Activation : TwiceDifferentiableFunction
+        Activation : DifferentiableFunction
     }
 
     type NnetProperties = {
         Weights : Matrix list
-        Activations : ((float32 -> float32) * (float32 -> float32)) list
+        Activations : DifferentiableFunction list
     }
 
     type NnetInput = NnetInput of Matrix
@@ -50,7 +60,7 @@ module NeuralNet =
     let toNnetProperties weights =
         {
             Weights = weights;
-            Activations = weights |> List.map (fun _ -> (Kernels.sigmoid, Kernels.dSigmoid1))
+            Activations = weights |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction Kernels.sigmoid, FloatingPointDerivative Kernels.dSigmoid))
         }
 
     /// returns list of (out, out') vectors per layer
@@ -65,8 +75,8 @@ module NeuralNet =
                 let prevOut = prependForBias prevLayerOutput
                 let layerInput = prevOut |> multiplyVectorByMatrix W
                 (layerInput |> Array.map (fst f), 
-                 layerInput |> Array.map (snd f)) :: os) 
-          [] (List.zip netProps.Weights netProps.Activations)
+                 layerInput |> Array.map (fun x -> (snd f) (x |> fst f) x)) :: os) 
+          [] (List.zip netProps.Weights (netProps.Activations |> List.map (fun a -> value a |> fun f -> (value <| fst f, value <| snd f))))
 
     /// matlab like pointwise multiply
     let (.*) (v1 : Vector) (v2 : Vector) = 

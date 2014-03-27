@@ -475,8 +475,8 @@ type ``CUDA Matrix Multiplication``()=
     let multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByMatrixAndTransformBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
     let multiplyVectorByMatrixAndTransformBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformTwiceBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformTwiceBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformTwiceBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default
+    let multiplyVectorByMatrixAndTransformTwiceBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default
     let multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
     let multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
     let outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default
@@ -605,11 +605,11 @@ type ``CUDA Matrix Multiplication``()=
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=
             multiplyVectorByMatrixAndTransformTwiceBlock1Program.Run lrm lrv 
-            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map dSigmoid1))
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
             |> should equal (true, true)
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 32).``()=
             multiplyVectorByMatrixAndTransformTwiceBlock32Program.Run lrm lrv 
-            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map dSigmoid1))
+            |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
             |> should equal (true, true)

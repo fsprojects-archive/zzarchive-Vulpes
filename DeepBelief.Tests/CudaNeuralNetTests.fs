@@ -51,12 +51,12 @@ type ``CUDA Neural Net``()=
     let nnetProps = 
         {
             Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-            Activations = layeredDbn.Machines |> List.map (fun _ -> (sigmoid, dSigmoid1))
+            Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
         }
     
     let mod10Plus1 i = 1 + i % 10
     let sineCurve i = Array.init 784 (fun j -> Math.Sin(float j * (mod10Plus1 i |> float) * 2.0 * Math.PI / 784.0) |> float32)
-    let label i = Array.init 10 (fun j -> if j + 1 = i then 1.0f else 0.0f)
+    let label i = Array.init 10 (fun j -> if j + 1 = mod10Plus1 i then 1.0f else 0.0f)
     let trainingSet = [|1..50|] |> Array.map (fun i -> (sineCurve i, label i))
     let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
@@ -80,6 +80,54 @@ type ``CUDA Neural Net``()=
                 Array.sub (vector.Gather()) 0 8
         ) }
 
+    let feedForwardTemplate (blockSize:int) = cuda {
+        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid @> |> Compiler.DefineKernel
+        let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
+            let coerceKernel = program.Apply coerceKernel
+
+            fun (netProps : NnetProperties) data -> 
+                let paddedWeights = netProps.Weights |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+                
+                let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (height w) (width w))
+                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+
+                let inputs0 = worker.Malloc<float32>(width paddedWeights.[0])
+                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+
+                // The contents of these lists will need to be disposed at the end of the run.
+                let weights = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
+                let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+
+                let mutable result = []
+                let N = weights.Length - 1
+                for i in 0..Array.length data - 1 do
+                    inputs0.Scatter(fst data.[i] |> padToMultipleOf blockSize)
+
+                    for j in 0..N do
+                        let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
+                        coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (height paddedWeights.[j]) (width paddedWeights.[j])
+
+                    let zippedOutputs = List.zip outputs dOutputs
+                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 1 (height netProps.Weights.[iw])))
+                    result <- gatheredOutputs :: result
+
+                disposeAll [|weights; dOutputs|]
+                result
+       ) }
+
+    let errorSignalsTemplate (blockSize:int) = cuda {
+
+        return Entry(fun program ->
+            fun Ws layeroutputs (target : Vector) ->
+                let N = List.length Ws - 1
+                0.0
+       ) }
+
     let sigmoidProgramBlock1 = 1 |> sigmoidTemplate |> Compiler.load Worker.Default
     let sigmoidProgramBlock2 = 2 |> sigmoidTemplate |> Compiler.load Worker.Default
     let sigmoidProgramBlock32 = 32 |> sigmoidTemplate |> Compiler.load Worker.Default
@@ -87,9 +135,6 @@ type ``CUDA Neural Net``()=
     let feedForwardProgramBlock1 = 1 |> feedForwardTemplate |> Compiler.load Worker.Default
     let feedForwardProgramBlock2 = 2 |> feedForwardTemplate |> Compiler.load Worker.Default
     let feedForwardProgramBlock32 = 32 |> feedForwardTemplate |> Compiler.load Worker.Default
-
-    let cpuFeedForwardOutputs = feedForward nnetProps xInput |> List.rev
-    let lastPrependedFeedForwardOutput = (prependForBias (fst cpuFeedForwardOutputs.[0]), prepend 0.0f (snd cpuFeedForwardOutputs.[0]))
 
     let outputsMatch result =
         arraysMatch (fst (fst result)) (fst (snd result)) && arraysMatch (snd (fst result)) (snd (snd result))
@@ -106,15 +151,15 @@ type ``CUDA Neural Net``()=
 
     [<Fact>] member test.
         ``The feedForward block 1 GPU program matches the outputs of the feedForward CPU function.``()=
-            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]) |> should equal true
+            resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]) |> should equal true
 
     [<Fact>] member test.
         ``The feedForward block 2 GPU program matches the outputs of the feedForward CPU function.``()=
-            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock2.Run nnetProps gpuInputs).[0]) |> should equal true
+            resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock2.Run nnetProps gpuInputs).[0]) |> should equal true
 
     [<Fact>] member test.
         ``The feedForward block 32 GPU program matches the outputs of the feedForward CPU function.``()=
-            resultsMatch cpuFeedForwardOutputs ((feedForwardProgramBlock32.Run nnetProps gpuInputs).[0]) |> should equal true
+            resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock32.Run nnetProps gpuInputs).[0]) |> should equal true
 
     [<Fact>] member test.
         ``The sigmoid block 1 program maps the logit vector to the original vector.``()=

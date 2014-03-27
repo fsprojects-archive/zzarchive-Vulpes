@@ -34,6 +34,11 @@ module Utils =
     type [<ReflectedDefinition>] Vector = float32[]
     
     type IWrappedType<'T> = abstract Value : 'T
+    
+    let apply f (s:IWrappedType<'T>) = 
+        s.Value |> f 
+
+    let value x = apply id x
 
     let LCG_A = 1664525u
     let LCG_C = 1013904223u
@@ -157,9 +162,7 @@ module Utils =
 
     let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
     let logitFunction x = log x - log (1.0f - x)
-    let sigmoidDerivative x = 
-        let f = sigmoidFunction x
-        f * (1.0f - f)
+    let sigmoidDerivative s (x : float32) = s * (1.0f - s)
 
     let toList M =
         let h = height M

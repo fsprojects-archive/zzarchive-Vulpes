@@ -287,7 +287,7 @@ module CudaTemplates =
 
     let runTrainNeuralNetEpochTemplate (eta : float32) (alpha : float32) (epochs : int) (blockSize : int) = cuda {
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
-        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.DefineKernel
+        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
         let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
@@ -370,41 +370,3 @@ module CudaTemplates =
                 Utils.disposeAll [|outputs; weights; prevDWeights; grads; inputs; dOutputs; errorSignals; diffs|]
                 testOutputs
         ) }
-
-    let feedForwardTemplate (blockSize:int) = cuda {
-        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid2 @> |> Compiler.DefineKernel
-        let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
-
-        return Entry(fun program ->
-            let worker = program.Worker
-            let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
-            let coerceKernel = program.Apply coerceKernel
-
-            fun (netProps : NnetProperties) data -> 
-                let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
-                
-                let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
-                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
-
-                let inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
-                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
-
-                // The contents of these lists will need to be disposed at the end of the run.
-                let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
-                let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
-
-                let mutable result = []
-                let N = weights.Length - 1
-                for i in 0..Array.length data - 1 do
-                    inputs0.Scatter(fst data.[i] |> Utils.padToMultipleOf blockSize)
-
-                    for j in 0..N do
-                        let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
-                        coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
-                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
-
-                    let zippedOutputs = List.zip outputs dOutputs
-                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (Utils.height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 1 (Utils.height netProps.Weights.[iw])))
-                    result <- gatheredOutputs :: result
-                result
-       ) }

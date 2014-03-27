@@ -46,7 +46,7 @@ module DbnClassification =
     let mnistRbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
         trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs
         |> fun dbn -> dbn.Machines
-        |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, (sigmoidFunction, sigmoidDerivative)))
+        |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative)))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
 
     let mnistTrainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
