@@ -27,6 +27,7 @@ module CudaNeuralNetTests =
     open Alea.CUDA
     open Alea.CUDA.Utilities
     open Xunit
+    open Xunit.Extensions
     open FsUnit.Xunit
     open DeepBelief.CudaNeuralNet
     open DeepBelief.CudaTemplates
@@ -134,21 +135,13 @@ module CudaNeuralNetTests =
 
         let gpuRand = new Random()
 
-        let feedForwardProgramBlock1 = 1 |> feedForwardTemplate |> Compiler.load Worker.Default
-        let feedForwardProgramBlock2 = 2 |> feedForwardTemplate |> Compiler.load Worker.Default
-        let feedForwardProgramBlock32 = 32 |> feedForwardTemplate |> Compiler.load Worker.Default
-
-        [<Fact>] member test.
-            ``The feedForward block 1 GPU program matches the outputs of the feedForward CPU function.``()=
-                resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock1.Run nnetProps gpuInputs).[0]) |> should equal true
-
-        [<Fact>] member test.
-            ``The feedForward block 2 GPU program matches the outputs of the feedForward CPU function.``()=
-                resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock2.Run nnetProps gpuInputs).[0]) |> should equal true
-
-        [<Fact>] member test.
-            ``The feedForward block 32 GPU program matches the outputs of the feedForward CPU function.``()=
-                resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgramBlock32.Run nnetProps gpuInputs).[0]) |> should equal true
+        [<Theory>]
+        [<InlineData(1)>]
+        [<InlineData(2)>]
+        [<InlineData(32)>]
+        let ``The feedForward GPU program matches the outputs of the feedForward CPU function.``(i)=
+            use feedForwardProgram = i |> feedForwardTemplate |> Compiler.load Worker.Default in
+            resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgram.Run nnetProps gpuInputs).[0]) |> should equal true
 
 
     type ``CUDA Neural Net: Compute Results``()=

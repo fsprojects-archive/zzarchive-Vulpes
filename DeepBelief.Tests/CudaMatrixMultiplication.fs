@@ -25,6 +25,7 @@ open System
 open Alea.CUDA
 open Alea.CUDA.Utilities
 open Xunit
+open Xunit.Extensions
 open FsUnit.Xunit
 open Common
 open DeepBelief.CudaTemplates
@@ -460,36 +461,37 @@ type ``CUDA Matrix Multiplication``()=
         )
     }
 
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The outer product of c and a is computed.``(i) =
+        use outerProductProgram = i |> outerProductTemplate |> Compiler.load Worker.Default in
+        outerProductProgram.Run c a |> should equal cOuterProducta
 
-    [<Fact>] member test.
-        ``The outer product of a and c is computed with a block size of 1.``() =
-            use outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default in
-            outerProductBlock1Program.Run a c |> should equal aOuterProductc
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The outer product of a and c is computed.``(i) =
+        use outerProductProgram = i |> outerProductTemplate |> Compiler.load Worker.Default in
+        outerProductProgram.Run a c |> should equal aOuterProductc
 
-    [<Fact>] member test.
-        ``The outer product of c and a is computed with a block size of 1.``() =
-            use outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default in
-            outerProductBlock1Program.Run c a |> should equal cOuterProducta
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The addVectorTemplate adds a to b.``(i) =
+        use addVectorProgram = i |> addVectorTemplate |> Compiler.load Worker.Default in
+        addVectorProgram.Run a b |> should equal aPlusb
 
-    [<Fact>] member test.
-        ``The outer product of a and c is computed with a block size of 32.``() =
-            use outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default in
-            outerProductBlock32Program.Run a c |> should equal aOuterProductc
-
-    [<Fact>] member test.
-        ``The outer product of c and a is computed with a block size of 32.``() =
-            use outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default in
-            outerProductBlock32Program.Run c a |> should equal cOuterProducta
-
-    [<Fact>] member test.
-        ``The addVectorTemplate adds a to b.``() =
-            use addVectorProgram = 2 |> addVectorTemplate |> Compiler.load Worker.Default in
-            addVectorProgram.Run a b |> should equal aPlusb
-
-    [<Fact>] member test.
-        ``The subtractVectorTemplate subtracts a from b.``() =
-            use subtractVectorProgram = 2 |> subtractVectorTemplate |> Compiler.load Worker.Default in
-            subtractVectorProgram.Run b a |> should equal bMinusa
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The subtractVectorTemplate subtracts a from b.``(i) =
+        use subtractVectorProgram = i |> subtractVectorTemplate |> Compiler.load Worker.Default in
+        subtractVectorProgram.Run b a |> should equal bMinusa
 
     [<Fact>] member test.
         ``The pointwiseMultiplyVectorTemplate multiplies a by b.``() =
@@ -588,26 +590,25 @@ type ``CUDA Matrix Multiplication``()=
             |> arraysMatch (multiplyVectorByMatrix lrm lrv)
             |> should equal true
 
-    [<Fact>] member test.
-        ``Multiplying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
-            use multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
-            multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix lrv
-            |> arraysMatch (multiplyVectorByMatrix lrm lrv)
-            |> should equal true
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``Multiplying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``(i)=
+        use multiplyVectorByTransposeOfMatrixBlock32Program = i |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
+        multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix lrv
+        |> arraysMatch (multiplyVectorByMatrix lrm lrv)
+        |> should equal true
 
-    [<Fact>] member test.
-        ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 1).``()=
-            use multiplyVectorByMatrixAndTransformBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
-            multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
-            |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
-            |> should equal true
-
-    [<Fact>] member test.
-        ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 32).``()=
-            use multiplyVectorByMatrixAndTransformBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
-            multiplyVectorByMatrixAndTransformBlock32Program.Run lrm lrv 
-            |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
-            |> should equal true
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU.``(i)=
+        use multiplyVectorByMatrixAndTransformBlock1Program = i |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
+        multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
+        |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
+        |> should equal true
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=

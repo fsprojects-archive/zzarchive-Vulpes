@@ -97,8 +97,7 @@ module NeuralNet =
         List.fold (fun prevDs ((W : Matrix option), (o, o')) -> 
             match W with
             | None    -> (o' .* (subtractVectors target o)) :: prevDs 
-            | Some(W) -> let ds = prevDs.Head
-                         (o' .* ((multiplyVectorByMatrix W ds)).[1..]) :: prevDs) 
+            | Some(W) -> (o' .* ((multiplyVectorByMatrix W prevDs.Head)).[1..]) :: prevDs) 
           [] weightsAndOutputs
 
     /// computes a list of gradients matrices
