@@ -64,10 +64,6 @@ module CudaNeuralNetTests =
         let trainingSet = [|1..50|] |> Array.map (fun i -> (sineCurve i, label i))
         let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
-        let sigmoidProgramBlock1 = 1 |> sigmoidTemplate |> Compiler.load Worker.Default
-        let sigmoidProgramBlock2 = 2 |> sigmoidTemplate |> Compiler.load Worker.Default
-        let sigmoidProgramBlock32 = 32 |> sigmoidTemplate |> Compiler.load Worker.Default
-
         let outputsMatch result =
             arraysMatch (fst (fst result)) (fst (snd result)) && arraysMatch (snd (fst result)) (snd (snd result))
 
@@ -81,29 +77,13 @@ module CudaNeuralNetTests =
 
         let gpuRand = new Random()
 
-        [<Fact>] member test.
-            ``The sigmoid block 1 program maps the logit vector to the original vector.``()=
-                sigmoidProgramBlock1.Run logitVector 0 8 |> should equal vector
-
-        [<Fact>] member test.
-            ``The sigmoid block 2 program maps the logit vector to the original vector.``()=
-                sigmoidProgramBlock2.Run logitVector 0 8 |> should equal vector
-
-        [<Fact>] member test.
-            ``The sigmoid block 32 program maps the logit vector to the original vector.``()=
-                sigmoidProgramBlock32.Run logitVector 0 8 |> should equal vector
-
-        [<Fact>] member test.
-            ``The sigmoid block 1 program reproduces the restricted vector.``()=
-                sigmoidProgramBlock1.Run logitVector 1 5 |> should equal restrictedVector
-
-        [<Fact>] member test.
-            ``The sigmoid block 2 program reproduces the restricted vector.``()=
-                sigmoidProgramBlock2.Run logitVector 1 5 |> should equal restrictedVector
-
-        [<Fact>] member test.
-            ``The sigmoid block 32 program reproduces the restricted vector.``()=
-                sigmoidProgramBlock32.Run logitVector 1 5 |> should equal restrictedVector
+        [<Theory>]
+        [<InlineData(1)>]
+        [<InlineData(2)>]
+        [<InlineData(32)>]
+        member test.``The sigmoid program maps the logit vector to the original vector.``(i)=
+            use sigmoidProgram = i |> sigmoidTemplate |> Compiler.load Worker.Default in
+            sigmoidProgram.Run logitVector 0 8 |> should equal vector
 
 
     type ``CUDA Neural Net: Feed Forward``()=
@@ -217,16 +197,14 @@ module CudaNeuralNetTests =
 
         let gpuRand = new Random()
 
-        // This is not testing anything in the app; 
-        // just making sure that the inputs to the CPU and GPU neural nets are the same.
-        [<Fact>] member test.
-            ``The CPU and GPU random inputs match.``()=
-                [1..100] |> List.map (fun _ -> cpuRand.Next(200)) |> should equal ([1..100] |> List.map (fun _ -> gpuRand.Next(200)))
+        [<Theory>]
+        [<InlineData(1)>]
+        [<InlineData(2)>]
+        [<InlineData(32)>]
+        member test.``The errorSignals GPU template generates the same output as the CPU errorSignals function.``(i)=
+            use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
+            let layerOutputs = feedForwardProgram.Run nnetProps gpuInputs in
 
-        [<Fact>] member test.
-            ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
-                use errorSignalsProgram = 32 |> errorSignalsTemplate |> Compiler.load Worker.Default in
-                use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
-                let layerOutputs = feedForwardProgram.Run nnetProps gpuInputs in
-                errorSignalsProgram.Run nnetProps.Weights layerOutputs (fst trainingSet.[0])
-                |> should equal 0
+            use errorSignalsProgram = i |> errorSignalsTemplate |> Compiler.load Worker.Default in
+            errorSignalsProgram.Run nnetProps.Weights layerOutputs (fst trainingSet.[0])
+            |> should equal 0
