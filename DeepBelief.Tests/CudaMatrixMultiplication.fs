@@ -359,7 +359,7 @@ type ``CUDA Matrix Multiplication``()=
             let addVectorKernel = program.Apply addVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.binaryVectorOperation blockSize x y addVectorKernel worker
+                CudaCommon.binaryVectorOperation blockSize x y addVectorKernel worker
         )
     }
 
@@ -371,7 +371,7 @@ type ``CUDA Matrix Multiplication``()=
             let subtractVectorKernel = program.Apply subtractVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.binaryVectorOperation blockSize x y subtractVectorKernel worker
+                CudaCommon.binaryVectorOperation blockSize x y subtractVectorKernel worker
         )
     }
 
@@ -383,7 +383,7 @@ type ``CUDA Matrix Multiplication``()=
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
 
             fun (x : Vector) (y : Vector) ->
-                Common.binaryVectorOperation blockSize x y pointwiseMultiplyVectorKernel worker
+                CudaCommon.binaryVectorOperation blockSize x y pointwiseMultiplyVectorKernel worker
         )
     }
 
@@ -420,7 +420,7 @@ type ``CUDA Matrix Multiplication``()=
             let addMatrixKernel = program.Apply addMatrixKernel
 
             fun (A : Matrix) (B : Matrix) ->
-                Common.binaryMatrixOperation blockSize A B addMatrixKernel worker
+                CudaCommon.binaryMatrixOperation blockSize A B addMatrixKernel worker
         )
     }
 
@@ -432,7 +432,7 @@ type ``CUDA Matrix Multiplication``()=
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
 
             fun (A : Matrix) (B : Matrix) ->
-                Common.binaryMatrixOperation blockSize A B subtractMatrixKernel worker
+                CudaCommon.binaryMatrixOperation blockSize A B subtractMatrixKernel worker
         )
     }
 
@@ -460,156 +460,165 @@ type ``CUDA Matrix Multiplication``()=
         )
     }
 
-    let loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
-    let loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default
-    let loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default
-    let loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default
-    let powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default
-    let addMatrixProgram = 2 |> addMatrixTemplate |> Compiler.load Worker.Default
-    let subtractMatrixProgram = 2 |> subtractMatrixTemplate |> Compiler.load Worker.Default
-    let addVectorProgram = 2 |> addVectorTemplate |> Compiler.load Worker.Default
-    let subtractVectorProgram = 2 |> subtractVectorTemplate |> Compiler.load Worker.Default
-    let pointwiseMultiplyVectorProgram = 2 |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default
-    let scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformTwiceBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default
-    let multiplyVectorByMatrixAndTransformTwiceBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default
-    let multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
-    let multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default
-    let outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default
-    let outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default
 
     [<Fact>] member test.
         ``The outer product of a and c is computed with a block size of 1.``() =
+            use outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default in
             outerProductBlock1Program.Run a c |> should equal aOuterProductc
 
     [<Fact>] member test.
         ``The outer product of c and a is computed with a block size of 1.``() =
+            use outerProductBlock1Program = 1 |> outerProductTemplate |> Compiler.load Worker.Default in
             outerProductBlock1Program.Run c a |> should equal cOuterProducta
 
     [<Fact>] member test.
         ``The outer product of a and c is computed with a block size of 32.``() =
+            use outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default in
             outerProductBlock32Program.Run a c |> should equal aOuterProductc
 
     [<Fact>] member test.
         ``The outer product of c and a is computed with a block size of 32.``() =
+            use outerProductBlock32Program = 32 |> outerProductTemplate |> Compiler.load Worker.Default in
             outerProductBlock32Program.Run c a |> should equal cOuterProducta
 
     [<Fact>] member test.
         ``The addVectorTemplate adds a to b.``() =
+            use addVectorProgram = 2 |> addVectorTemplate |> Compiler.load Worker.Default in
             addVectorProgram.Run a b |> should equal aPlusb
 
     [<Fact>] member test.
         ``The subtractVectorTemplate subtracts a from b.``() =
+            use subtractVectorProgram = 2 |> subtractVectorTemplate |> Compiler.load Worker.Default in
             subtractVectorProgram.Run b a |> should equal bMinusa
 
     [<Fact>] member test.
         ``The pointwiseMultiplyVectorTemplate multiplies a by b.``() =
+            use pointwiseMultiplyVectorProgram = 2 |> pointwiseMultiplyVectorTemplate |> Compiler.load Worker.Default in
             pointwiseMultiplyVectorProgram.Run a b |> should equal aPointwiseTimesb
 
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 1.``() =
+            use multiplyVectorByMatrixBlock1Program = 1 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByMatrixBlock1Program.Run A x |> should equal y
 
     [<Fact>] member test.
         ``The multiplyVectorByMatrixTemplate multiplies A by x with a block size of 32.``() =
+            use multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByMatrixBlock32Program.Run A x |> should equal y
 
     [<Fact>] member test.
         ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 1.``() =
+            use multiplyVectorByTransposeOfMatrixBlock1Program = 1 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByTransposeOfMatrixBlock1Program.Run At x |> should equal y
 
     [<Fact>] member test.
         ``The multiplyVectorByTransposeOfMatrixTemplate multiplies the transpose of At by x with a block size of 32.``() =
+            use multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByTransposeOfMatrixBlock32Program.Run At x |> should equal y
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 1.``() =
+            use loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyMatricesBlock1Program.Run A B |> should equal C
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies D by E with a block size of 1.``() =
+            use loadAndMultiplyMatricesBlock1Program = 1 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyMatricesBlock1Program.Run D E |> should equal DE
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies A by B with a block size of 32.``() =
+            use loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyMatricesBlock32Program.Run A B |> should equal C
 
     [<Fact>] member test.
         ``The loadAndMultiplyTemplate multiplies D by E with a block size of 32.``() =
+            use loadAndMultiplyMatricesBlock32Program = 32 |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyMatricesBlock32Program.Run D E |> should equal DE
 
     [<Fact>] member test.
         ``The powerOfNTemplate raises M to the power of 10.``() =
+            use powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default in
             powerProgram.Run M 10 |> should equal (MtoN 10)
 
     [<Fact>] member test.
         ``The powerOfNTemplate raises an Upper Triangular matrix to the power of 10.``() =
+            use powerProgram = 32 |> powerOfNTemplate |> Compiler.load Worker.Default in
             UpperTriangle 2.0f 3.0f |> fun m -> powerProgram.Run m 10 |> should equal (UpperTriangleToN 10 2.0f 3.0f)
 
     [<Fact>] member test.
         ``The loadAndMultiplyByTransposeTemplate multiplies A by the transpose of (B Transpose) to give AB.``() =
+            use loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyByTransposeProgram.Run A Bt |> should equal C
 
     [<Fact>] member test.
         ``The loadAndMultiplyByTransposeTemplate multiplies D by the transpose of (E Transpose) to give DE.``() =
+            use loadAndMultiplyByTransposeProgram = 2 |> loadAndMultiplyByTransposeTemplate |> Compiler.load Worker.Default in
             loadAndMultiplyByTransposeProgram.Run D Et |> should equal DE
 
     [<Fact>] member test.
         ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (A Transpose) by B to give AB.``() =
+            use loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadTransposeAndMultiplyProgram.Run At B |> should equal C
 
     [<Fact>] member test.
         ``The loadTransposeAndMultiplyTemplate multiplies the transpose of (D Transpose) by E to give DE.``() =
+            use loadTransposeAndMultiplyProgram = 2 |> loadTransposeAndMultiplyTemplate |> Compiler.load Worker.Default in
             loadTransposeAndMultiplyProgram.Run Dt E |> should equal DE
 
     [<Fact>] member test.
         ``The addMatrixTemplate adds A to 2A to give 3A.``() =
+            use addMatrixProgram = 2 |> addMatrixTemplate |> Compiler.load Worker.Default in
             addMatrixProgram.Run A ATimes2 |> should equal ATimes3
 
     [<Fact>] member test.
         ``The subtractMatrixTemplate subtracts A from 3A to give 2A.``() =
+            use subtractMatrixProgram = 2 |> subtractMatrixTemplate |> Compiler.load Worker.Default in
             subtractMatrixProgram.Run ATimes3 A |> should equal ATimes2
 
     [<Fact>] member test.
         ``The scalarMultiplyTemplate multiplies A by 3 to give 3A.``() =
+            use scalarMultiplyMatrixProgram = 2 |> scalarMultiplyMatrixTemplate |> Compiler.load Worker.Default in
             scalarMultiplyMatrixProgram.Run A 3.0f |> should equal ATimes3
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            use multiplyVectorByMatrixBlock32Program = 32 |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByMatrixBlock32Program.Run lrm lrv
             |> arraysMatch (multiplyVectorByMatrix lrm lrv)
             |> should equal true
 
     [<Fact>] member test.
         ``Multiplying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``()=
+            use multiplyVectorByTransposeOfMatrixBlock32Program = 32 |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
             multiplyVectorByTransposeOfMatrixBlock32Program.Run transposeOfLargeRandomMatrix lrv
             |> arraysMatch (multiplyVectorByMatrix lrm lrv)
             |> should equal true
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 1).``()=
+            use multiplyVectorByMatrixAndTransformBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
             multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
             |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
             |> should equal true
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU (Block Size 32).``()=
+            use multiplyVectorByMatrixAndTransformBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
             multiplyVectorByMatrixAndTransformBlock32Program.Run lrm lrv 
             |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
             |> should equal true
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 1).``()=
+            use multiplyVectorByMatrixAndTransformTwiceBlock1Program = 1 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default in
             multiplyVectorByMatrixAndTransformTwiceBlock1Program.Run lrm lrv 
             |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
             |> should equal (true, true)
 
     [<Fact>] member test.
         ``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU (Block Size 32).``()=
+            use multiplyVectorByMatrixAndTransformTwiceBlock32Program = 32 |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default in
             multiplyVectorByMatrixAndTransformTwiceBlock32Program.Run lrm lrv 
             |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
             |> should equal (true, true)

@@ -21,17 +21,21 @@
 // THE SOFTWARE.
 namespace DeepBelief.Tests
 
-open Alea.CUDA
-open Alea.CUDA.Utilities
-open Xunit
-open FsUnit.Xunit
-open DeepBelief.DeepBeliefNet
-open DeepBelief.CudaTemplates
-open DeepBelief.Kernels
-open DeepBelief.Utils
-open System
+module CudaCommon =
 
-module Common =
+    open Alea.CUDA
+    open Alea.CUDA.Utilities
+    open Xunit
+    open FsUnit.Xunit
+    open DeepBelief.CudaNeuralNet
+    open DeepBelief.CudaTemplates
+    open DeepBelief.DeepBeliefNet
+    open DeepBelief.Utils
+    open DeepBelief.Kernels
+    open DeepBelief.NeuralNet
+    open TestUtils
+    open System
+
     type BinaryMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
     let binaryMatrixOperation blockSize A B (kernel : Kernel<BinaryMatrixOperationKernelSignature>) (worker : Worker) =
         let hA = height A
@@ -68,3 +72,70 @@ module Common =
         let result = result.Gather() 
         Array.sub result 0 size
 
+    let sigmoidTemplate (blockSize:int) = cuda {
+        let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let sigmoidKernel = program.Apply sigmoidKernel
+
+            fun (vector : Vector) start length -> 
+
+                let size = vector.Length
+                let vector = vector |> padToMultipleOf blockSize
+                let simpleVectorLp = createSimpleVectorOperationLp blockSize vector.Length
+
+                let vector = worker.Malloc vector
+
+                sigmoidKernel.Launch simpleVectorLp vector.Ptr vector.Ptr start length
+
+                Array.sub (vector.Gather()) 0 8
+        ) }
+
+    let feedForwardTemplate (blockSize:int) = cuda {
+        let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid @> |> Compiler.DefineKernel
+        let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
+            let coerceKernel = program.Apply coerceKernel
+
+            fun (netProps : NnetProperties) data -> 
+                let paddedWeights = netProps.Weights |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+                
+                let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (height w) (width w))
+                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+
+                let inputs0 = worker.Malloc<float32>(width paddedWeights.[0])
+                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+
+                // The contents of these lists will need to be disposed at the end of the run.
+                let weights = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
+                let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+
+                let mutable result = []
+                let N = weights.Length - 1
+                for i in 0..Array.length data - 1 do
+                    inputs0.Scatter(fst data.[i] |> padToMultipleOf blockSize)
+
+                    for j in 0..N do
+                        let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
+                        coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (height paddedWeights.[j]) (width paddedWeights.[j])
+
+                    let zippedOutputs = List.zip outputs dOutputs
+                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 1 (height netProps.Weights.[iw])))
+                    result <- gatheredOutputs :: result
+
+                disposeAll [|weights; dOutputs|]
+                result
+        ) }
+
+    let errorSignalsTemplate (blockSize:int) = cuda {
+
+        return Entry(fun program ->
+            fun Ws layerOutputs (target : Vector) ->
+                let N = List.length Ws - 1
+                0
+        ) }
