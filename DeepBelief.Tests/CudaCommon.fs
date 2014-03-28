@@ -163,8 +163,6 @@ module CudaCommon =
 
                 subtractVectorKernel.Launch errorSignalsLp.[N] errorSignalsDevice.[N].Ptr paddedTargetDevice.Ptr paddedOutputValuesDevice.[N].Ptr
 
-                let x = errorSignalsDevice.[N].Gather()
-
                 for j in N..(-1)..0 do
                     if j < N then
                         multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
@@ -172,5 +170,55 @@ module CudaCommon =
 
                 let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> Array.length)])
                 disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice|]
+                output                
+        ) }
+
+    let gradientsTemplate (blockSize:int) = cuda {
+        let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
+        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
+        let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
+        let! outerProductKernel = outerProductKernel blockSize |> Compiler.DefineKernel
+
+        return Entry(fun program ->
+            let worker = program.Worker
+            let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
+            let subtractVectorKernel = program.Apply subtractVectorKernel
+            let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
+            let outerProductKernel = program.Apply outerProductKernel
+
+            fun Ws (layerOutputs : (Vector * Vector) list) (target : Vector) ->
+                let N = List.length Ws - 1
+                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+                let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedOutputValues = layerOutputs |> List.map (fst >> prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedOutputDerivatives = layerOutputs |> List.map (snd >> prepend 0.0f >> padToMultipleOf blockSize)
+
+                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (height w) (width w))
+                let simpleMatrixLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (height w) (width w))
+
+                use paddedTargetDevice = worker.Malloc(paddedTarget)
+
+                use inputs0Device = worker.Malloc<float32>(width paddedWeights.[0])
+
+                // The contents of these lists will need to be disposed at the end of the run.
+                let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+                let weightsDevice = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
+                let paddedOutputValuesDevice = paddedOutputValues |> List.map (fun o -> worker.Malloc(o)) |> List.rev
+                let paddedOutputDerivativesDevice = paddedOutputDerivatives |> List.map (fun o' -> worker.Malloc(o')) |> List.rev
+                let gradsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w * width w))
+
+                let inputsDevice = inputs0Device :: paddedOutputValuesDevice
+
+                subtractVectorKernel.Launch errorSignalsLp.[N] errorSignalsDevice.[N].Ptr paddedTargetDevice.Ptr paddedOutputValuesDevice.[N].Ptr
+
+                for j in N..(-1)..0 do
+                    if j < N then
+                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
+                    pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
+                    outerProductKernel.Launch simpleMatrixLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j].Ptr (width paddedWeights.[j])
+
+                let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> Array.length)])
+                disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice; gradsDevice|]
                 output                
         ) }

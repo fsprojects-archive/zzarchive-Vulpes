@@ -325,15 +325,15 @@ module CudaTemplates =
                 let weights = paddedWeights |> List.map (Utils.flattenMatrix >> worker.Malloc)
                 let prevDWeights = paddedWeights |> List.map (fun w -> Array2D.zeroCreate (Utils.height w) (Utils.width w) |> Utils.flattenMatrix |> worker.Malloc)
                 let grads = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w * Utils.width w))
-                let inputs = inputs0 :: outputs
                 let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 let diffs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(Utils.height w))
                 
+                let inputs = inputs0 :: outputs
                 let N = weights.Length - 1
                 for i in 0..(Array.length trainingSet * epochs) - 1 do
                     let index = rand.Next (Array.length trainingSet)
-                    inputs0.Scatter(fst trainingSet.[index] |> Utils.padToMultipleOf blockSize)
+                    inputs0.Scatter(fst trainingSet.[index] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
@@ -345,12 +345,14 @@ module CudaTemplates =
 
                     diffs.[N].Scatter (snd trainingSet.[index] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
                     subtractVectorKernel.Launch outputLp.[N] diffs.[N].Ptr diffs.[N].Ptr outputs.[N].Ptr
+
                     for j in N..(-1)..0 do
                         if j < N then 
                             multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
                         let hW = Utils.height paddedWeights.[j]
                         let wW = Utils.width paddedWeights.[j]
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr
+
                         outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
@@ -359,7 +361,7 @@ module CudaTemplates =
 
                 let mutable testOutputs = [||]
                 for i in 0..Array.length testSet - 1 do
-                    inputs0.Scatter(fst testSet.[i] |> Utils.padToMultipleOf blockSize)
+                    inputs0.Scatter(fst testSet.[i] |> Utils.prepend 0.0f |> Utils.padToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
@@ -367,6 +369,6 @@ module CudaTemplates =
 
                     testOutputs <- Array.append testOutputs [|(Array.sub (outputs.[N].Gather()) 1 (Array.length (snd testSet.[i])))|]
 
-                Utils.disposeAll [|outputs; weights; prevDWeights; grads; inputs; dOutputs; errorSignals; diffs|]
+                Utils.disposeAll [|outputs; weights; prevDWeights; grads; dOutputs; errorSignals; diffs|]
                 testOutputs
         ) }
