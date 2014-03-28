@@ -206,6 +206,7 @@ module CudaNeuralNetTests =
             let layerOutputs = (feedForwardProgram.Run nnetProps gpuInputs).[0] |> List.rev in
 
             use errorSignalsProgram = i |> errorSignalsTemplate |> Compiler.load Worker.Default in
-            errorSignalsProgram.Run nnetProps.Weights layerOutputs (snd trainingSet.[0])
-            |> should equal <| 
-            cpuErrorSignals nnetProps.Weights layerOutputs (snd trainingSet.[0])
+            let gpuOutput = errorSignalsProgram.Run nnetProps.Weights layerOutputs (snd trainingSet.[0]) in
+            let cpuOutput = cpuErrorSignals nnetProps.Weights layerOutputs (snd trainingSet.[0])
+            for pair in List.zip cpuOutput gpuOutput |> List.rev do
+                arraysMatch (fst pair) (snd pair) |> should equal true

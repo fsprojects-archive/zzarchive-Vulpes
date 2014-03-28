@@ -208,7 +208,6 @@ module Kernels =
 
     let multiplyVectorByTransposeOfMatrixKernel (blockSize:int) =
         <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->
-
             let Xds = __shared__.Array(blockSize);
 
             // Block index
@@ -224,16 +223,18 @@ module Kernels =
             let mutable m = 0
             let upperBound = (hA - 1)/blockSize
             for m in 0..upperBound do
-                
-                Xds.[tx] <- if (m * blockSize + tx < hA) then x.[m * blockSize + tx] else 0.0f
-                __syncthreads()
-                
-                for k in 0..(blockSize - 1) do
-                    value <- value + (if column < wA && m * blockSize + k < hA then A.[column + wA * (m * blockSize + k)] * Xds.[k] else 0.0f)
-                __syncthreads()
 
-            y.[column] <- value
-            __syncthreads() @>
+                if (m * blockSize + tx < hA) then
+                    Xds.[tx] <-  x.[m * blockSize + tx]
+                    __syncthreads()
+                
+                    for k in 0..(blockSize - 1) do
+                        value <- value + (if column < wA && m * blockSize + k < hA then A.[column + wA * (m * blockSize + k)] * Xds.[k] else 0.0f)
+                    __syncthreads()
+
+            if column < hA then y.[column] <- value
+            __syncthreads() 
+        @>
 
     [<ReflectedDefinition>]
     let jumpAhead (numThreads:int) (threadRank:int)
