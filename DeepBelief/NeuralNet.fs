@@ -85,7 +85,7 @@ module NeuralNet =
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer
-    let errorSignals (Ws : Matrix list) layeroutputs (target : Vector) = 
+    let cpuErrorSignals (Ws : Matrix list) layeroutputs (target : Vector) = 
         let trp = fun W -> Some(transpose W)
 
         // need weights and layer outputs in reverse order, 
@@ -103,7 +103,7 @@ module NeuralNet =
     /// computes a list of gradients matrices
     let gradients (Ws : Matrix list) layeroutputs input target = 
         let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
-        let signals = errorSignals Ws layeroutputs target
+        let signals = cpuErrorSignals Ws layeroutputs target
         (input :: actualOuts, signals) 
             ||> List.zip 
             |> List.map (fun (zs, ds) -> outerProduct ds (prependForBias zs))

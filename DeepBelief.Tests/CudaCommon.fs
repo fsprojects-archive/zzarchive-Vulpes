@@ -133,9 +133,43 @@ module CudaCommon =
         ) }
 
     let errorSignalsTemplate (blockSize:int) = cuda {
+        let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
+        let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
 
         return Entry(fun program ->
-            fun Ws layerOutputs (target : Vector) ->
+            let worker = program.Worker
+            let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
+            let subtractVectorKernel = program.Apply subtractVectorKernel
+
+            fun Ws (layerOutputs : (Vector * Vector) list) (target : Vector) ->
                 let N = List.length Ws - 1
-                0
+                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+                let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedOutputValues = layerOutputs |> List.map (fst >> prepend 0.0f >> padToMultipleOf blockSize)
+
+                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+                use paddedTarget = worker.Malloc(paddedTarget)
+                let weightsAndOutputs = 
+                    let reversedList = paddedWeights |> List.tail |> List.rev |> List.map Some
+                    List.zip (None :: reversedList) layerOutputs
+
+                // The contents of these lists will need to be disposed at the end of the run.
+                let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+                let paddedOutputValues = paddedOutputValues |> List.map (fun o -> worker.Malloc(o)) |> List.rev
+
+                subtractVectorKernel.Launch errorSignalsLp.[N] paddedTarget.Ptr paddedOutputValues.[N].Ptr errorSignals.[N].Ptr
+
+//                for j in N..(-1)..0 do
+//                    if 
+
+//                let errorSignals = 
+//                    List.fold (fun prevDs ((W : Matrix option), (o, o')) -> 
+//                        match W with
+//                        | None    -> (o' .* (subtractVectors target o)) :: prevDs 
+//                        | Some(W) -> (o' .* ((multiplyVectorByMatrix W prevDs.Head)).[1..]) :: prevDs) 
+//                      [] weightsAndOutputs
+
+                let output = errorSignals |> List.map (fun e -> e.Gather())
+                disposeAll [|errorSignals|]
+                output                
         ) }

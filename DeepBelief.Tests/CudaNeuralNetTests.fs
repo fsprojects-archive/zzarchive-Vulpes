@@ -203,8 +203,9 @@ module CudaNeuralNetTests =
         [<InlineData(32)>]
         member test.``The errorSignals GPU template generates the same output as the CPU errorSignals function.``(i)=
             use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
-            let layerOutputs = feedForwardProgram.Run nnetProps gpuInputs in
+            let layerOutputs = (feedForwardProgram.Run nnetProps gpuInputs).[0] |> List.rev in
 
             use errorSignalsProgram = i |> errorSignalsTemplate |> Compiler.load Worker.Default in
-            errorSignalsProgram.Run nnetProps.Weights layerOutputs (fst trainingSet.[0])
-            |> should equal 0
+            errorSignalsProgram.Run nnetProps.Weights layerOutputs (snd trainingSet.[0])
+            |> should equal <| 
+            cpuErrorSignals nnetProps.Weights layerOutputs (snd trainingSet.[0])

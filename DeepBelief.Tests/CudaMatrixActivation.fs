@@ -24,6 +24,7 @@ namespace DeepBelief.Tests
 open Alea.CUDA
 open Alea.CUDA.Utilities
 open Xunit
+open Xunit.Extensions
 open FsUnit.Xunit
 open DeepBelief.CudaTemplates
 open DeepBelief.Utils
@@ -134,39 +135,64 @@ type ``CUDA Matrix Activation``()=
         )
     }
 
-    [<Fact>] member test.
-        ``The activate template activates the 2 by 2 matrix correctly.``()=
-            use activateProgram = 2 |> activateTemplate |> Compiler.load Worker.Default in
-            activateProgram.Run A2By2 rnd2By2 |> should equal res2By2
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The activate template activates the 2 by 2 matrix correctly.``(i)=
+        use activateProgram = i |> activateTemplate |> Compiler.load Worker.Default in
+        activateProgram.Run A2By2 rnd2By2 |> should equal res2By2
 
-    [<Fact>] member test.
-        ``The activate template activates the 2 by 4 matrix correctly.``()=
-            use activateProgram = 2 |> activateTemplate |> Compiler.load Worker.Default in
-            activateProgram.Run A2By4 rnd2By4 |> should equal res2By4
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The activate template activates the 2 by 4 matrix correctly.``(i)=
+        use activateProgram = i |> activateTemplate |> Compiler.load Worker.Default in
+        activateProgram.Run A2By4 rnd2By4 |> should equal res2By4
 
-    [<Fact>] member test.
-        ``The activate template activates the 4 by 2 matrix correctly.``()=
-            use activateProgram = 2 |> activateTemplate |> Compiler.load Worker.Default in
-            activateProgram.Run A4By2 rnd4By2 |> should equal res4By2
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(32)>]
+    member test.``The activate template activates the 4 by 2 matrix correctly.``(i)=
+        use activateProgram = i |> activateTemplate |> Compiler.load Worker.Default in
+        activateProgram.Run A4By2 rnd4By2 |> should equal res4By2
 
-    [<Fact>] member test.
-        ``The activateFirstRow template activates the top row of a 2 by 4 matrix correctly.``()=
-            let activateFirstRowProgram = activateFirstRowTemplate 3 3 |> Compiler.load Worker.Default in
-            activateFirstRowProgram.Run rnd2By4 |> should equal rnd2By4With3FirstRowActivations
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(3)>]
+    [<InlineData(32)>]
+    member test.``The activateFirstRow template activates the top row of a 2 by 4 matrix correctly.``(i)=
+        let activateFirstRowProgram = activateFirstRowTemplate i 3 |> Compiler.load Worker.Default in
+        activateFirstRowProgram.Run rnd2By4 |> should equal rnd2By4With3FirstRowActivations
 
-    [<Fact>] member test.
-        ``The activateFirstRow template activates the top row of a 4 by 2 matrix correctly.``()=
-            let activateFirstRowProgram = activateFirstRowTemplate 3 3 |> Compiler.load Worker.Default in
-            activateFirstRowProgram.Run rnd4By2 |> should equal rnd4By2With3FirstRowActivations
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(3)>]
+    [<InlineData(32)>]
+    member test.``The activateFirstRow template activates the top row of a 4 by 2 matrix correctly.``(i)=
+        let activateFirstRowProgram = activateFirstRowTemplate i 3 |> Compiler.load Worker.Default in
+        activateFirstRowProgram.Run rnd4By2 |> should equal rnd4By2With3FirstRowActivations
 
-    [<Fact>] member test.
-        ``The activateFirstColumn template activates the left column of a 2 by 4 matrix correctly.``()=
-            let activateFirstColumnProgram = activateFirstColumnTemplate 3 3 |> Compiler.load Worker.Default in
-            activateFirstColumnProgram.Run rnd2By4 |> should equal rnd2By4With3FirstColumnActivations
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(3)>]
+    [<InlineData(32)>]
+    member test.``The activateFirstColumn template activates the left column of a 2 by 4 matrix correctly.``(i)=
+        let activateFirstColumnProgram = activateFirstColumnTemplate i 3 |> Compiler.load Worker.Default in
+        activateFirstColumnProgram.Run rnd2By4 |> should equal rnd2By4With3FirstColumnActivations
 
-    [<Fact>] member test.
-        ``The activateFirstColumn template activates the left column of a 4 by 2 matrix correctly.``()=
-            let activateFirstColumnProgram = activateFirstColumnTemplate 3 3 |> Compiler.load Worker.Default in
-            activateFirstColumnProgram.Run rnd4By2 |> should equal rnd4By2With3FirstColumnActivations
+    [<Theory>]
+    [<InlineData(1)>]
+    [<InlineData(2)>]
+    [<InlineData(3)>]
+    [<InlineData(32)>]
+    member test.``The activateFirstColumn template activates the left column of a 4 by 2 matrix correctly.``(i)=
+        let activateFirstColumnProgram = activateFirstColumnTemplate i 3 |> Compiler.load Worker.Default in
+        activateFirstColumnProgram.Run rnd4By2 |> should equal rnd4By2With3FirstColumnActivations
 
 

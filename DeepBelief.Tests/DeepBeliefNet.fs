@@ -82,17 +82,20 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
     [<Fact>] member test.
         ``The weight differences of all RBMs should be initialised to zero.``()=
         layeredDbn.Machines |> List.map(fun x -> x.DWeights |> allElementsOfMatrix (fun v -> v = 0.0f))
-        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))
+        |> should equal <|
+        List.map(fun x -> true) layeredDbn.Machines
     
     [<Fact>] member test.
         ``The visible bias differences of all RBMs should be initialised to zero.``()=
         layeredDbn.Machines |> List.map(fun x -> x.DVisibleBiases |> allElementsOfVector (fun v -> v >= 0.0f))
-        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))    
+        |> should equal <|
+        List.map(fun x -> true) layeredDbn.Machines
 
     [<Fact>] member test.
         ``The hidden bias differences of all RBMs should be initialised to zero.``()=
         layeredDbn.Machines |> List.map(fun x -> x.DHiddenBiases |> allElementsOfVector (fun v -> v = 0.0f))
-        |> should equal (layeredDbn.Machines |> List.map(fun x -> true))
+        |> should equal <|
+        List.map(fun x -> true) layeredDbn.Machines
 
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
