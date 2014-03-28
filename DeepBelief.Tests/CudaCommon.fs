@@ -218,7 +218,7 @@ module CudaCommon =
                     pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
                     outerProductKernel.Launch simpleMatrixLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j].Ptr (width paddedWeights.[j])
 
-                let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> Array.length)])
+                let output = gradsDevice |> List.mapi (fun i e -> e.Gather() |> rebuildMatrix (height paddedWeights.[i]) (width paddedWeights.[i]) (height paddedWeights.[i]))
                 disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice; gradsDevice|]
                 output                
         ) }

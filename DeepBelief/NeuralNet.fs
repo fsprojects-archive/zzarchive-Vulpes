@@ -101,7 +101,7 @@ module NeuralNet =
           [] weightsAndOutputs
 
     /// computes a list of gradients matrices
-    let gradients (Ws : Matrix list) layeroutputs input target = 
+    let cpuGradients (Ws : Matrix list) layeroutputs input target = 
         let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
         let signals = cpuErrorSignals Ws layeroutputs target
         (input :: actualOuts, signals) 
@@ -124,7 +124,7 @@ module NeuralNet =
 
     let step netProps prevDs input target eta alpha = 
         let layeroutputs = feedForward netProps input
-        let Gs = gradients netProps.Weights layeroutputs input target
+        let Gs = cpuGradients netProps.Weights layeroutputs input target
         (updateWeights netProps.Weights Gs prevDs eta alpha)
 
     let nnetTrain (rnd : Random) props samples eta alpha epochs = 
