@@ -494,22 +494,6 @@ type ``CUDA Matrix Multiplication``()=
         subtractVectorProgram.Run b a |> should equal bMinusa
 
     [<Theory>]
-    [<InlineData(10)>]
-    [<InlineData(20)>]
-    [<InlineData(30)>]
-    [<InlineData(40)>]
-    [<InlineData(50)>]
-    [<InlineData(50)>]
-    [<InlineData(60)>]
-    [<InlineData(70)>]
-    [<InlineData(80)>]
-    member test.``The subtractVectorTemplate subtracts repeated vectors.``(i) =
-        use subtractVectorProgram = 32 |> subtractVectorTemplate |> Compiler.load Worker.Default in
-        let a = [|1.0f..i|]
-        let b = a |> Array.map (fun x -> 2.0f * x)
-        subtractVectorProgram.Run b a |> should equal a
-
-    [<Theory>]
     [<InlineData(1)>]
     [<InlineData(2)>]
     [<InlineData(32)>]
