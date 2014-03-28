@@ -148,6 +148,8 @@ module CudaCommon =
                 let paddedOutputValues = layerOutputs |> List.map (fst >> prepend 0.0f >> padToMultipleOf blockSize)
 
                 let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
+
                 use paddedTarget = worker.Malloc(paddedTarget)
                 let weightsAndOutputs = 
                     let reversedList = paddedWeights |> List.tail |> List.rev |> List.map Some
@@ -155,12 +157,13 @@ module CudaCommon =
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+                let weights = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
                 let paddedOutputValues = paddedOutputValues |> List.map (fun o -> worker.Malloc(o)) |> List.rev
 
-                subtractVectorKernel.Launch errorSignalsLp.[N] paddedTarget.Ptr paddedOutputValues.[N].Ptr errorSignals.[N].Ptr
+                subtractVectorKernel.Launch errorSignalsLp.[N] errorSignals.[N].Ptr paddedTarget.Ptr paddedOutputValues.[N].Ptr
 
-//                for j in N..(-1)..0 do
-//                    if 
+                for j in N-1..(-1)..0 do
+                    multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] errorSignals.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
 
 //                let errorSignals = 
 //                    List.fold (fun prevDs ((W : Matrix option), (o, o')) -> 
@@ -170,6 +173,6 @@ module CudaCommon =
 //                      [] weightsAndOutputs
 
                 let output = errorSignals |> List.map (fun e -> e.Gather())
-                disposeAll [|errorSignals|]
+                disposeAll [|errorSignals; weights; paddedOutputValues|]
                 output                
         ) }
