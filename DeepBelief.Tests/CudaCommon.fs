@@ -154,9 +154,6 @@ module CudaCommon =
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (height w) (width w))
 
                 use paddedTargetDevice = worker.Malloc(paddedTarget)
-                let weightsAndOutputs = 
-                    let reversedList = paddedWeights |> List.tail |> List.rev |> List.map Some
-                    List.zip (None :: reversedList) layerOutputs
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
@@ -166,12 +163,14 @@ module CudaCommon =
 
                 subtractVectorKernel.Launch errorSignalsLp.[N] errorSignalsDevice.[N].Ptr paddedTargetDevice.Ptr paddedOutputValuesDevice.[N].Ptr
 
+                let x = errorSignalsDevice.[N].Gather()
+
                 for j in N..(-1)..0 do
                     if j < N then
-                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
+                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
                     pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
 
                 let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> Array.length)])
-                disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice|]
+                disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice|]
                 output                
         ) }

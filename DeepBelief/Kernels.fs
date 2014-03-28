@@ -232,7 +232,7 @@ module Kernels =
                         value <- value + (if column < wA && m * blockSize + k < hA then A.[column + wA * (m * blockSize + k)] * Xds.[k] else 0.0f)
                     __syncthreads()
 
-            if column < hA then y.[column] <- value
+            if column < wA then y.[column] <- value
             __syncthreads() 
         @>
 

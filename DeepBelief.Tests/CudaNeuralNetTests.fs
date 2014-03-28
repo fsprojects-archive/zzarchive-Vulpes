@@ -159,16 +159,11 @@ module CudaNeuralNetTests =
 
         let gpuRand = new Random()
 
-        // This is not testing anything in the app; 
-        // just making sure that the inputs to the CPU and GPU neural nets are the same.
-        [<Fact>] member test.
-            ``The CPU and GPU random inputs match.``()=
-                [1..100] |> List.map (fun _ -> cpuRand.Next(200)) |> should equal ([1..100] |> List.map (fun _ -> gpuRand.Next(200)))
-
         [<Fact>] member test.
             ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
-                cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 1 
-                |> should equal (gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 1)
+                let cpuOutput = cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 1 in
+                let gpuOutput = gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 1 in
+                cpuOutput |> should equal gpuOutput
 
 
     type ``CUDA Neural Net: Error Signals``()=
@@ -192,10 +187,6 @@ module CudaNeuralNetTests =
         let label i = Array.init 10 (fun j -> if j + 1 = mod10Plus1 i then 1.0f else 0.0f)
         let trainingSet = [|1..50|] |> Array.map (fun i -> (sineCurve i, label i))
         let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
-
-        let cpuRand = new Random()
-
-        let gpuRand = new Random()
 
         [<Theory>]
         [<InlineData(1)>]

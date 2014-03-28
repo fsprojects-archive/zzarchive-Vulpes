@@ -347,7 +347,7 @@ module CudaTemplates =
                     subtractVectorKernel.Launch outputLp.[N] diffs.[N].Ptr diffs.[N].Ptr outputs.[N].Ptr
                     for j in N..(-1)..0 do
                         if j < N then 
-                            multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
+                            multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] diffs.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
                         let hW = Utils.height paddedWeights.[j]
                         let wW = Utils.width paddedWeights.[j]
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr

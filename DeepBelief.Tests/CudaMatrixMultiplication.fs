@@ -85,8 +85,8 @@ type ``CUDA Matrix Multiplication``()=
     let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
     let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
 
-    let largeRandomMatrix (rand : Random) = Array2D.init 50 100 (fun _ _ -> rand.NextDouble() |> float32)
-    let largeRandomVector (rand : Random) = Array.init 100 (fun _ -> rand.NextDouble() |> float32)
+    let largeRandomMatrix (rand : Random) = Array2D.init 100 150 (fun _ _ -> rand.NextDouble() |> float32)
+    let largeRandomVector (rand : Random) = Array.init 150 (fun _ -> rand.NextDouble() |> float32)
     let lrm = largeRandomMatrix rand
     let lrv = largeRandomVector rand
     let transposeOfLargeRandomMatrix = lrm |> transpose
@@ -492,6 +492,22 @@ type ``CUDA Matrix Multiplication``()=
     member test.``The subtractVectorTemplate subtracts a from b.``(i) =
         use subtractVectorProgram = i |> subtractVectorTemplate |> Compiler.load Worker.Default in
         subtractVectorProgram.Run b a |> should equal bMinusa
+
+    [<Theory>]
+    [<InlineData(10)>]
+    [<InlineData(20)>]
+    [<InlineData(30)>]
+    [<InlineData(40)>]
+    [<InlineData(50)>]
+    [<InlineData(50)>]
+    [<InlineData(60)>]
+    [<InlineData(70)>]
+    [<InlineData(80)>]
+    member test.``The subtractVectorTemplate subtracts repeated vectors.``(i) =
+        use subtractVectorProgram = 32 |> subtractVectorTemplate |> Compiler.load Worker.Default in
+        let a = [|1.0f..i|]
+        let b = a |> Array.map (fun x -> 2.0f * x)
+        subtractVectorProgram.Run b a |> should equal a
 
     [<Theory>]
     [<InlineData(1)>]
