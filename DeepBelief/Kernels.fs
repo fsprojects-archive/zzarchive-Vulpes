@@ -513,16 +513,16 @@ module Kernels =
         let strategy = multiplyStrategy blockSize
         <@ fun (A : deviceptr<float32>) (v : deviceptr<float32>) (w : deviceptr<float32>) (wA : int) ->
             
-            // Block index
             let bx = blockIdx.x
+            let by = blockIdx.y
 
-            // Thread index
             let tx = threadIdx.x
+            let ty = threadIdx.y
 
             let i = bx * blockSize + tx;
+            let j = by * blockSize + ty;
 
-            A.[i] <- v.[i / wA] * w.[i % wA]
-            __syncthreads()
+            A.[i * wA + j] <- v.[i] * w.[j]
             @>
 
     let scalarMultiplyMatrixKernel (blockSize : int) =

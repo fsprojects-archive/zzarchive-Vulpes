@@ -64,6 +64,11 @@ module CudaTemplates =
         let grid = dim3(size / threads.x)
         LaunchParam(grid, threads)
 
+    let createOuterProductLp blockSize hA wA =
+        let threads = dim3(blockSize, blockSize)
+        let grid = dim3(hA / threads.x, wA / threads.y)
+        LaunchParam(grid, threads)
+
     let createSimpleMatrixOperationLp blockSize hA wA =
         let threads = dim3(blockSize)
         let grid = dim3((hA * wA) / threads.x)
@@ -317,6 +322,7 @@ module CudaTemplates =
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (Utils.height w))
                 let simpleMatrixLp = paddedWeights |> List.map (fun w -> createSimpleMatrixOperationLp blockSize (Utils.height w) (Utils.width w))
+                let outerProductLp = paddedWeights |> List.map (fun w -> createOuterProductLp blockSize (Utils.height w) (Utils.width w))
 
                 use inputs0 = worker.Malloc<float32>(Utils.width paddedWeights.[0])
 
@@ -353,7 +359,7 @@ module CudaTemplates =
                         let wW = Utils.width paddedWeights.[j]
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr
 
-                        outerProductKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr wW
+                        outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j + 1].Ptr wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
                         addMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr prevDWeights.[j].Ptr grads.[j].Ptr

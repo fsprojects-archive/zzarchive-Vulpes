@@ -226,8 +226,8 @@ module CudaNeuralNetTests =
         let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
         [<Theory>]
-        [<InlineData(1)>]
-        [<InlineData(2)>]
+//        [<InlineData(1)>]
+//        [<InlineData(2)>]
         [<InlineData(32)>]
         member test.``The gradients GPU template generates the same output as the CPU gradients function.``(i)=
             use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in

@@ -407,7 +407,7 @@ type ``CUDA Matrix Multiplication``()=
                 use paddedW = worker.Malloc paddedW
                 use result = worker.Malloc<float32> (sizePaddedV * sizePaddedW)
 
-                let lp = createSimpleMatrixOperationLp blockSize sizePaddedV sizePaddedW
+                let lp = createOuterProductLp blockSize sizePaddedV sizePaddedW
                 outerProductKernel.Launch lp result.Ptr paddedV.Ptr paddedW.Ptr sizePaddedW
                 result.Gather() |> rebuildMatrix sizePaddedW sizeV sizeW
         )
