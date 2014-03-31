@@ -226,15 +226,15 @@ module CudaNeuralNetTests =
         let testSet = [|1..10|] |> Array.map (fun i -> (sineCurve i, label i))
 
         [<Theory>]
-//        [<InlineData(1)>]
-//        [<InlineData(2)>]
+        [<InlineData(1)>]
+        [<InlineData(2)>]
         [<InlineData(32)>]
         member test.``The gradients GPU template generates the same output as the CPU gradients function.``(i)=
             use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
             let layerOutputs = (feedForwardProgram.Run nnetProps gpuInputs).[0] |> List.rev in
 
             use gradientsProgram = i |> gradientsTemplate |> Compiler.load Worker.Default in
-            let gpuOutput = gradientsProgram.Run nnetProps.Weights layerOutputs (snd trainingSet.[0]) in
+            let gpuOutput = gradientsProgram.Run nnetProps.Weights layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0]) in
             let cpuOutput = cpuGradients nnetProps.Weights layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0])
             for pair in List.zip cpuOutput gpuOutput |> List.rev do
                 fst pair |> should equal <| snd pair

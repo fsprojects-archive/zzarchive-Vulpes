@@ -359,7 +359,7 @@ module CudaTemplates =
                         let wW = Utils.width paddedWeights.[j]
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr diffs.[j].Ptr
 
-                        outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j + 1].Ptr wW
+                        outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr wW
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
                         addMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr prevDWeights.[j].Ptr grads.[j].Ptr
@@ -367,7 +367,7 @@ module CudaTemplates =
 
                 let mutable testOutputs = [||]
                 for i in 0..Array.length testSet - 1 do
-                    inputs0.Scatter(fst testSet.[i] |> Utils.prepend 0.0f |> Utils.padToMultipleOf blockSize)
+                    inputs0.Scatter(fst testSet.[i] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]

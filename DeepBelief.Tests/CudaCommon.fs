@@ -147,7 +147,7 @@ module CudaCommon =
                 let N = List.length Ws - 1
                 let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
                 let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
-                let paddedOutputValues = layerOutputs |> List.map (fst >> prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedOutputValues = layerOutputs |> List.map (fst >> prependForBias >> padToMultipleOf blockSize)
                 let paddedOutputDerivatives = layerOutputs |> List.map (snd >> prepend 0.0f >> padToMultipleOf blockSize)
 
                 let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
@@ -186,11 +186,11 @@ module CudaCommon =
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
             let outerProductKernel = program.Apply outerProductKernel
 
-            fun Ws (layerOutputs : (Vector * Vector) list) (target : Vector) ->
+            fun Ws (layerOutputs : (Vector * Vector) list) (input : Vector) (target : Vector) ->
                 let N = List.length Ws - 1
                 let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
                 let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
-                let paddedOutputValues = layerOutputs |> List.map (fst >> prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedOutputValues = layerOutputs |> List.map (fst >> prependForBias >> padToMultipleOf blockSize)
                 let paddedOutputDerivatives = layerOutputs |> List.map (snd >> prepend 0.0f >> padToMultipleOf blockSize)
 
                 let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
@@ -199,7 +199,7 @@ module CudaCommon =
 
                 use paddedTargetDevice = worker.Malloc(paddedTarget)
 
-                use inputs0Device = worker.Malloc<float32>(width paddedWeights.[0])
+                use inputs0Device = worker.Malloc(input |> prependForBias |> padToMultipleOf blockSize)
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
@@ -216,11 +216,11 @@ module CudaCommon =
                     if j < N then
                         multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
                     pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
-                    outerProductKernel.Launch outerProductLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j + 1].Ptr (width paddedWeights.[j])
+                    outerProductKernel.Launch outerProductLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j].Ptr (width paddedWeights.[j])
 
                 let output = gradsDevice |> List.mapi (fun i e -> 
                     let array = e.Gather() 
-                    array |> rebuildMatrix (width paddedWeights.[i]) (height Ws.[i]) (1 + width Ws.[i])) |> List.map (fun m -> m.[0..,1..])
+                    array |> rebuildMatrix (width paddedWeights.[i]) (1 + height Ws.[i]) (width Ws.[i])) |> List.map (fun m -> m.[1..,0..])
                 disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice; gradsDevice|]
                 output                
         ) }
