@@ -121,7 +121,7 @@ module CudaCommon =
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
-                        coerceKernel.Launch coerceLp lastOutput.Ptr 0 1.0f
+                        coerceKernel.Launch (coerceLp 1) lastOutput.Ptr 0 0 1.0f
                         multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (height paddedWeights.[j]) (width paddedWeights.[j])
 
                     let zippedOutputs = List.zip outputs dOutputs

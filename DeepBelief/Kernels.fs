@@ -478,9 +478,10 @@ module Kernels =
             __syncthreads() @>
 
     let coerceKernel (blockSize : int) =
-        <@ fun (X : deviceptr<float32>) (index : int) (value : float32) ->
+        <@ fun (X : deviceptr<float32>) (minIndex : int) (maxIndex : int) (value : float32) ->
 
-            if index = (blockIdx.x * blockSize + threadIdx.x) then
+            let index = (blockIdx.x * blockSize + threadIdx.x)
+            if index >= minIndex && index <= maxIndex then
                 X.[index] <- value
                 __syncthreads() @>
 

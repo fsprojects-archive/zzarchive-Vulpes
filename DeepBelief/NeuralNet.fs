@@ -122,6 +122,9 @@ module NeuralNet =
     let initDeltaWeights (Ws : Matrix list) = 
         Ws |> List.map (fun W -> initGaussianWeights (height W) (width W))
 
+    let initZeroWeights (Ws : Matrix list) = 
+        Ws |> List.map (fun W -> Array2D.zeroCreate (height W) (width W))
+
     let step netProps prevDs input target eta alpha = 
         let layeroutputs = feedForward netProps input
         let Gs = cpuGradients netProps.Weights layeroutputs input target
@@ -133,13 +136,14 @@ module NeuralNet =
         let rec loop Ws Ds i =
             match i < (epochs * count) with
             | true -> 
-                let input, target = samples.[rnd.Next(count)]
+                let index = rnd.Next(count)
+                let input, target = samples.[index]
                 let netProps = { Weights = Ws; Activations = fs }
                 let ws, ds = List.unzip (step netProps Ds input target eta alpha)
                 loop ws ds (i + 1)
-            | _    -> Ws
-        let Ws' = loop Ws (initDeltaWeights Ws) 0
-        { props with Weights = Ws' }
+            | _    -> (Ws, Ds)
+        let Wsf = loop Ws (initZeroWeights Ws) 0
+        { props with Weights = fst Wsf }
 
     let netoutput (layeroutputs : ('a * 'a) list) = fst (layeroutputs.Head)
 

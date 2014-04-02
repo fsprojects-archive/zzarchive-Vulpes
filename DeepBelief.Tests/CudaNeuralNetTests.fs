@@ -163,7 +163,8 @@ module CudaNeuralNetTests =
             ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
                 let cpuOutput = cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 1 in
                 let gpuOutput = gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 1 in
-                cpuOutput |> should equal gpuOutput
+                for pair in Array.zip cpuOutput gpuOutput do
+                    arraysMatch (fst pair) (snd pair) |> should equal true
 
 
     type ``CUDA Neural Net: Error Signals``()=
