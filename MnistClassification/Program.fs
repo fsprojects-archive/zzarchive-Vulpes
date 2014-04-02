@@ -40,15 +40,25 @@ module Main =
     let main argv = 
         let nnetProps = mnistRbmProps dbnSizes dbnAlpha dbnMomentum 30 3
         let rand = new Random()
-        let results = gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f rand 2
+        let fpResults = gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet 0.8f 0.25f rand 2
+        let intResults = fpResults |> Array.map (fun r -> 
+            let m = Array.max r
+            r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))
 
         let targets = mnistTestSet |> Array.map (fun x -> snd x)
 
-        let testError = 
-            Array.zip targets results
+        let fpTestError = 
+            Array.zip targets fpResults
             |> Array.fold (fun E (x, t) -> 
                 let En = error t x
                 E + En) 0.0f
 
-        printfn "%A" (testError / float32 targets.Length)
+        let intTestError = 
+            Array.zip targets intResults
+            |> Array.fold (fun E (x, t) -> 
+                let En = error t x
+                E + En) 0.0f
+
+        printfn "%A" (fpTestError / float32 targets.Length)
+        printfn "%A" (intTestError / float32 targets.Length)
         0
