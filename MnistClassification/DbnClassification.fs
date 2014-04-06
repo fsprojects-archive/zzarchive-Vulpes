@@ -38,13 +38,13 @@ module DbnClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
     let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
 
-    let trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
-        let mnistDbn sizes = initDbn sizes mnistTrainingImages
+    let trainedMnistDbn (deepBeliefParameters : DeepBeliefParameters) = 
+        let mnistDbn = initDbn deepBeliefParameters mnistTrainingImages
         let rand = new Random()
-        gpuDbnTrain dbnAlpha dbnMomentum batchSize epochs rand (mnistDbn dbnSizes) mnistTrainingImages
+        gpuDbnTrain rand mnistDbn mnistTrainingImages
 
-    let mnistRbmProps dbnSizes dbnAlpha dbnMomentum batchSize epochs = 
-        trainedMnistDbn dbnSizes dbnAlpha dbnMomentum batchSize epochs
+    let mnistRbmProps (deepBeliefParameters : DeepBeliefParameters) = 
+        trainedMnistDbn deepBeliefParameters
         |> fun dbn -> dbn.Machines
         |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative)))
         |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }

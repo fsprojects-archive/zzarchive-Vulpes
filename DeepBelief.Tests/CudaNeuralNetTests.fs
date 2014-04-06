@@ -38,20 +38,26 @@ module CudaNeuralNetTests =
     open TestUtils
     open System
 
+    let dbnParameters = 
+        {
+            Layers = LayerSizes [500; 300; 100; 10]
+            LearningRateAlpha = LearningRate 0.5f
+            MomentumEta = Momentum 0.9f
+            BatchSize = BatchSize 10
+            Epochs = Epochs 2
+        }
+
     type ``CUDA Neural Net: Sigmoid``()=
     
         let vector = [|0.1f; 0.2f; 0.3f; 0.4f; 0.5f; 0.7f; 0.8f; 0.9f|]
         let restrictedVector = [|0.0f; 0.2f; 0.3f; 0.4f; 0.5f; 0.7f; 0.0f; 0.0f|]
         let logitVector = vector |> Array.map logitFunction
 
-        let sizes = [500; 300; 100; 10]
-        let alpha = 0.5f
-        let momentum = 0.9f
         let rand = new Random()
         let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-        let layeredDbn = initDbn sizes xInputs
+        let layeredDbn = initDbn dbnParameters xInputs
         let nnetProps = 
             {
                 Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
@@ -88,14 +94,13 @@ module CudaNeuralNetTests =
 
     type ``CUDA Neural Net: Feed Forward``()=
 
-        let sizes = [500; 300; 100; 10]
         let alpha = 0.5f
         let momentum = 0.9f
         let rand = new Random()
         let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-        let layeredDbn = initDbn sizes xInputs
+        let layeredDbn = initDbn dbnParameters xInputs
         let nnetProps = 
             {
                 Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
@@ -126,14 +131,11 @@ module CudaNeuralNetTests =
 
     type ``CUDA Neural Net: Compute Results``()=
 
-        let sizes = [500; 300; 100; 10]
-        let alpha = 0.5f
-        let momentum = 0.9f
         let rand = new Random()
         let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-        let layeredDbn = initDbn sizes xInputs
+        let layeredDbn = initDbn dbnParameters xInputs
         let nnetProps = 
             {
                 Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
@@ -169,14 +171,11 @@ module CudaNeuralNetTests =
 
     type ``CUDA Neural Net: Error Signals``()=
 
-        let sizes = [500; 300; 100; 10]
-        let alpha = 0.5f
-        let momentum = 0.9f
         let rand = new Random()
         let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-        let layeredDbn = initDbn sizes xInputs
+        let layeredDbn = initDbn dbnParameters xInputs
         let nnetProps = 
             {
                 Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
@@ -206,14 +205,11 @@ module CudaNeuralNetTests =
 
     type ``CUDA Neural Net: Gradients``()=
 
-        let sizes = [500; 300; 100; 10]
-        let alpha = 0.5f
-        let momentum = 0.9f
         let rand = new Random()
         let xInput = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
-        let layeredDbn = initDbn sizes xInputs
+        let layeredDbn = initDbn dbnParameters xInputs
         let nnetProps = 
             {
                 Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);

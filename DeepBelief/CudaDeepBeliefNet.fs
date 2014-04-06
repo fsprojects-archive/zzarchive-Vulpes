@@ -33,17 +33,20 @@ module CudaDeepBeliefNet =
         use multiplyProgram = 32 |> multiplyTemplate |> Compiler.load Worker.Default
         multiplyProgram.Run xInputs (transpose weightsAndBiases) |> mapMatrix activation
 
-    let gpuRbmTrain alpha momentum batchSize epochs rand rbm (xInputs : Matrix) =
+    let gpuRbmTrain rand (rbm : RestrictedBoltzmannMachine) (xInputs : Matrix) =
         use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
-        [1..epochs] |> List.fold(fun acc i ->
-            cudaRbmEpochProgram.Run alpha momentum batchSize rand acc xInputs) rbm
+        let epochs = value rbm.Parameters.Epochs
+        [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rand acc xInputs) rbm
 
-    let gpuDbnTrain alpha momentum batchSize epochs rand (dbn : DeepBeliefNetwork) xInputs =
+    let gpuDbnTrain rand (dbn : DeepBeliefNetwork) xInputs =
         let prependedInputs = xInputs |> prependColumnOfOnes
-        let start = gpuRbmTrain alpha momentum batchSize epochs rand (List.head dbn.Machines) prependedInputs
-        { Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
-            let currentTuple = List.head acc
-            let x = gpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
-            let nextRbm = gpuRbmTrain alpha momentum batchSize epochs rand element x
-            (nextRbm, x) :: acc) [(start, prependedInputs)]
-            |> List.map fst |> List.rev }
+        let start = gpuRbmTrain rand (List.head dbn.Machines) prependedInputs
+        { 
+            Parameters = dbn.Parameters
+            Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
+                let currentTuple = List.head acc
+                let x = gpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
+                let nextRbm = gpuRbmTrain rand element x
+                (nextRbm, x) :: acc) [(start, prependedInputs)]
+                |> List.map fst |> List.rev 
+        }

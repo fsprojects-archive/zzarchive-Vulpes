@@ -33,12 +33,17 @@ open TestUtils
 type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()=
     let sin x = Math.Sin (float x) |> float32
 
-    let sizes = [500; 250; 100; 50]
-    let alpha = 0.5f
-    let momentum = 0.9f
     let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let layeredDbn = initDbn sizes xInputs
+    let dbnParameters = 
+        {
+            Layers = LayerSizes [500; 250; 100; 50]
+            LearningRateAlpha = LearningRate 0.5f
+            MomentumEta = Momentum 0.9f
+            BatchSize = BatchSize 10
+            Epochs = Epochs 2
+        }
+    let layeredDbn = initDbn dbnParameters xInputs
 
     let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
     let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
@@ -52,4 +57,4 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
     
     [<Fact>] member test.
         ``Training 10 epochs of the DBN gives an RBM with non-zero weights.``()=
-        gpuDbnTrain alpha momentum 100 10 rand layeredDbn xInputs |> fun dbn -> dbn.Machines |> List.map (fun r -> r.Weights |> nonZeroEntries |> Array.length |> float32) |> Array.ofList |> allElementsOfVector (fun e -> e > 0.0f) |> should equal true 
+        gpuDbnTrain rand layeredDbn xInputs |> fun dbn -> dbn.Machines |> List.map (fun r -> r.Weights |> nonZeroEntries |> Array.length |> float32) |> Array.ofList |> allElementsOfVector (fun e -> e > 0.0f) |> should equal true 

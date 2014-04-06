@@ -27,7 +27,9 @@ module CudaTemplates =
     open Alea.CUDA
     open Alea.CUDA.Utilities
     open Kernels
+    open DeepBeliefNet
     open NeuralNet
+    open Utils
 
     let coerceLp blockSize =
         let threads = dim3(blockSize)
@@ -186,10 +188,11 @@ module CudaTemplates =
             // calculations, to the device memory.
             let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
 
-            fun (alpha:float32) momentum batchSize rand rbm xInputs -> 
+            fun rand (rbm : RestrictedBoltzmannMachine) xInputs -> 
                 let nRows = Utils.height xInputs
                 let nCols = Utils.width xInputs
                 let xRand = Utils.permuteRows rand xInputs
+                let batchSize = value rbm.Parameters.BatchSize
                 let samples = 
                     xRand |> Utils.batchesOf batchSize 
                     |> Array.map (array2D >> Utils.prependColumnOfOnes >> Utils.padToMultiplesOf blockSize)
@@ -248,6 +251,8 @@ module CudaTemplates =
                 let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
                 let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
 
+                let alpha = value rbm.Parameters.LearningRateAlpha
+                let momentum = value rbm.Parameters.MomentumEta
                 let weightedAlpha = alpha / (float32 samples.Length)
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
@@ -291,7 +296,7 @@ module CudaTemplates =
                 let wbg = dWeightsAndBiases.Gather()
                 let max = Array.maxBy (fun el -> Math.Abs(el |> float)) (Array.sub wbg 1 (wbg.Length - 1))
                 let dWeightsAndBiases = wbg |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
-                let result = DeepBeliefNet.toRbm weightsAndBiases dWeightsAndBiases
+                let result = DeepBeliefNet.toRbm rbm.Parameters weightsAndBiases dWeightsAndBiases
                 result
         ) }
 

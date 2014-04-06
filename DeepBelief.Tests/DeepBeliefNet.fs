@@ -32,14 +32,20 @@ open TestUtils
 type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
     let sin x = Math.Sin (float x) |> float32
 
-    let sizes = [500; 250; 100; 50]
-    let alpha = 0.5f
-    let momentum = 0.9f
+    let dbnParameters = 
+        {
+            Layers = LayerSizes [500; 250; 100; 50]
+            LearningRateAlpha = LearningRate 0.5f
+            MomentumEta = Momentum 0.9f
+            BatchSize = BatchSize 100
+            Epochs = Epochs 50
+        }
+
     let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|]
-    let layeredDbn = initDbn sizes xInputs
-    let sinTrainedRbm = cpuRbmTrain rand alpha momentum 1 2 layeredDbn.Machines.[0] (sinInput |> prependColumnOfOnes)
+    let layeredDbn = initDbn dbnParameters xInputs
+    let sinTrainedRbm = cpuRbmTrain rand layeredDbn.Machines.[0] (sinInput |> prependColumnOfOnes)
 
     let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
     let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
@@ -99,23 +105,29 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
 
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
-        cpuDbnTrain rand alpha momentum 1 50 layeredDbn sinInput |> fun dbn -> dbn.Machines |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+        cpuDbnTrain rand layeredDbn sinInput |> fun dbn -> dbn.Machines |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
 type ``Given a single RBM``()=
     let rand = new Random()
     let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32) |> prependColumnOfOnes
     let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] |> prependColumnOfOnes
 
-    let alpha = 0.5f
-    let momentum = 0.9f
-    let rbm = initRbm 784 500 |> fun rbm ->
+    let rbmParameters =
         {
-            Weights = rbm.Weights;
-            DWeights = Array2D.init 500 784 (fun _ _ -> rand.NextDouble() |> float32);
-            HiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32);
-            DHiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32);
-            VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
-            DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32);
+            LearningRateAlpha = LearningRate 0.5f
+            MomentumEta = Momentum 0.9f
+            BatchSize = BatchSize 10
+            Epochs = Epochs 50
+        }
+    let rbm = initRbm rbmParameters 784 500 |> fun rbm ->
+        {
+            Parameters = rbmParameters
+            Weights = rbm.Weights
+            DWeights = Array2D.init 500 784 (fun _ _ -> rand.NextDouble() |> float32)
+            HiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32)
+            DHiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32)
+            VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
+            DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
         }
     let weightsAndBiases = toWeightsAndBiases rbm
     let dWeightsAndBiases = toDWeightsAndBiases rbm
@@ -131,15 +143,15 @@ type ``Given a single RBM``()=
 
     [<Fact>] member test.
         ``The first epoch gives a positive visible error.``()=
-        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> fst |> should greaterThan 0.0f
+        rbmEpoch rand rbm inputs |> fst |> fst |> should greaterThan 0.0f
 
     [<Fact>] member test.
         ``The first epoch gives a positive hidden error.``()=
-        rbmEpoch rand alpha momentum 10 rbm inputs |> fst |> snd |> should greaterThan 0.0f
+        rbmEpoch rand rbm inputs |> fst |> snd |> should greaterThan 0.0f
 
     [<Fact>] member test.
         ``The first epoch gives an RBM with non-zero weights.``()=
-        rbmEpoch rand alpha momentum 10 rbm inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
+        rbmEpoch rand rbm inputs |> snd |> (fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty) |> should equal false 
 
     [<Fact>] member test.
         ``The forward iteration of the RBM converts ten samples of length 784 into ten samples of size 500.``()=
@@ -151,15 +163,15 @@ type ``Given a single RBM``()=
 
     [<Fact>] member test.
         ``Training 50 epochs of the RBM gives an RBM with non-zero weights.``()=
-        cpuRbmTrain rand alpha momentum 1 50 rbm sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
+        cpuRbmTrain rand rbm sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
     [<Fact>] member test.
         ``toRbm reverses the toWeightsAndBiases and toDWeightsAndBiases functions.``()=
-        toRbm (toWeightsAndBiases rbm) (toDWeightsAndBiases rbm) |> should equal rbm
+        toRbm rbmParameters (toWeightsAndBiases rbm) (toDWeightsAndBiases rbm) |> should equal rbm
 
     [<Fact>] member test.
         ``toWeightsAndBiases and toDWeightsAndBiases reverse the toRbm function.``()=
-        toRbm weightsAndBiases dWeightsAndBiases |> fun r -> (toWeightsAndBiases r, toDWeightsAndBiases r) |> should equal (weightsAndBiases, dWeightsAndBiases)
+        toRbm rbmParameters weightsAndBiases dWeightsAndBiases |> fun r -> (toWeightsAndBiases r, toDWeightsAndBiases r) |> should equal (weightsAndBiases, dWeightsAndBiases)
 
     [<Fact>] member test.
         ``The toWeightsAndBiases function creates a matrix with one more row and one more column than the Weights matrix.``()=

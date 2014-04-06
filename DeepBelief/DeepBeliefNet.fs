@@ -25,8 +25,44 @@ module DeepBeliefNet =
 
     open System
     open Utils
+    
+    type LayerSizes = LayerSizes of int list with
+        interface IWrappedType<int list> with
+            member this.Value = let (LayerSizes s) = this in s
+
+    type LearningRate = LearningRate of float32 with
+        interface IWrappedType<float32> with
+            member this.Value = let (LearningRate lr) = this in lr
+
+    type Momentum = Momentum of float32 with
+        interface IWrappedType<float32> with
+            member this.Value = let (Momentum m) = this in m
+
+    type BatchSize = BatchSize of int with
+        interface IWrappedType<int> with
+            member this.Value = let (BatchSize bs) = this in bs
+
+    type Epochs = Epochs of int with
+        interface IWrappedType<int> with
+            member this.Value = let (Epochs e) = this in e
+
+    type DeepBeliefParameters = {
+        Layers : LayerSizes
+        LearningRateAlpha : LearningRate
+        MomentumEta : Momentum
+        BatchSize : BatchSize
+        Epochs : Epochs
+    }
+
+    type RestrictedBoltzmannParameters = {
+        LearningRateAlpha : LearningRate
+        MomentumEta : Momentum
+        BatchSize : BatchSize
+        Epochs : Epochs
+    }
 
     type RestrictedBoltzmannMachine = {
+        Parameters : RestrictedBoltzmannParameters
         Weights : Matrix
         DWeights : Matrix
         VisibleBiases : Vector
@@ -34,10 +70,19 @@ module DeepBeliefNet =
         HiddenBiases : Vector
         DHiddenBiases : Vector
     }
-    
+
     type DeepBeliefNetwork = {
+        Parameters : DeepBeliefParameters
         Machines : RestrictedBoltzmannMachine list
     }
+
+    let rbmParameters (deepBeliefParameters : DeepBeliefParameters) =
+        {
+            LearningRateAlpha = deepBeliefParameters.LearningRateAlpha
+            MomentumEta = deepBeliefParameters.MomentumEta
+            BatchSize = deepBeliefParameters.BatchSize
+            Epochs = deepBeliefParameters.Epochs
+        }
 
     let toWeightsAndBiases rbm =
         let prependedVisibleBiases = rbm.VisibleBiases |> prepend 0.0f
@@ -47,10 +92,11 @@ module DeepBeliefNet =
         let prependedDVisibleBiases = rbm.DVisibleBiases |> prepend 0.0f
         rbm.DWeights |> prependColumn rbm.DHiddenBiases |> prependRow prependedDVisibleBiases
 
-    let toRbm (weightsAndBiases : Matrix) (dWeightsAndBiases : Matrix) =
+    let toRbm (parameters : RestrictedBoltzmannParameters) (weightsAndBiases : Matrix) (dWeightsAndBiases : Matrix) =
         let nVisible = (width weightsAndBiases) - 1
         let nHidden = (height weightsAndBiases) - 1
         {
+            Parameters = parameters;
             Weights = weightsAndBiases.[1..nHidden, 1..nVisible];
             DWeights = dWeightsAndBiases.[1..nHidden, 1..nVisible];
             HiddenBiases = weightsAndBiases.[1..nHidden, 0..0] |> column 0;
@@ -69,8 +115,9 @@ module DeepBeliefNet =
 //        let p = proportionOfVisibleUnits v
 //        Math.Max(-1.0f, Math.Log(float p) |> float32) - Math.Max(-1.0f, Math.Log(1.0 - float p) |> float32)
 
-    let initRbm nVisible nHidden =
+    let initRbm (parameters : RestrictedBoltzmannParameters) nVisible nHidden =
         { 
+            Parameters = parameters;
             Weights = initGaussianWeights nHidden nVisible;
             DWeights = Array2D.zeroCreate nHidden nVisible;
             VisibleBiases = Array.zeroCreate nVisible;
@@ -79,13 +126,17 @@ module DeepBeliefNet =
             DHiddenBiases = Array.zeroCreate nHidden
         }
 
-    let initDbn sizes xInputs =
-        { Machines = sizes |> List.fold(fun acc element -> 
-            let nVisible = fst acc
-            let nHidden = element
-            (element, (initRbm nVisible nHidden) :: snd acc))
-            (width xInputs, [])
-            |> snd |> List.rev }
+    let initDbn (deepBeliefParameters : DeepBeliefParameters) xInputs =
+        { 
+            Parameters = deepBeliefParameters;
+            Machines = value deepBeliefParameters.Layers |> List.fold(fun acc element -> 
+                let nVisible = fst acc
+                let nHidden = element
+                let rbmParams = rbmParameters deepBeliefParameters
+                (element, (initRbm rbmParams nVisible nHidden) :: snd acc))
+                (width xInputs, [])
+                |> snd |> List.rev 
+        }
 
     let activateFirstRow (v:Matrix) = v.[1..,0..] |> prependRowOfOnes
     let activateFirstColumn (h:Matrix) = h.[0..,1..] |> prependColumnOfOnes
@@ -96,9 +147,9 @@ module DeepBeliefNet =
     let activate (rnd : Random) activation xInputs =
         xInputs |> mapMatrix (fun x -> activation x > float32 (rnd.NextDouble()) |> Convert.ToInt32 |> float32)
 
-    let updateWeights rnd alpha momentum rbm batch =
+    let updateWeights rnd (rbm : RestrictedBoltzmannMachine) batch =
         let batchSize = float32 (height batch)
-        let weightedAlpha = alpha / batchSize
+        let weightedAlpha = value rbm.Parameters.LearningRateAlpha / batchSize
         let weightsAndBiases = toWeightsAndBiases rbm
         let dWeightsAndBiases = toDWeightsAndBiases rbm
 
@@ -113,18 +164,21 @@ module DeepBeliefNet =
         let c1 = multiply h1 v1
         let c2 = multiply h2 v2
 
+        let momentum = value rbm.Parameters.MomentumEta
         let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedAlpha (subtractMatrices c1 c2))
         let weightsAndBiases = addMatrices weightsAndBiases dWeightsAndBiases
         ( 
             (visibleError, hiddenError),
-            toRbm weightsAndBiases dWeightsAndBiases
+            toRbm rbm.Parameters weightsAndBiases dWeightsAndBiases
         )
     
-    let rbmEpoch rnd alpha momentum batchSize rbm xInputs =
+    let rbmEpoch rnd (rbm : RestrictedBoltzmannMachine) xInputs =
         let xRand = permuteRows rnd xInputs
+        let batchSize = value rbm.Parameters.BatchSize
         let samples = xRand |> batchesOf batchSize |> Array.map array2D
         samples |> Array.fold(fun acc batch ->
-            let result = updateWeights rnd alpha momentum (snd acc) batch
+            let learningRate = value rbm.Parameters.LearningRateAlpha
+            let result = updateWeights rnd (snd acc) batch
             let resultErrors = fst result
             let cumulativeErrors = fst acc
             ((fst cumulativeErrors + fst resultErrors, snd cumulativeErrors + snd resultErrors), snd result)) ((0.0f, 0.0f), rbm)
@@ -132,9 +186,10 @@ module DeepBeliefNet =
     let cpuRbmUp rbm activation xInputs =
         forward rbm xInputs |> mapMatrix activation |> transpose
 
-    let cpuRbmTrain rnd alpha momentum batchSize epochs rbm (xInputs : Matrix) =
+    let cpuRbmTrain rnd (rbm : RestrictedBoltzmannMachine) (xInputs : Matrix) =
         let initialisedRbm =
             {
+                Parameters = rbm.Parameters;
                 Weights = rbm.Weights;
                 DWeights = rbm.DWeights;
                 VisibleBiases = xInputs.[0..,1..] |> toColumns |> Array.map initVisibleBias;
@@ -142,15 +197,19 @@ module DeepBeliefNet =
                 HiddenBiases = rbm.HiddenBiases
                 DHiddenBiases = rbm.DHiddenBiases
             }
+        let epochs = value rbm.Parameters.Epochs
         [1..epochs] |> List.fold(fun acc i ->
-            snd (rbmEpoch rnd alpha momentum batchSize acc xInputs)) initialisedRbm
+            snd (rbmEpoch rnd acc xInputs)) initialisedRbm
 
-    let cpuDbnTrain rnd alpha momentum batchSize epochs (dbn : DeepBeliefNetwork) xInputs =
+    let cpuDbnTrain rnd (dbn : DeepBeliefNetwork) xInputs =
         let prependedInputs = xInputs |> prependColumnOfOnes
-        let start = cpuRbmTrain rnd alpha momentum batchSize epochs (List.head dbn.Machines) prependedInputs
-        { Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
-            let currentTuple = List.head acc
-            let x = cpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
-            let nextRbm = cpuRbmTrain rnd alpha momentum batchSize epochs element x
-            (nextRbm, x) :: acc) [(start, prependedInputs)]
-            |> List.map fst |> List.rev }
+        let start = cpuRbmTrain rnd (List.head dbn.Machines) prependedInputs
+        { 
+            Parameters = dbn.Parameters;
+            Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
+                let currentTuple = List.head acc
+                let x = cpuRbmUp (fst currentTuple |> toWeightsAndBiases) sigmoidFunction (snd currentTuple)
+                let nextRbm = cpuRbmTrain rnd element x
+                (nextRbm, x) :: acc) [(start, prependedInputs)]
+                |> List.map fst |> List.rev 
+        }
