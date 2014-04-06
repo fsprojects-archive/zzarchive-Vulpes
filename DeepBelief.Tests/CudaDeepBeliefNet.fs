@@ -38,8 +38,8 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 250; 100; 50]
-            LearningRateAlpha = LearningRate 0.5f
-            MomentumEta = Momentum 0.9f
+            LearningRate = LearningRate 0.9f
+            Momentum = Momentum 0.2f
             BatchSize = BatchSize 10
             Epochs = Epochs 2
         }

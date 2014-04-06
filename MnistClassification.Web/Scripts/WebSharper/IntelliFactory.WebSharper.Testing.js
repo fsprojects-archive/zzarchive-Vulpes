@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Operators,Unchecked,JavaScript,ok,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,IntrinsicFunctionProxy,Operators,Unchecked,JavaScript,ok,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -9,7 +9,7 @@
       For:function(times,gen,attempt)
       {
        var i,i1;
-       for(i=0;i<=gen.Base.length-1;i++){
+       for(i=0;i<=IntrinsicFunctionProxy.GetLength(gen.Base)-1;i++){
         attempt(gen.Base[i]);
        }
        for(i1=1;i1<=times;i1++){
@@ -220,7 +220,7 @@
       OneOf:function(seeds)
       {
        var index;
-       index=Random.Within(1,seeds.length);
+       index=Random.Within(1,IntrinsicFunctionProxy.GetLength(seeds));
        return{
         Base:seeds,
         Next:function()
@@ -330,6 +330,7 @@
  Runtime.OnInit(function()
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
+  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   Operators=Runtime.Safe(WebSharper.Operators);
   Unchecked=Runtime.Safe(WebSharper.Unchecked);
   JavaScript=Runtime.Safe(WebSharper.JavaScript);

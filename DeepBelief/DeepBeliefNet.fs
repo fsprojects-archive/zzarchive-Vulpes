@@ -25,38 +25,18 @@ module DeepBeliefNet =
 
     open System
     open Utils
-    
-    type LayerSizes = LayerSizes of int list with
-        interface IWrappedType<int list> with
-            member this.Value = let (LayerSizes s) = this in s
-
-    type LearningRate = LearningRate of float32 with
-        interface IWrappedType<float32> with
-            member this.Value = let (LearningRate lr) = this in lr
-
-    type Momentum = Momentum of float32 with
-        interface IWrappedType<float32> with
-            member this.Value = let (Momentum m) = this in m
-
-    type BatchSize = BatchSize of int with
-        interface IWrappedType<int> with
-            member this.Value = let (BatchSize bs) = this in bs
-
-    type Epochs = Epochs of int with
-        interface IWrappedType<int> with
-            member this.Value = let (Epochs e) = this in e
 
     type DeepBeliefParameters = {
         Layers : LayerSizes
-        LearningRateAlpha : LearningRate
-        MomentumEta : Momentum
+        LearningRate : LearningRate
+        Momentum : Momentum
         BatchSize : BatchSize
         Epochs : Epochs
     }
 
     type RestrictedBoltzmannParameters = {
-        LearningRateAlpha : LearningRate
-        MomentumEta : Momentum
+        LearningRate : LearningRate
+        Momentum : Momentum
         BatchSize : BatchSize
         Epochs : Epochs
     }
@@ -76,10 +56,10 @@ module DeepBeliefNet =
         Machines : RestrictedBoltzmannMachine list
     }
 
-    let rbmParameters (deepBeliefParameters : DeepBeliefParameters) =
+    let toRbmParameters (deepBeliefParameters : DeepBeliefParameters) =
         {
-            LearningRateAlpha = deepBeliefParameters.LearningRateAlpha
-            MomentumEta = deepBeliefParameters.MomentumEta
+            LearningRate = deepBeliefParameters.LearningRate
+            Momentum = deepBeliefParameters.Momentum
             BatchSize = deepBeliefParameters.BatchSize
             Epochs = deepBeliefParameters.Epochs
         }
@@ -132,7 +112,7 @@ module DeepBeliefNet =
             Machines = value deepBeliefParameters.Layers |> List.fold(fun acc element -> 
                 let nVisible = fst acc
                 let nHidden = element
-                let rbmParams = rbmParameters deepBeliefParameters
+                let rbmParams = toRbmParameters deepBeliefParameters
                 (element, (initRbm rbmParams nVisible nHidden) :: snd acc))
                 (width xInputs, [])
                 |> snd |> List.rev 
@@ -149,7 +129,7 @@ module DeepBeliefNet =
 
     let updateWeights rnd (rbm : RestrictedBoltzmannMachine) batch =
         let batchSize = float32 (height batch)
-        let weightedAlpha = value rbm.Parameters.LearningRateAlpha / batchSize
+        let weightedEta = value rbm.Parameters.LearningRate / batchSize
         let weightsAndBiases = toWeightsAndBiases rbm
         let dWeightsAndBiases = toDWeightsAndBiases rbm
 
@@ -164,8 +144,8 @@ module DeepBeliefNet =
         let c1 = multiply h1 v1
         let c2 = multiply h2 v2
 
-        let momentum = value rbm.Parameters.MomentumEta
-        let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedAlpha (subtractMatrices c1 c2))
+        let momentum = value rbm.Parameters.Momentum
+        let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedEta (subtractMatrices c1 c2))
         let weightsAndBiases = addMatrices weightsAndBiases dWeightsAndBiases
         ( 
             (visibleError, hiddenError),
@@ -177,7 +157,7 @@ module DeepBeliefNet =
         let batchSize = value rbm.Parameters.BatchSize
         let samples = xRand |> batchesOf batchSize |> Array.map array2D
         samples |> Array.fold(fun acc batch ->
-            let learningRate = value rbm.Parameters.LearningRateAlpha
+            let learningRate = value rbm.Parameters.LearningRate
             let result = updateWeights rnd (snd acc) batch
             let resultErrors = fst result
             let cumulativeErrors = fst acc

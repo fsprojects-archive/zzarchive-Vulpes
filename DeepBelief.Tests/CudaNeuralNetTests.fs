@@ -41,8 +41,8 @@ module CudaNeuralNetTests =
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 300; 100; 10]
-            LearningRateAlpha = LearningRate 0.5f
-            MomentumEta = Momentum 0.9f
+            LearningRate = LearningRate 0.9f
+            Momentum = Momentum 0.2f
             BatchSize = BatchSize 10
             Epochs = Epochs 2
         }
@@ -161,10 +161,17 @@ module CudaNeuralNetTests =
 
         let gpuRand = new Random()
 
+        let parameters =
+            {
+                LearningRate = LearningRate 0.8f
+                Momentum = Momentum 0.25f
+                Epochs = Epochs 1
+            }
+
         [<Fact>] member test.
             ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
-                let cpuOutput = cpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f gpuRand 1 in
-                let gpuOutput = gpuComputeNnetResults nnetProps trainingSet testSet 0.8f 0.25f cpuRand 1 in
+                let cpuOutput = cpuComputeNnetResults nnetProps trainingSet testSet cpuRand parameters in
+                let gpuOutput = gpuComputeNnetResults nnetProps trainingSet testSet gpuRand parameters in
                 for pair in Array.zip cpuOutput gpuOutput do
                     arraysMatch (fst pair) (snd pair) |> should equal true
 

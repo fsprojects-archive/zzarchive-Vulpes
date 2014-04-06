@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,List,Arrays,Unchecked,Control,Disposable,FSharpEvent,Util,Event,Event1,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,T,ObservableModule,Observer1;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,List,Arrays,Unchecked,Control,Disposable,IntrinsicFunctionProxy,FSharpEvent,Util,Event,Event1,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,T,ObservableModule,Observer1;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -55,7 +55,7 @@
        Trigger:function(x)
        {
         var i;
-        for(i=0;i<=this.Handlers.length-1;i++){
+        for(i=0;i<=IntrinsicFunctionProxy.GetLength(this.Handlers)-1;i++){
          this.Handlers[i].call(null,x);
         }
         return;
@@ -743,6 +743,7 @@
   Unchecked=Runtime.Safe(WebSharper.Unchecked);
   Control=Runtime.Safe(WebSharper.Control);
   Disposable=Runtime.Safe(Control.Disposable);
+  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   FSharpEvent=Runtime.Safe(Control.FSharpEvent);
   Util=Runtime.Safe(WebSharper.Util);
   Event=Runtime.Safe(Control.Event);

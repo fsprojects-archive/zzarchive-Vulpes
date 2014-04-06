@@ -37,7 +37,7 @@ declare module IntelliFactory {
                 };
                 var Split : {
                     <_M1, _M2, _M3, _M4>(f: {
-                        (x: _M1): __ABBREV.__WebSharper.ChoiceProxy3<_M2, _M3>;
+                        (x: _M1): __ABBREV.__WebSharper.ChoiceProxy11<_M2, _M3>;
                     }, e: any): any;
                 };
             }
@@ -59,7 +59,7 @@ declare module IntelliFactory {
                 };
                 var Split : {
                     <_M1, _M2, _M3>(f: {
-                        (x: _M1): __ABBREV.__WebSharper.ChoiceProxy3<_M2, _M3>;
+                        (x: _M1): __ABBREV.__WebSharper.ChoiceProxy11<_M2, _M3>;
                     }, e: __ABBREV.__Control.IObservableProxy<_M1>): any;
                 };
             }

@@ -39,6 +39,26 @@ module Utils =
         s.Value |> f 
 
     let value x = apply id x
+        
+    type LayerSizes = LayerSizes of int list with
+        interface IWrappedType<int list> with
+            member this.Value = let (LayerSizes s) = this in s
+
+    type LearningRate = LearningRate of float32 with
+        interface IWrappedType<float32> with
+            member this.Value = let (LearningRate lr) = this in lr
+
+    type Momentum = Momentum of float32 with
+        interface IWrappedType<float32> with
+            member this.Value = let (Momentum m) = this in m
+
+    type BatchSize = BatchSize of int with
+        interface IWrappedType<int> with
+            member this.Value = let (BatchSize bs) = this in bs
+
+    type Epochs = Epochs of int with
+        interface IWrappedType<int> with
+            member this.Value = let (Epochs e) = this in e
 
     let LCG_A = 1664525u
     let LCG_C = 1013904223u

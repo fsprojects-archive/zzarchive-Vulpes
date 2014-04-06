@@ -251,9 +251,9 @@ module CudaTemplates =
                 let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
                 let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
 
-                let alpha = value rbm.Parameters.LearningRateAlpha
-                let momentum = value rbm.Parameters.MomentumEta
-                let weightedAlpha = alpha / (float32 samples.Length)
+                let learningRate = value rbm.Parameters.LearningRate
+                let momentum = value rbm.Parameters.Momentum
+                let weightedLearningRate = learningRate / (float32 samples.Length)
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
                 let numRuns = 3 * samples.Length
@@ -283,9 +283,9 @@ module CudaTemplates =
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
 
-                    // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedAlpha * (c1 - c2)
+                    // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedLearningRate * (c1 - c2)
                     subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c1.Ptr c2.Ptr
-                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedAlpha
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedLearningRate
                     scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum
                     addMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr dWeightsAndBiases.Ptr c1.Ptr
 
@@ -300,7 +300,7 @@ module CudaTemplates =
                 result
         ) }
 
-    let runTrainNeuralNetEpochTemplate (eta : float32) (alpha : float32) (epochs : int) (blockSize : int) = cuda {
+    let runTrainNeuralNetEpochTemplate (parameters : BackPropagationParameters) (blockSize : int) = cuda {
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
@@ -347,6 +347,9 @@ module CudaTemplates =
                 
                 let inputs = inputs0 :: outputs
                 let N = weights.Length - 1
+                let epochs = value parameters.Epochs
+                let learningRate = value parameters.LearningRate
+                let momentum = value parameters.Momentum
                 for i in 0..(Array.length trainingSet * epochs) - 1 do
                     let index = rand.Next (Array.length trainingSet)
                     inputs0.Scatter(fst trainingSet.[index] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
@@ -377,8 +380,8 @@ module CudaTemplates =
 
                     for j in N..(-1)..0 do
                         let wW = Utils.width paddedWeights.[j]
-                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr eta
-                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr alpha
+                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr learningRate
+                        scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr momentum
                         addMatrixKernel.Launch offsetMatrixLp.[j] (prevDWeights.[j].Ptr + wW) (prevDWeights.[j].Ptr + wW) (grads.[j].Ptr + wW)
                         addMatrixKernel.Launch offsetMatrixLp.[j] (weights.[j].Ptr + wW) (weights.[j].Ptr + wW) (prevDWeights.[j].Ptr + wW)
 

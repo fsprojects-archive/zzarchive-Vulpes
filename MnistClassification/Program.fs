@@ -39,21 +39,24 @@ module Main =
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
-            LearningRateAlpha = LearningRate 0.5f
-            MomentumEta = Momentum 0.9f
+            LearningRate = LearningRate 0.9f
+            Momentum = Momentum 0.2f
             BatchSize = BatchSize 30
             Epochs = Epochs 10
         }
 
-    let nnLearningRateEta = 0.8f
-    let nnMomentumAlpha = 0.25f
-    let nnEpochs = 2
+    let backPropagationParameters =
+        {
+            LearningRate = LearningRate 0.8f
+            Momentum = Momentum 0.25f
+            Epochs = Epochs 10
+        }
 
     [<EntryPoint>]
     let main argv = 
         let nnetProps = mnistRbmProps dbnParameters
         let rand = new Random()
-        let fpResults = gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet nnLearningRateEta nnMomentumAlpha rand nnEpochs
+        let fpResults = gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet rand backPropagationParameters
         let intResults = fpResults |> Array.map (fun r -> 
             let m = Array.max r
             r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))

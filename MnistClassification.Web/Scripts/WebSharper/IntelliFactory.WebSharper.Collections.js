@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Collections,BalancedTree,Operators,Seq,List,T,Arrays,Enumerator,JavaScript,DictionaryUtil,Dictionary,Unchecked,FSharpMap,Pair,Option,MapUtil,FSharpSet,SetModule,SetUtil,LinkedList,EnumeratorProxy,ListProxy,ResizeArray,ResizeArrayProxy;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Collections,BalancedTree,Operators,Seq,List,T,Arrays,IntrinsicFunctionProxy,Enumerator,JavaScript,DictionaryUtil,Dictionary,Unchecked,FSharpMap,Pair,Option,MapUtil,FSharpSet,SetModule,SetUtil,LinkedList,EnumeratorProxy,ListProxy,ResizeArray,ResizeArrayProxy;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -128,7 +128,7 @@
         return x==null?0:x.Height;
        };
        t1=t;
-       for(i=0;i<=spine.length-1;i++){
+       for(i=0;i<=IntrinsicFunctionProxy.GetLength(spine)-1;i++){
         matchValue=spine[i];
         if(matchValue[0])
          {
@@ -1024,7 +1024,7 @@
        },
        Clear:function()
        {
-        ResizeArray.splice(this.arr,0,this.arr.length,[]);
+        ResizeArray.splice(this.arr,0,IntrinsicFunctionProxy.GetLength(this.arr),[]);
        },
        CopyTo:function(arr)
        {
@@ -1076,7 +1076,7 @@
        },
        get_Count:function()
        {
-        return this.arr.length;
+        return IntrinsicFunctionProxy.GetLength(this.arr);
        },
        get_Item:function(x)
        {
@@ -1161,6 +1161,7 @@
   List=Runtime.Safe(WebSharper.List);
   T=Runtime.Safe(List.T);
   Arrays=Runtime.Safe(WebSharper.Arrays);
+  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   Enumerator=Runtime.Safe(WebSharper.Enumerator);
   JavaScript=Runtime.Safe(WebSharper.JavaScript);
   DictionaryUtil=Runtime.Safe(Collections.DictionaryUtil);
