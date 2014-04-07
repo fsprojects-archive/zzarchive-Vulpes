@@ -38,16 +38,16 @@ module DbnClassification =
     let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
     let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
 
-    let trainedMnistDbn (deepBeliefParameters : DeepBeliefParameters) = 
+    let trainedMnistDbn rand (deepBeliefParameters : DeepBeliefParameters) = 
         let mnistDbn = initDbn deepBeliefParameters mnistTrainingImages
-        let rand = new Random()
         gpuDbnTrain rand mnistDbn mnistTrainingImages
 
-    let mnistRbmProps (deepBeliefParameters : DeepBeliefParameters) = 
-        trainedMnistDbn deepBeliefParameters
-        |> fun dbn -> dbn.Machines
-        |> List.map (fun rbm -> (prependColumn rbm.HiddenBiases rbm.Weights, DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative)))
-        |> List.unzip |> fun (weights, activations) -> { Weights = weights; Activations = activations }
+    let mnistNetwork rand (backPropagationParameters : BackPropagationParameters) (deepBeliefParameters : DeepBeliefParameters) = 
+        let layers = 
+            trainedMnistDbn rand deepBeliefParameters
+            |> fun dbn -> dbn.Machines
+            |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative) })
+        { Parameters = backPropagationParameters; Layers = layers }
 
     let mnistTrainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
     let mnistTestSet = Array.zip (toArray mnistTestImages) mnistTestLabels

@@ -41,14 +41,20 @@ module NeuralNet =
         interface IWrappedType<FloatingPointFunction * FloatingPointDerivative> with
             member this.Value = let (DifferentiableFunction f) = this in f
 
-    type Layer = {
+    type BackPropagationLayer = {
         Weight : Matrix
         Activation : DifferentiableFunction
     }
 
-    type NnetProperties = {
-        Weights : Matrix list
-        Activations : DifferentiableFunction list
+    type BackPropagationParameters = {
+        LearningRate : LearningRate
+        Momentum : Momentum
+        Epochs : Epochs
+    }
+
+    type BackPropagationNetwork = {
+        Parameters : BackPropagationParameters
+        Layers : BackPropagationLayer list
     }
 
     type NnetInput = NnetInput of Matrix
@@ -57,21 +63,15 @@ module NeuralNet =
 
     type SupervisedLearning = SupervisedLearning of (NnetInput -> NnetOutput)
 
-    type BackPropagationParameters = {
-        LearningRate : LearningRate
-        Momentum : Momentum
-        Epochs : Epochs
-    }
-
-    let toNnetProperties weights =
+    let toBackPropagationNetwork parameters weights =
         {
-            Weights = weights;
-            Activations = weights |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction Kernels.sigmoid, FloatingPointDerivative Kernels.dSigmoid))
+            Parameters = parameters
+            Layers = weights |> List.map (fun w -> { Weight = w; Activation = DifferentiableFunction (FloatingPointFunction Kernels.sigmoid, FloatingPointDerivative Kernels.dSigmoid) })
         }
 
     /// returns list of (out, out') vectors per layer
     // Taken from Reto Matter's blog, http://retomatter.blogspot.ch/2013/01/functional-feed-forward-neural-networks.html
-    let feedForward (netProps : NnetProperties) input = 
+    let feedForward (network : BackPropagationNetwork) input = 
         List.fold 
             (fun (os : (Vector * Vector) list) (W, f) -> 
                 let prevLayerOutput = 
@@ -82,7 +82,7 @@ module NeuralNet =
                 let layerInput = prevOut |> multiplyVectorByMatrix W
                 (layerInput |> Array.map (fst f), 
                  layerInput |> Array.map (fun x -> (snd f) (x |> fst f) x)) :: os) 
-          [] (List.zip netProps.Weights (netProps.Activations |> List.map (fun a -> value a |> fun f -> (value <| fst f, value <| snd f))))
+          [] (network.Layers |> List.map (fun layer -> (layer.Weight, layer.Activation |> fun a -> value a |> fun f -> (value <| fst f, value <| snd f))))
 
     /// matlab like pointwise multiply
     let (.*) (v1 : Vector) (v2 : Vector) = 
@@ -91,7 +91,8 @@ module NeuralNet =
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer
-    let cpuErrorSignals (Ws : Matrix list) layeroutputs (target : Vector) = 
+    let cpuErrorSignals (network : BackPropagationNetwork) layeroutputs (target : Vector) = 
+        let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
         let trp = fun W -> Some(transpose W)
 
         // need weights and layer outputs in reverse order, 
@@ -107,9 +108,9 @@ module NeuralNet =
           [] weightsAndOutputs
 
     /// computes a list of gradients matrices
-    let cpuGradients (Ws : Matrix list) layeroutputs input target = 
+    let cpuGradients (network : BackPropagationNetwork) layeroutputs input target = 
         let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
-        let signals = cpuErrorSignals Ws layeroutputs target
+        let signals = cpuErrorSignals network layeroutputs target
         (input :: actualOuts, signals) 
             ||> List.zip 
             |> List.map (fun (zs, ds) -> outerProduct ds (prependForBias zs))
@@ -117,7 +118,8 @@ module NeuralNet =
     /// updates the weights matrices with the given deltas 
     /// of timesteps (t) and (t-1)
     /// returns the new weights matrices
-    let updateWeights Ws (Gs : Matrix list) (prevDs : Matrix list) (parameters : BackPropagationParameters) = 
+    let updateWeights (network : BackPropagationNetwork) (Gs : Matrix list) (prevDs : Matrix list) (parameters : BackPropagationParameters) = 
+        let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
         (List.zip3 Ws Gs prevDs) 
             |> List.map (fun (W, G, prevD) ->
                 let dW = addMatrices (multiplyMatrixByScalar (value parameters.LearningRate) G) (multiplyMatrixByScalar (value parameters.Momentum) prevD)
@@ -131,26 +133,27 @@ module NeuralNet =
     let initZeroWeights (Ws : Matrix list) = 
         Ws |> List.map (fun W -> Array2D.zeroCreate (height W) (width W))
 
-    let step netProps prevDs input target parameters = 
-        let layeroutputs = feedForward netProps input
-        let Gs = cpuGradients netProps.Weights layeroutputs input target
-        (updateWeights netProps.Weights Gs prevDs parameters)
+    let step (network : BackPropagationNetwork) prevDs input target parameters = 
+        let layeroutputs = feedForward network input
+        let Gs = cpuGradients network layeroutputs input target
+        (updateWeights network Gs prevDs parameters)
 
-    let nnetTrain (rnd : Random) props samples (parameters : BackPropagationParameters) = 
+    let nnetTrain (rnd : Random) (network : BackPropagationNetwork) samples (parameters : BackPropagationParameters) = 
         let count = samples |> Array.length
-        let Ws, fs = props.Weights, props.Activations
+        let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+        let fs = network.Layers |> List.map (fun layer -> layer.Activation)
         let epochs = value parameters.Epochs
         let rec loop Ws Ds i =
             match i < (epochs * count) with
             | true -> 
                 let index = rnd.Next(count)
                 let input, target = samples.[index]
-                let netProps = { Weights = Ws; Activations = fs }
+                let netProps = { Parameters = parameters; Layers = List.zip Ws fs |> List.map(fun (w, f) -> { Weight = w; Activation = f }) }
                 let ws, ds = List.unzip (step netProps Ds input target parameters)
                 loop ws ds (i + 1)
             | _    -> (Ws, Ds)
         let Wsf = loop Ws (initZeroWeights Ws) 0
-        { props with Weights = fst Wsf }
+        { Parameters = parameters; Layers = List.zip (fst Wsf) fs |> List.map(fun (w, f) -> { Weight = w; Activation = f }) }
 
     let netoutput (layeroutputs : ('a * 'a) list) = fst (layeroutputs.Head)
 

@@ -101,8 +101,9 @@ module CudaCommon =
             let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let coerceKernel = program.Apply coerceKernel
 
-            fun (netProps : NnetProperties) data -> 
-                let paddedWeights = netProps.Weights |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+            fun (network : BackPropagationNetwork) data -> 
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
                 
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (height w) (width w))
                 let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
@@ -125,7 +126,7 @@ module CudaCommon =
                         multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (height paddedWeights.[j]) (width paddedWeights.[j])
 
                     let zippedOutputs = List.zip outputs dOutputs
-                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (height netProps.Weights.[iw]), Array.sub (dOutput.Gather()) 1 (height netProps.Weights.[iw])))
+                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (height Ws.[iw]), Array.sub (dOutput.Gather()) 1 (height Ws.[iw])))
                     result <- gatheredOutputs :: result
 
                 disposeAll [|weights; dOutputs|]
@@ -143,7 +144,8 @@ module CudaCommon =
             let subtractVectorKernel = program.Apply subtractVectorKernel
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
 
-            fun Ws (layerOutputs : (Vector * Vector) list) (target : Vector) ->
+            fun (network : BackPropagationNetwork) (layerOutputs : (Vector * Vector) list) (target : Vector) ->
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
                 let N = List.length Ws - 1
                 let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
                 let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
@@ -186,7 +188,9 @@ module CudaCommon =
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
             let outerProductKernel = program.Apply outerProductKernel
 
-            fun Ws (layerOutputs : (Vector * Vector) list) (input : Vector) (target : Vector) ->
+            fun (network : BackPropagationNetwork) (layerOutputs : (Vector * Vector) list) (input : Vector) (target : Vector) ->
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+
                 let N = List.length Ws - 1
                 let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
                 let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)

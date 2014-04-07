@@ -47,6 +47,13 @@ module CudaNeuralNetTests =
             Epochs = Epochs 2
         }
 
+    let backPropagationParameters =
+        {
+            LearningRate = LearningRate 0.8f
+            Momentum = Momentum 0.25f
+            Epochs = Epochs 1
+        }
+
     type ``CUDA Neural Net: Sigmoid``()=
     
         let vector = [|0.1f; 0.2f; 0.3f; 0.4f; 0.5f; 0.7f; 0.8f; 0.9f|]
@@ -58,10 +65,10 @@ module CudaNeuralNetTests =
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
         let layeredDbn = initDbn dbnParameters xInputs
-        let nnetProps = 
+        let network = 
             {
-                Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-                Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
+                Parameters = backPropagationParameters
+                Layers = layeredDbn.Machines |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid) })
             }
     
         let mod10Plus1 i = 1 + i % 10
@@ -101,10 +108,10 @@ module CudaNeuralNetTests =
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
         let layeredDbn = initDbn dbnParameters xInputs
-        let nnetProps = 
+        let network = 
             {
-                Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-                Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
+                Parameters = backPropagationParameters
+                Layers = layeredDbn.Machines |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid) })
             }
 
         let outputsMatch result =
@@ -126,7 +133,7 @@ module CudaNeuralNetTests =
         [<InlineData(32)>]
         let ``The feedForward GPU program matches the outputs of the feedForward CPU function.``(i)=
             use feedForwardProgram = i |> feedForwardTemplate |> Compiler.load Worker.Default in
-            resultsMatch (feedForward nnetProps xInput |> List.rev) ((feedForwardProgram.Run nnetProps gpuInputs).[0]) |> should equal true
+            resultsMatch (feedForward network xInput |> List.rev) ((feedForwardProgram.Run network gpuInputs).[0]) |> should equal true
 
 
     type ``CUDA Neural Net: Compute Results``()=
@@ -136,10 +143,10 @@ module CudaNeuralNetTests =
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
         let layeredDbn = initDbn dbnParameters xInputs
-        let nnetProps = 
+        let network = 
             {
-                Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-                Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
+                Parameters = backPropagationParameters
+                Layers = layeredDbn.Machines |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid) })
             }
     
         let mod10Plus1 i = 1 + i % 10
@@ -170,8 +177,8 @@ module CudaNeuralNetTests =
 
         [<Fact>] member test.
             ``The gpuComputeNnetResults function generates the same output as the cpuComputeNnetResults function.``()=
-                let cpuOutput = cpuComputeNnetResults nnetProps trainingSet testSet cpuRand parameters in
-                let gpuOutput = gpuComputeNnetResults nnetProps trainingSet testSet gpuRand parameters in
+                let cpuOutput = cpuComputeNnetResults network trainingSet testSet cpuRand parameters in
+                let gpuOutput = gpuComputeNnetResults network trainingSet testSet gpuRand parameters in
                 for pair in Array.zip cpuOutput gpuOutput do
                     arraysMatch (fst pair) (snd pair) |> should equal true
 
@@ -183,10 +190,10 @@ module CudaNeuralNetTests =
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
         let layeredDbn = initDbn dbnParameters xInputs
-        let nnetProps = 
+        let network = 
             {
-                Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-                Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
+                Parameters = backPropagationParameters
+                Layers = layeredDbn.Machines |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid) })
             }
     
         let mod10Plus1 i = 1 + i % 10
@@ -201,11 +208,11 @@ module CudaNeuralNetTests =
         [<InlineData(32)>]
         member test.``The errorSignals GPU template generates the same output as the CPU errorSignals function.``(i)=
             use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
-            let layerOutputs = (feedForwardProgram.Run nnetProps gpuInputs).[0] |> List.rev in
+            let layerOutputs = (feedForwardProgram.Run network gpuInputs).[0] |> List.rev in
 
             use errorSignalsProgram = i |> errorSignalsTemplate |> Compiler.load Worker.Default in
-            let gpuOutput = errorSignalsProgram.Run nnetProps.Weights layerOutputs (snd trainingSet.[0]) in
-            let cpuOutput = cpuErrorSignals nnetProps.Weights layerOutputs (snd trainingSet.[0])
+            let gpuOutput = errorSignalsProgram.Run network layerOutputs (snd trainingSet.[0]) in
+            let cpuOutput = cpuErrorSignals network layerOutputs (snd trainingSet.[0])
             for pair in List.zip cpuOutput gpuOutput |> List.rev do
                 arraysMatch (fst pair) (snd pair) |> should equal true
 
@@ -217,10 +224,10 @@ module CudaNeuralNetTests =
         let gpuInputs = [| (xInput |> prependForBias, None) |]
         let xInputs = Array2D.init 1 784 (fun _ i -> xInput.[i])
         let layeredDbn = initDbn dbnParameters xInputs
-        let nnetProps = 
+        let network = 
             {
-                Weights = layeredDbn.Machines |> List.map (fun rbm -> prependColumn rbm.HiddenBiases rbm.Weights);
-                Activations = layeredDbn.Machines |> List.map (fun _ -> DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid))
+                Parameters = backPropagationParameters
+                Layers = layeredDbn.Machines |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoid, FloatingPointDerivative dSigmoid) })
             }
     
         let mod10Plus1 i = 1 + i % 10
@@ -235,10 +242,10 @@ module CudaNeuralNetTests =
         [<InlineData(32)>]
         member test.``The gradients GPU template generates the same output as the CPU gradients function.``(i)=
             use feedForwardProgram = 32 |> feedForwardTemplate |> Compiler.load Worker.Default in
-            let layerOutputs = (feedForwardProgram.Run nnetProps gpuInputs).[0] |> List.rev in
+            let layerOutputs = (feedForwardProgram.Run network gpuInputs).[0] |> List.rev in
 
             use gradientsProgram = i |> gradientsTemplate |> Compiler.load Worker.Default in
-            let gpuOutput = gradientsProgram.Run nnetProps.Weights layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0]) in
-            let cpuOutput = cpuGradients nnetProps.Weights layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0])
+            let gpuOutput = gradientsProgram.Run network layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0]) in
+            let cpuOutput = cpuGradients network layerOutputs (fst trainingSet.[0]) (snd trainingSet.[0])
             for pair in List.zip cpuOutput gpuOutput |> List.rev do
                 fst pair |> should equal <| snd pair

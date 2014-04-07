@@ -325,8 +325,10 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (netProps : NnetProperties) (rand : Random) trainingSet testSet -> 
-                let paddedWeights = netProps.Weights |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
+            fun (network : BackPropagationNetwork) (rand : Random) trainingSet testSet -> 
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+
+                let paddedWeights = Ws |> List.map (Utils.prependRowOfZeroes >> Utils.padToMultiplesOf blockSize)
                 
                 let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (Utils.height w) (Utils.width w))
                 let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (Utils.height w) (Utils.width w))
@@ -360,7 +362,7 @@ module CudaTemplates =
                         multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
                         coerceKernel.Launch (coerceLp 1) dOutputs.[j].Ptr 0 0 0.0f
 
-                        let minIndex = 1 + Utils.height netProps.Weights.[j]
+                        let minIndex = 1 + Utils.height Ws.[j]
                         let maxIndex = Utils.height paddedWeights.[j]
 
                         coerceKernel.Launch (coerceLp maxIndex) outputs.[j].Ptr minIndex maxIndex 0.0f
@@ -394,7 +396,7 @@ module CudaTemplates =
                         coerceKernel.Launch (coerceLp 1) lastOutput.Ptr 0 0 1.0f
                         multiplyVectorByMatrixAndTransformKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
 
-                        let minIndex = 1 + Utils.height netProps.Weights.[j]
+                        let minIndex = 1 + Utils.height Ws.[j]
                         let maxIndex = Utils.height paddedWeights.[j]
                         coerceKernel.Launch (coerceLp maxIndex) outputs.[j].Ptr minIndex maxIndex 0.0f
 

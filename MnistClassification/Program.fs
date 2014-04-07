@@ -32,10 +32,6 @@ module Main =
     open DbnClassification
     open Utils
 
-    let dbnMomentum = 0.9f
-    let dbnBatchSize = 30
-    let dbnEpochs = 3
-
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
@@ -54,9 +50,9 @@ module Main =
 
     [<EntryPoint>]
     let main argv = 
-        let nnetProps = mnistRbmProps dbnParameters
         let rand = new Random()
-        let fpResults = gpuComputeNnetResults nnetProps mnistTrainingSet mnistTestSet rand backPropagationParameters
+        let network = mnistNetwork rand backPropagationParameters dbnParameters
+        let fpResults = gpuComputeNnetResults network mnistTrainingSet mnistTestSet rand backPropagationParameters
         let intResults = fpResults |> Array.map (fun r -> 
             let m = Array.max r
             r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))
