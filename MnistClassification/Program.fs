@@ -53,17 +53,17 @@ module Main =
         let rand = new Random()
 
         let trainedMnistDbn = trainMnistDbn rand dbnParameters
-        let backPropagationNetwork = toBackPropagationNetwork backPropagationParameters trainedMnistDbn
 
-        let fpResults = gpuComputeNnetResults backPropagationNetwork mnistTrainingSet mnistTestSet rand backPropagationParameters
+        let backPropagationNetwork = toBackPropagationNetwork backPropagationParameters trainedMnistDbn
+        let backPropagationResults = gpuComputeNnetResults backPropagationNetwork mnistTrainingSet mnistTestSet rand backPropagationParameters
         
-        let intResults = fpResults |> Array.map (fun r -> 
+        let intResults = backPropagationResults |> Array.map (fun r -> 
             let m = Array.max r
             r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))
 
         let targets = mnistTestSet |> Array.map (fun x -> snd x)
         let fpTestError = 
-            Array.zip targets fpResults
+            Array.zip targets backPropagationResults
             |> Array.fold (fun E (x, t) -> 
                 let En = error t x
                 E + En) 0.0f
