@@ -13,23 +13,35 @@ For the MNIST dataset, Vulpes performs pretraining using a deep belief net, foll
 The pretraining and fine tuning parameters are defined in [Program.fs] (https://github.com/SpiegelSoft/Vulpes/blob/master/MnistClassification/Program.fs):
 
 ```F#
-    let dbnParameters = 
-        {
-            Layers = LayerSizes [500; 300; 150; 60; 10]
-            LearningRate = LearningRate 0.9f
-            Momentum = Momentum 0.2f
-            BatchSize = BatchSize 30
-            Epochs = Epochs 10
-        }
+let dbnParameters = 
+    {
+        Layers = LayerSizes [500; 300; 150; 60; 10]
+        LearningRate = LearningRate 0.9f
+        Momentum = Momentum 0.2f
+        BatchSize = BatchSize 30
+        Epochs = Epochs 10
+    }
 
-    let backPropagationParameters =
-        {
-            LearningRate = LearningRate 0.8f
-            Momentum = Momentum 0.25f
-            Epochs = Epochs 10
-        }
+let backPropagationParameters =
+    {
+        LearningRate = LearningRate 0.8f
+        Momentum = Momentum 0.25f
+        Epochs = Epochs 10
+    }
 ```
 
+The pretraining is launched by the line
+
+```F#
+let trainedMnistDbn = trainMnistDbn rand dbnParameters
+```
+
+The output of the pretraining is then translated into a set of backpropagation inputs, which are used to launch the fine tuning in the next line:
+
+```F#
+let backPropagationNetwork = toBackPropagationNetwork backPropagationParameters trainedMnistDbn
+let backPropagationResults = gpuComputeNnetResults backPropagationNetwork mnistTrainingSet mnistTestSet rand backPropagationParameters
+```
 
 ## Contributions
 
