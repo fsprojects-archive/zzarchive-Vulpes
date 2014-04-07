@@ -25,6 +25,7 @@ module NeuralNet =
 
     open System
     open Utils
+    open DeepBeliefNet
 
     /// precision for calculating the derivatives
     let prc = 1e-6f
@@ -63,11 +64,13 @@ module NeuralNet =
 
     type SupervisedLearning = SupervisedLearning of (NnetInput -> NnetOutput)
 
-    let toBackPropagationNetwork parameters weights =
-        {
-            Parameters = parameters
-            Layers = weights |> List.map (fun w -> { Weight = w; Activation = DifferentiableFunction (FloatingPointFunction Kernels.sigmoid, FloatingPointDerivative Kernels.dSigmoid) })
-        }
+    let toBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
+        let layers = 
+            deepBeliefNetwork
+            |> fun dbn -> dbn.Machines
+            |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative) })
+        { Parameters = backPropagationParameters; Layers = layers }
+
 
     /// returns list of (out, out') vectors per layer
     // Taken from Reto Matter's blog, http://retomatter.blogspot.ch/2013/01/functional-feed-forward-neural-networks.html
