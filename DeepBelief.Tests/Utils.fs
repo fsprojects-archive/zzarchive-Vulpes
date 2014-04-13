@@ -197,3 +197,8 @@ type ``Numerical Utilities``() =
     [<Fact>] member test.
         ``The error function gives one for the vectors [1,0,0] and [0,0,1].``()=
             error [|1.0f; 0.0f; 0.0f|] [|0.0f; 0.0f; 1.0f|] |> should equal 1.0f
+
+    [<Fact>] member test.
+        ``The scaled learning rate divides the learning rate by the specified integer.``()=
+            let learningRate = LearningRate 10.0f in
+            learningRate / 10 |> should equal <| ScaledLearningRate 1.0f

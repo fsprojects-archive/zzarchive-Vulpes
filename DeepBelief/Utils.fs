@@ -44,7 +44,14 @@ module Utils =
         interface IWrappedType<int list> with
             member this.Value = let (LayerSizes s) = this in s
 
+    type ScaledLearningRate = ScaledLearningRate of float32 with
+        interface IWrappedType<float32> with
+            member this.Value = let (ScaledLearningRate slr) = this in slr
+
     type LearningRate = LearningRate of float32 with
+        static member (/) (lhs : LearningRate, rhs : int) =
+            match lhs with
+            | LearningRate lr -> ScaledLearningRate (lr / (float32 rhs))
         interface IWrappedType<float32> with
             member this.Value = let (LearningRate lr) = this in lr
 

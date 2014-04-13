@@ -32,15 +32,17 @@ module Main =
     open DbnClassification
     open Utils
 
+    // Pretraining parameters
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
             LearningRate = LearningRate 0.9f
             Momentum = Momentum 0.2f
-            BatchSize = BatchSize 30
+            BatchSize = BatchSize 200
             Epochs = Epochs 10
         }
 
+    // Fine tuning parameters
     let backPropagationParameters =
         {
             LearningRate = LearningRate 0.8f

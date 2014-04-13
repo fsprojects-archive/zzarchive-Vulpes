@@ -463,27 +463,16 @@ module Kernels =
     let pointwiseBinaryOperationKernel (blockSize : int) (operation : PointwiseOperation) =
         <@ fun (result : deviceptr<float32>) (lhs : deviceptr<float32>) (rhs : deviceptr<float32>) ->
 
-            // Block index
-            let bx = blockIdx.x
-
-            // Thread index
-            let tx = threadIdx.x
-
-            let i = bx * blockSize + tx;
-
-            __syncthreads()
-            // Write the block sub-matrix to device memory;
-            // each thread writes one element
+            let i = blockIdx.x * blockSize + threadIdx.x;
             result.[i] <- (%operation) lhs.[i] rhs.[i]
-            __syncthreads() @>
+        @>
 
     let coerceKernel (blockSize : int) =
         <@ fun (X : deviceptr<float32>) (minIndex : int) (maxIndex : int) (value : float32) ->
 
             let index = (blockIdx.x * blockSize + threadIdx.x)
             if index >= minIndex && index <= maxIndex then
-                X.[index] <- value
-                __syncthreads() @>
+                X.[index] <- value @>
 
     let activateFirstRowKernel (blockSize:int) =
         <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
@@ -540,8 +529,7 @@ module Kernels =
 
             // Write the block sub-matrix to device memory;
             // each thread writes one element
-            A.[i] <- A.[i] * lambda
-            __syncthreads() @>
+            A.[i] <- A.[i] * lambda @>
 
     let multiplyVectorByMatrixAndTransformKernel (blockSize:int) (transformationFunction : TransformationFunction) =
         <@ fun (y:deviceptr<float32>) (A:deviceptr<float32>) (x:deviceptr<float32>) (hA:int) (wA:int) ->

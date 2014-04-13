@@ -129,7 +129,7 @@ module DeepBeliefNet =
 
     let updateWeights rnd (rbm : RestrictedBoltzmannMachine) batch =
         let batchSize = float32 (height batch)
-        let weightedEta = value rbm.Parameters.LearningRate / batchSize
+        let weightedLearningRate = value rbm.Parameters.LearningRate / batchSize
         let weightsAndBiases = toWeightsAndBiases rbm
         let dWeightsAndBiases = toDWeightsAndBiases rbm
 
@@ -145,7 +145,7 @@ module DeepBeliefNet =
         let c2 = multiply h2 v2
 
         let momentum = value rbm.Parameters.Momentum
-        let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedEta (subtractMatrices c1 c2))
+        let dWeightsAndBiases = addMatrices (multiplyMatrixByScalar momentum dWeightsAndBiases) (multiplyMatrixByScalar weightedLearningRate (subtractMatrices c1 c2))
         let weightsAndBiases = addMatrices weightsAndBiases dWeightsAndBiases
         ( 
             (visibleError, hiddenError),

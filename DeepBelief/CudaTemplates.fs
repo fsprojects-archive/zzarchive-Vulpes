@@ -251,9 +251,9 @@ module CudaTemplates =
                 let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
                 let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
 
-                let learningRate = value rbm.Parameters.LearningRate
+                let learningRate = rbm.Parameters.LearningRate
                 let momentum = value rbm.Parameters.Momentum
-                let weightedLearningRate = learningRate / (float32 samples.Length)
+                let weightedLearningRate = value (learningRate / samples.Length)
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
                 let numRuns = 3 * samples.Length
