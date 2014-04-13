@@ -13,6 +13,7 @@ For the MNIST dataset, Vulpes performs pretraining using a deep belief net, foll
 The pretraining and fine tuning parameters are defined in [Program.fs] (https://github.com/SpiegelSoft/Vulpes/blob/master/MnistClassification/Program.fs):
 
 ```F#
+// Pretraining parameters
 let dbnParameters = 
     {
         Layers = LayerSizes [500; 300; 150; 60; 10]
@@ -21,7 +22,9 @@ let dbnParameters =
         BatchSize = BatchSize 30
         Epochs = Epochs 10
     }
-
+```
+```F#
+// Fine tuning parameters
 let backPropagationParameters =
     {
         LearningRate = LearningRate 0.8f
