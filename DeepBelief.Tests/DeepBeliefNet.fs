@@ -43,9 +43,7 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
 
     let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|]
     let layeredDbn = initDbn dbnParameters xInputs
-    let sinTrainedRbm = cpuRbmTrain rand layeredDbn.Machines.[0] (sinInput |> prependColumnOfOnes)
 
     let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
     let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
@@ -105,12 +103,13 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
 
     [<Fact>] member test.
         ``Training 50 epochs of the DBN gives an RBM with non-zero weights.``()=
+        let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] in
+        let sinTrainedRbm = cpuRbmTrain rand layeredDbn.Machines.[0] (sinInput |> prependColumnOfOnes) in
         cpuDbnTrain rand layeredDbn sinInput |> fun dbn -> dbn.Machines |> List.rev |> List.head |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
 type ``Given a single RBM``()=
     let rand = new Random()
     let inputs = Array2D.init 100 784 (fun i j -> rand.NextDouble() |> float32) |> prependColumnOfOnes
-    let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] |> prependColumnOfOnes
 
     let rbmParameters =
         {
@@ -163,6 +162,7 @@ type ``Given a single RBM``()=
 
     [<Fact>] member test.
         ``Training 50 epochs of the RBM gives an RBM with non-zero weights.``()=
+        let sinInput = [|1..784|] |> Array.map (fun x -> (1.0f + sin (12.0f * (x |> float32)/784.0f))/2.0f) |> fun row -> array2D [|row|] |> prependColumnOfOnes in
         cpuRbmTrain rand rbm sinInput |> fun r -> r.Weights |> nonZeroEntries |> Seq.isEmpty |> should equal false 
 
     [<Fact>] member test.

@@ -1,6 +1,10 @@
 declare module IntelliFactory {
     module WebSharper {
         module Sitelets {
+            module Offline {
+                interface HtmlCommand {
+                }
+            }
             module Sitelet1 {
                 interface Filter<_T1> {
                     VerifyUser: {
@@ -80,8 +84,8 @@ declare module IntelliFactory {
                         };
                     };
                 };
-                Head: __ABBREV.__WebSharper.seq<__ABBREV.__Html.Element<void>>;
-                Body: __ABBREV.__WebSharper.seq<__ABBREV.__Html.Element<__ABBREV.__Web.Control>>;
+                Head: __ABBREV.__WebSharper.seq<any>;
+                Body: __ABBREV.__WebSharper.seq<any>;
             }
             interface Router<_T1> {
                 StaticRoutes: any;
@@ -133,8 +137,6 @@ declare module IntelliFactory {
             }
             interface HttpModule {
             }
-            interface Plugin {
-            }
         }
     }
 }
@@ -142,8 +144,6 @@ declare module __ABBREV {
     
     export import __Http = IntelliFactory.WebSharper.Sitelets.Http;
     export import __WebSharper = IntelliFactory.WebSharper;
-    export import __Html = IntelliFactory.Html.Html;
-    export import __Web = IntelliFactory.WebSharper.Web;
     export import __Sitelets = IntelliFactory.WebSharper.Sitelets;
     export import __List = IntelliFactory.WebSharper.List;
 }

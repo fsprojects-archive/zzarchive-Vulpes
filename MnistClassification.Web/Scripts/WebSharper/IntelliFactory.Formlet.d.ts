@@ -74,7 +74,7 @@ declare module IntelliFactory {
             }
             interface Layout<_T1> {
                 Apply: {
-                    (x: __ABBREV.__Control.IObservableProxy<__ABBREV.__Tree.Edit<_T1>>): __ABBREV.__WebSharper.OptionProxy<any>;
+                    (x: any): __ABBREV.__WebSharper.OptionProxy<any>;
                 };
             }
             interface Container<_T1> {
@@ -105,14 +105,14 @@ declare module IntelliFactory {
             }
             interface Form<_T1, _T2> {
                 Dispose(): void;
-                Body: __ABBREV.__Control.IObservableProxy<__ABBREV.__Tree.Edit<_T1>>;
+                Body: any;
                 Dispose1: {
                     (): void;
                 };
                 Notify: {
                     (x: __ABBREV.__WebSharper.ObjectProxy): void;
                 };
-                State: __ABBREV.__Control.IObservableProxy<__ABBREV.__Base.Result<_T2>>;
+                State: any;
             }
             interface IFormlet<_T1, _T2> {
                 Build(): __ABBREV.__Base.Form<_T1, _T2>;
@@ -130,7 +130,7 @@ declare module IntelliFactory {
                 New<_M1>(build: {
                     (): __ABBREV.__Base.Form<_T1, _M1>;
                 }): __ABBREV.__Base.IFormlet<_T1, _M1>;
-                FromState<_M1>(state: __ABBREV.__Control.IObservableProxy<__ABBREV.__Base.Result<_M1>>): __ABBREV.__Base.IFormlet<_T1, _M1>;
+                FromState<_M1>(state: any): __ABBREV.__Base.IFormlet<_T1, _M1>;
                 WithLayout<_M1>(layout: any, formlet: __ABBREV.__Base.IFormlet<_T1, _M1>): __ABBREV.__Base.IFormlet<_T1, _M1>;
                 InitWith<_M1>(value: _M1, formlet: __ABBREV.__Base.IFormlet<_T1, _M1>): __ABBREV.__Base.IFormlet<_T1, _M1>;
                 ReplaceFirstWithFailure<_M1>(formlet: __ABBREV.__Base.IFormlet<_T1, _M1>): __ABBREV.__Base.IFormlet<_T1, _M1>;
@@ -232,6 +232,5 @@ declare module __ABBREV {
     export import __Tree = IntelliFactory.Formlet.Base.Tree;
     export import __Base = IntelliFactory.Formlet.Base;
     export import __List = IntelliFactory.WebSharper.List;
-    export import __Control = IntelliFactory.WebSharper.Control;
     export import __Reactive = IntelliFactory.Reactive;
 }
