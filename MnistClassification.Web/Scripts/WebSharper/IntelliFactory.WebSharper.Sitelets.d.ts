@@ -1,10 +1,6 @@
 declare module IntelliFactory {
     module WebSharper {
         module Sitelets {
-            module Offline {
-                interface HtmlCommand {
-                }
-            }
             module Sitelet1 {
                 interface Filter<_T1> {
                     VerifyUser: {
@@ -32,15 +28,15 @@ declare module IntelliFactory {
                     value: string;
                 }
                 interface Request {
-                    Method: __ABBREV.__Http.Method;
+                    Method: _Http.Method;
                     Uri: any;
-                    Headers: __ABBREV.__WebSharper.seq<any>;
+                    Headers: _WebSharper.seq<any>;
                     Post: any;
                     Get: any;
                     Cookies: any;
                     ServerVariables: any;
                     Body: any;
-                    Files: __ABBREV.__WebSharper.seq<any>;
+                    Files: _WebSharper.seq<any>;
                 }
                 interface Status {
                     SCode: number;
@@ -48,7 +44,7 @@ declare module IntelliFactory {
                 }
                 interface Response {
                     Status: any;
-                    Headers: __ABBREV.__WebSharper.seq<any>;
+                    Headers: _WebSharper.seq<any>;
                     WriteBody: {
                         (x: any): void;
                     };
@@ -59,19 +55,19 @@ declare module IntelliFactory {
                 }
                 interface Format<_T1> {
                     read: {
-                        (x: string): __ABBREV.__WebSharper.OptionProxy<__ABBREV.__WebSharper.ObjectProxy>;
+                        (x: string): _WebSharper.OptionProxy<_WebSharper.ObjectProxy>;
                     };
                     show: {
-                        (x: __ABBREV.__WebSharper.ObjectProxy): __ABBREV.__WebSharper.OptionProxy<string>;
+                        (x: _WebSharper.ObjectProxy): _WebSharper.OptionProxy<string>;
                     };
                 }
             }
             interface Page {
-                Doctype: __ABBREV.__WebSharper.OptionProxy<string>;
-                Title: __ABBREV.__WebSharper.OptionProxy<string>;
+                Doctype: _WebSharper.OptionProxy<string>;
+                Title: _WebSharper.OptionProxy<string>;
                 Renderer: {
-                    (x: __ABBREV.__WebSharper.OptionProxy<string>): {
-                        (x: __ABBREV.__WebSharper.OptionProxy<string>): {
+                    (x: _WebSharper.OptionProxy<string>): {
+                        (x: _WebSharper.OptionProxy<string>): {
                             (x: {
                                 (x: any): void;
                             }): {
@@ -84,17 +80,17 @@ declare module IntelliFactory {
                         };
                     };
                 };
-                Head: __ABBREV.__WebSharper.seq<any>;
-                Body: __ABBREV.__WebSharper.seq<any>;
+                Head: _WebSharper.seq<_Html.Element<void>>;
+                Body: _WebSharper.seq<_Html.Element<_Web.Control>>;
             }
             interface Router<_T1> {
                 StaticRoutes: any;
                 StaticLinks: any;
                 DynamicRoute: {
-                    (x: any): __ABBREV.__WebSharper.OptionProxy<_T1>;
+                    (x: any): _WebSharper.OptionProxy<_T1>;
                 };
                 DynamicLink: {
-                    (x: _T1): __ABBREV.__WebSharper.OptionProxy<any>;
+                    (x: _T1): _WebSharper.OptionProxy<any>;
                 };
             }
             interface Context<_T1> {
@@ -115,7 +111,7 @@ declare module IntelliFactory {
             }
             interface Controller<_T1> {
                 Handle: {
-                    (x: _T1): __ABBREV.__Sitelets.Content<_T1>;
+                    (x: _T1): _Sitelets.Content<_T1>;
                 };
             }
             interface Sitelet<_T1> {
@@ -123,7 +119,7 @@ declare module IntelliFactory {
                 Controller: any;
             }
             interface IWebsite<_T1> {
-                get_Actions(): __ABBREV.__List.T<_T1>;
+                get_Actions(): _List.T<_T1>;
                 get_Sitelet(): any;
             }
             interface SinglePageAction {
@@ -131,19 +127,21 @@ declare module IntelliFactory {
             interface SinglePageWebsite {
             }
             interface IHostedWebsite<_T1> {
-                Build(x0: any): __ABBREV.__Sitelets.IWebsite<_T1>;
+                Build(x0: any): _Sitelets.IWebsite<_T1>;
             }
             interface HttpHandler {
             }
             interface HttpModule {
             }
+            interface Plugin {
+            }
         }
     }
-}
-declare module __ABBREV {
     
-    export import __Http = IntelliFactory.WebSharper.Sitelets.Http;
-    export import __WebSharper = IntelliFactory.WebSharper;
-    export import __Sitelets = IntelliFactory.WebSharper.Sitelets;
-    export import __List = IntelliFactory.WebSharper.List;
+    import _Http = IntelliFactory.WebSharper.Sitelets.Http;
+    import _WebSharper = IntelliFactory.WebSharper;
+    import _Html = IntelliFactory.Html.Html;
+    import _Web = IntelliFactory.WebSharper.Web;
+    import _Sitelets = IntelliFactory.WebSharper.Sitelets;
+    import _List = IntelliFactory.WebSharper.List;
 }

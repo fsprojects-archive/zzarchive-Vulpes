@@ -30,45 +30,90 @@
       {
        return Data.MkFormlet(function()
        {
-        var state,readOnlyAtts,x,arg00,body,reset;
+        var state,body,readOnlyAtts,_this,x,_this1,f,arg00,objectArg,arg002,objectArg1,arg003,reset;
         state=HotStream.New(Runtime.New(Result,{
          $:0,
          $0:def
         }));
-        readOnlyAtts=readOnly?List.ofArray([Default.Attr().NewAttr("disabled","disabled")]):Runtime.New(T,{
+        body=(readOnlyAtts=readOnly?List.ofArray([(_this=Default.Attr(),_this.NewAttr("disabled","disabled"))]):Runtime.New(T,{
          $:0
-        });
-        x=Operators.add(Default.Input(List.ofArray([Default.Attr().NewAttr("type","checkbox"),Default.Attr().Class("inputCheckbox")])),readOnlyAtts);
-        arg00=function(cb)
+        }),(x=Operators.add(Default.Input(List.ofArray([(_this1=Default.Attr(),_this1.NewAttr("type","checkbox")),Default.Attr().Class("inputCheckbox")])),readOnlyAtts),(f=(arg00=function(cb)
         {
          return function()
          {
-          return!readOnly?state.Trigger(Runtime.New(Result,{
-           $:0,
-           $0:jQuery(cb.Body).prop("checked")
-          })):null;
+          var x1,x2,f1,f2;
+          if(!readOnly)
+           {
+            x1=(x2=jQuery(cb.Body).prop("checked"),(f1=function(arg0)
+            {
+             return Runtime.New(Result,{
+              $:0,
+              $0:arg0
+             });
+            },f1(x2)));
+            f2=function(arg001)
+            {
+             return state.Trigger(arg001);
+            };
+            return f2(x1);
+           }
+          else
+           {
+            return null;
+           }
          };
-        };
-        EventsPervasives.Events().OnClick(arg00,x);
-        body=x;
+        },function(arg10)
+        {
+         return EventsPervasives.Events().OnClick(arg00,arg10);
+        }),(f(x),x))));
         if(def)
          {
-          body["HtmlProvider@32"].SetAttribute(body.Body,"defaultChecked","true");
+          objectArg=body["HtmlProvider@32"];
+          ((arg002=body.Body,function(arg10)
+          {
+           return function(arg20)
+           {
+            return objectArg.SetAttribute(arg002,arg10,arg20);
+           };
+          })("defaultChecked"))("true");
          }
         else
          {
-          body["HtmlProvider@32"].RemoveAttribute(body.Body,"checked");
+          objectArg1=body["HtmlProvider@32"];
+          (arg003=body.Body,function(arg10)
+          {
+           return objectArg1.RemoveAttribute(arg003,arg10);
+          })("checked");
          }
         reset=function()
         {
+         var objectArg2,arg001,objectArg3,arg004,objectArg4,arg005;
          if(def)
           {
-           body["HtmlProvider@32"].SetProperty(body.Body,"checked",true);
+           objectArg2=body["HtmlProvider@32"];
+           ((arg001=body.Body,function(arg10)
+           {
+            return function(arg20)
+            {
+             return objectArg2.SetProperty(arg001,arg10,arg20);
+            };
+           })("checked"))(true);
           }
          else
           {
-           body["HtmlProvider@32"].RemoveAttribute(body.Body,"checked");
-           body["HtmlProvider@32"].SetProperty(body.Body,"checked",false);
+           objectArg3=body["HtmlProvider@32"];
+           (arg004=body.Body,function(arg10)
+           {
+            return objectArg3.RemoveAttribute(arg004,arg10);
+           })("checked");
+           objectArg4=body["HtmlProvider@32"];
+           ((arg005=body.Body,function(arg10)
+           {
+            return function(arg20)
+            {
+             return objectArg4.SetProperty(arg005,arg10,arg20);
+            };
+           })("checked"))(false);
           }
          return state.Trigger(Runtime.New(Result,{
           $:0,
@@ -85,47 +130,70 @@
       },
       CheckboxGroupControl:function(readOnly,values)
       {
-       var x,chooser;
-       x=Formlet2.Sequence(List.map(Runtime.Tupled(function(tupledArg)
+       var x,fs,f,mapping,f4,f5,chooser;
+       x=(fs=(f=(mapping=Runtime.Tupled(function(tupledArg)
        {
-        var l,v,formlet;
+        var l,v,b,x1,x2,f1,label,arg0,f2,f3;
         l=tupledArg[0];
         v=tupledArg[1];
-        formlet=Controls.CheckboxControl(readOnly,tupledArg[2]);
-        return Formlet2.Map(function(b)
+        b=tupledArg[2];
+        x1=(x2=Controls.CheckboxControl(readOnly,b),(f1=(label=(arg0=function()
         {
-         return[b,v];
-        },Formlet2.WithLabel({
+         var x3,_this;
+         x3=List.ofArray([Default.Text(l)]);
+         _this=Default.Tags();
+         return _this.NewTag("label",x3);
+        },{
          $:1,
-         $0:function()
-         {
-          var arg10;
-          arg10=List.ofArray([Default.Text(l)]);
-          return Default.Tags().NewTag("label",arg10);
-         }
-        },formlet));
-       }),values));
-       chooser=Runtime.Tupled(function(tupledArg)
+         $0:arg0
+        }),function(formlet)
+        {
+         return Formlet2.WithLabel(label,formlet);
+        }),f1(x2)));
+        f2=(f3=function(b1)
+        {
+         return[b1,v];
+        },function(formlet)
+        {
+         return Formlet2.Map(f3,formlet);
+        });
+        return f2(x1);
+       }),function(list)
        {
-        var v;
+        return List.map(mapping,list);
+       }),f(values)),Formlet2.Sequence(fs));
+       f4=(f5=(chooser=Runtime.Tupled(function(tupledArg)
+       {
+        var b,v;
+        b=tupledArg[0];
         v=tupledArg[1];
-        return tupledArg[0]?{
-         $:1,
-         $0:v
-        }:{
-         $:0
-        };
-       });
-       return Formlet2.Map(function(list)
+        if(b)
+         {
+          return{
+           $:1,
+           $0:v
+          };
+         }
+        else
+         {
+          return{
+           $:0
+          };
+         }
+       }),function(list)
        {
         return List.choose(chooser,list);
-       },x);
+       }),function(formlet)
+       {
+        return Formlet2.Map(f5,formlet);
+       });
+       return f4(x);
       },
       ElementButton:function(genElem)
       {
        return Data.MkFormlet(function()
        {
-        var state,count,x,arg00;
+        var state,count,body,x,f,arg00,reset;
         state=HotStream.New(Runtime.New(Result,{
          $:1,
          $0:Runtime.New(T,{
@@ -135,8 +203,7 @@
         count={
          contents:0
         };
-        x=genElem(null);
-        arg00=function()
+        body=(x=genElem(null),(f=(arg00=function()
         {
          return function()
          {
@@ -146,9 +213,11 @@
           }));
           return Operators1.Increment(count);
          };
-        };
-        EventsPervasives.Events().OnClick(arg00,x);
-        return[x,function()
+        },function(arg10)
+        {
+         return EventsPervasives.Events().OnClick(arg00,arg10);
+        }),(f(x),x)));
+        reset=function()
         {
          count.contents=0;
          return state.Trigger(Runtime.New(Result,{
@@ -157,7 +226,8 @@
            $:0
           })
          }));
-        },state];
+        };
+        return[body,reset,state];
        });
       },
       Input:function(value)
@@ -168,45 +238,56 @@
       {
        return Data.MkFormlet(function()
        {
-        var state,body;
+        var state,body,reset;
         state=HotStream.New(Runtime.New(Result,{
          $:0,
          $0:value
         }));
         body=f(state);
         body.set_Value(value);
-        return[body,function()
+        reset=function()
         {
          body.set_Value(value);
          return state.Trigger(Runtime.New(Result,{
           $:0,
           $0:value
          }));
-        },state];
+        };
+        return[body,reset,state];
        });
       },
       InputField:function(readOnly,typ,cls,value)
       {
        return Controls.InputControl(value,function(state)
        {
-        var ro,input;
-        ro=readOnly?List.ofArray([Default.Attr().NewAttr("readonly","readonly")]):Runtime.New(T,{
+        var input,ro,_this,_this1,f;
+        input=(ro=readOnly?List.ofArray([(_this=Default.Attr(),_this.NewAttr("readonly","readonly"))]):Runtime.New(T,{
          $:0
-        });
-        input=Default.Input(List.append(List.ofArray([Default.Attr().NewAttr("type",typ),Default.Attr().Class(cls)]),ro));
-        Controls.OnTextChange(function()
+        }),Default.Input(List.append(List.ofArray([(_this1=Default.Attr(),_this1.NewAttr("type",typ)),Default.Attr().Class(cls)]),ro)));
+        f=function(control)
         {
-         return!readOnly?state.Trigger(Runtime.New(Result,{
-          $:0,
-          $0:input.get_Value()
-         })):null;
-        },input);
+         return Controls.OnTextChange(function()
+         {
+          if(!readOnly)
+           {
+            return state.Trigger(Runtime.New(Result,{
+             $:0,
+             $0:input.get_Value()
+            }));
+           }
+          else
+           {
+            return null;
+           }
+         },control);
+        };
+        f(input);
         return input;
        });
       },
       OnTextChange:function(f,control)
       {
-       var value,up,arg00,arg001;
+       var value,up;
        value={
         contents:control.get_Value()
        };
@@ -222,21 +303,18 @@
           return null;
          }
        };
-       arg00=function()
+       EventsPervasives.Events().OnChange(function()
        {
         return up(null);
-       };
-       EventsPervasives.Events().OnChange(arg00,control);
-       arg001=function()
+       },control);
+       EventsPervasives.Events().OnKeyUp(function()
        {
         return function()
         {
          return up(null);
         };
-       };
-       EventsPervasives.Events().OnKeyUp(arg001,control);
+       },control);
        control.Body.oninput=up;
-       return;
       },
       Password:function(value)
       {
@@ -250,66 +328,91 @@
       {
        return Formlet2.New(function()
        {
-        var groupId,x,x1,d,state,mapping,rbLbVls,resetRB,x2;
+        var groupId,state,x,defIx,x1,f,mapping,f1,chooser,f2,d,f3,rbLbVls,f4,mapping1,resetRB,reset,body,x2,x3,x4,f6,mapping2,f7,f8,f9;
         groupId="id"+Math.round(Math.random()*100000000);
-        if(def.$==0)
+        state=(x=def.$==0?{
+         $:0
+        }:(defIx=def.$0,(x1=(f=(mapping=function(ix)
+        {
+         return Runtime.Tupled(function(tupledArg)
          {
-          x={
-           $:0
-          };
-         }
-        else
-         {
-          x1=List.mapi(function(ix)
+          var _arg1,value;
+          _arg1=tupledArg[0];
+          value=tupledArg[1];
+          return[ix,value];
+         });
+        },function(list)
+        {
+         return List.mapi(mapping,list);
+        }),f(values)),(f1=(chooser=Runtime.Tupled(function(tupledArg)
+        {
+         var ix,value,defIx1;
+         ix=tupledArg[0];
+         value=tupledArg[1];
+         if(def.$==0)
           {
-           return Runtime.Tupled(function(tupledArg)
-           {
-            return[ix,tupledArg[1]];
-           });
-          },values);
-          x=Seq.tryPick(Runtime.Tupled(function(tupledArg)
-          {
-           var ix,value;
-           ix=tupledArg[0];
-           value=tupledArg[1];
-           return def.$==0?{
-            $:0
-           }:def.$0===ix?{
-            $:1,
-            $0:Runtime.New(Result,{
-             $:0,
-             $0:value
-            })
-           }:{
+           return{
             $:0
            };
-          }),x1);
-         }
-        d=HotStream.New(Runtime.New(Result,{
+          }
+         else
+          {
+           defIx1=def.$0;
+           if(defIx1===ix)
+            {
+             return{
+              $:1,
+              $0:Runtime.New(Result,{
+               $:0,
+               $0:value
+              })
+             };
+            }
+           else
+            {
+             return{
+              $:0
+             };
+            }
+          }
+        }),function(list)
+        {
+         return Seq.tryPick(chooser,list);
+        }),f1(x1)))),(f2=(d=HotStream.New(Runtime.New(Result,{
          $:1,
          $0:Runtime.New(T,{
           $:0
          })
-        }));
-        state=Utils.Maybe(d,function(arg00)
+        })),(f3=function(arg00)
         {
          return HotStream.New(arg00);
-        },x);
-        mapping=Runtime.Tupled(function(tupledArg)
+        },function(o)
         {
-         var label,value;
+         return Utils.Maybe(d,f3,o);
+        })),f2(x)));
+        rbLbVls=(f4=(mapping1=Runtime.Tupled(function(tupledArg)
+        {
+         var label,value,inp,_this,_this1,_this2;
          label=tupledArg[0];
          value=tupledArg[1];
-         return[Operators.add(Default.Input(List.ofArray([Default.Attr().Class("inputRadio"),Default.Attr().NewAttr("type","radio"),Default.Attr().NewAttr("name",groupId)])),readOnly?List.ofArray([Default.Attr().NewAttr("disabled","disabled")]):Runtime.New(T,{
+         inp=Operators.add(Default.Input(List.ofArray([Default.Attr().Class("inputRadio"),(_this=Default.Attr(),_this.NewAttr("type","radio")),(_this1=Default.Attr(),_this1.NewAttr("name",groupId))])),readOnly?List.ofArray([(_this2=Default.Attr(),_this2.NewAttr("disabled","disabled"))]):Runtime.New(T,{
           $:0
-         })),label,value];
-        });
-        rbLbVls=List.map(mapping,values);
+         }));
+         return[inp,label,value];
+        }),function(list)
+        {
+         return List.map(mapping1,list);
+        }),f4(values));
         resetRB=function(rb,value,ix)
         {
+         var objectArg,arg00,defIx1,objectArg1,arg001,objectArg2,arg002;
          if(def.$==0)
           {
-           rb["HtmlProvider@32"].RemoveAttribute(rb.Body,"checked");
+           objectArg=rb["HtmlProvider@32"];
+           (arg00=rb.Body,function(arg10)
+           {
+            return objectArg.RemoveAttribute(arg00,arg10);
+           })("checked");
            return state.Trigger(Runtime.New(Result,{
             $:1,
             $0:Runtime.New(T,{
@@ -319,9 +422,17 @@
           }
          else
           {
-           if(def.$0===ix)
+           defIx1=def.$0;
+           if(defIx1===ix)
             {
-             rb["HtmlProvider@32"].SetProperty(rb.Body,"checked",true);
+             objectArg1=rb["HtmlProvider@32"];
+             ((arg001=rb.Body,function(arg10)
+             {
+              return function(arg20)
+              {
+               return objectArg1.SetProperty(arg001,arg10,arg20);
+              };
+             })("checked"))(true);
              return state.Trigger(Runtime.New(Result,{
               $:0,
               $0:value
@@ -329,61 +440,106 @@
             }
            else
             {
-             return rb["HtmlProvider@32"].SetProperty(rb.Body,"checked",false);
+             objectArg2=rb["HtmlProvider@32"];
+             return((arg002=rb.Body,function(arg10)
+             {
+              return function(arg20)
+              {
+               return objectArg2.SetProperty(arg002,arg10,arg20);
+              };
+             })("checked"))(false);
             }
           }
         };
-        x2=Runtime.New(Edit,{
-         $:0,
-         $0:Tree.FromSequence(List.mapi(function(ix)
+        reset=function()
+        {
+         var f5,action;
+         f5=(action=function(ix)
          {
           return Runtime.Tupled(function(tupledArg)
           {
-           var rb,label,value,arg00;
+           var rb,_arg2,value;
            rb=tupledArg[0];
-           label=tupledArg[1];
+           _arg2=tupledArg[1];
            value=tupledArg[2];
-           resetRB(rb,value,ix);
-           arg00=function()
-           {
-            return function()
-            {
-             return!readOnly?state.Trigger(Runtime.New(Result,{
-              $:0,
-              $0:value
-             })):null;
-            };
-           };
-           EventsPervasives.Events().OnClick(arg00,rb);
-           return Runtime.New(Body,{
-            Element:rb,
-            Label:{
-             $:1,
-             $0:function()
-             {
-              var arg10;
-              arg10=List.ofArray([Default.Text(label)]);
-              return Default.Tags().NewTag("label",arg10);
-             }
-            }
-           });
+           return resetRB(rb,value,ix);
           });
-         },rbLbVls))
-        });
-        return Runtime.New(Form,{
-         Body:Data.RX().Return(x2),
-         Dispose1:function()
+         },function(list)
          {
+          return Seq.iteri(action,list);
+         });
+         return f5(rbLbVls);
+        };
+        body=(x2=(x3=(x4=(f6=(mapping2=function(ix)
+        {
+         return Runtime.Tupled(function(tupledArg)
+         {
+          var rb,label,value,f5,arg00,Label;
+          rb=tupledArg[0];
+          label=tupledArg[1];
+          value=tupledArg[2];
+          resetRB(rb,value,ix);
+          f5=(arg00=function()
+          {
+           return function()
+           {
+            if(!readOnly)
+             {
+              return state.Trigger(Runtime.New(Result,{
+               $:0,
+               $0:value
+              }));
+             }
+            else
+             {
+              return null;
+             }
+           };
+          },function(arg10)
+          {
+           return EventsPervasives.Events().OnClick(arg00,arg10);
+          });
+          f5(rb);
+          Label={
+           $:1,
+           $0:function()
+           {
+            var x5,_this;
+            x5=List.ofArray([Default.Text(label)]);
+            _this=Default.Tags();
+            return _this.NewTag("label",x5);
+           }
+          };
+          return Runtime.New(Body,{
+           Element:rb,
+           Label:Label
+          });
+         });
+        },function(list)
+        {
+         return List.mapi(mapping2,list);
+        }),f6(rbLbVls)),(f7=function(vs)
+        {
+         return Tree.FromSequence(vs);
+        },f7(x4))),(f8=function(arg0)
+        {
+         return Runtime.New(Edit,{
+          $:0,
+          $0:arg0
+         });
+        },f8(x3))),(f9=function(arg00)
+        {
+         return Data.RX().Return(arg00);
+        },f9(x2)));
+        return Runtime.New(Form,{
+         Body:body,
+         Dispose1:function(value)
+         {
+          value;
          },
          Notify:function()
          {
-          return Seq.iteri(function(ix)
-          {
-           return Runtime.Tupled(function(tupledArg)
-           {
-            return resetRB(tupledArg[0],tupledArg[2],ix);
-           });
-          },rbLbVls);
+          return reset(null);
          },
          State:state
         });
@@ -417,25 +573,36 @@
       {
        return Data.MkFormlet(function()
        {
-        var mapping,x,aVls,sIx,x1,select,body,sValue,state,reset,arg00;
-        mapping=Runtime.Tupled(function(tuple)
+        var aVls,x,f,mapping,f1,sIx,body,select,x1,f2,mapping1,f3,_this2,sValue,state,reset,f4,arg001;
+        aVls=(x=(f=(mapping=Runtime.Tupled(function(tuple)
         {
          return tuple[1];
-        });
-        x=List.map(mapping,vls);
-        aVls=Arrays.ofSeq(x);
+        }),function(list)
+        {
+         return List.map(mapping,list);
+        }),f(vls)),(f1=function(list)
+        {
+         return Arrays.ofSeq(list);
+        },f1(x)));
         sIx=(def>=0?def<vls.get_Length():false)?def:0;
-        x1=List.mapi(function(i)
+        body=(select=(x1=(f2=(mapping1=function(i)
         {
          return Runtime.Tupled(function(tupledArg)
          {
-          var nm;
+          var nm,_arg1,_this,x2,_this1,x3;
           nm=tupledArg[0];
-          return Default.Tags().NewTag("option",List.ofArray([Default.Text(nm),Default.Attr().NewAttr("value",Global.String(i))]));
+          _arg1=tupledArg[1];
+          _this=Default.Tags();
+          x2=List.ofArray([Default.Text(nm),(_this1=Default.Attr(),(x3=Global.String(i),_this1.NewAttr("value",x3)))]);
+          return _this.NewTag("option",x2);
          });
-        },vls);
-        select=Default.Select(x1);
-        body=readOnly?Operators.add(select,List.ofArray([Default.Attr().NewAttr("disabled","disabled")])):select;
+        },function(list)
+        {
+         return List.mapi(mapping1,list);
+        }),f2(vls)),(f3=function(x2)
+        {
+         return Default.Select(x2);
+        },f3(x1))),readOnly?Operators.add(select,List.ofArray([(_this2=Default.Attr(),_this2.NewAttr("disabled","disabled"))])):select);
         sValue=Runtime.New(Result,{
          $:0,
          $0:aVls[sIx]
@@ -443,18 +610,47 @@
         state=HotStream.New(sValue);
         reset=function()
         {
-         body["HtmlProvider@32"].SetProperty(body.Body,"value",Global.String(sIx));
+         var value,objectArg,arg00;
+         value=Global.String(sIx);
+         objectArg=body["HtmlProvider@32"];
+         ((arg00=body.Body,function(arg10)
+         {
+          return function(arg20)
+          {
+           return objectArg.SetProperty(arg00,arg10,arg20);
+          };
+         })("value"))(value);
          return state.Trigger(sValue);
         };
         reset(null);
-        arg00=function()
+        f4=(arg001=function()
         {
-         return!readOnly?state.Trigger(Runtime.New(Result,{
-          $:0,
-          $0:aVls[body.get_Value()<<0]
-         })):null;
-        };
-        EventsPervasives.Events().OnChange(arg00,body);
+         var value,x2,x3,f5,f6;
+         if(!readOnly)
+          {
+           value=body.get_Value();
+           x2=(x3=aVls[value<<0],(f5=function(arg0)
+           {
+            return Runtime.New(Result,{
+             $:0,
+             $0:arg0
+            });
+           },f5(x3)));
+           f6=function(arg00)
+           {
+            return state.Trigger(arg00);
+           };
+           return f6(x2);
+          }
+         else
+          {
+           return null;
+          }
+        },function(arg10)
+        {
+         return EventsPervasives.Events().OnChange(arg001,arg10);
+        });
+        f4(body);
         reset(null);
         return[body,reset,state];
        });
@@ -467,17 +663,28 @@
       {
        return Controls.InputControl(value,function(state)
        {
-        var input;
-        input=Default.TextArea(readOnly?List.ofArray([Default.Attr().NewAttr("readonly","readonly")]):Runtime.New(T,{
+        var input,x,_this,f;
+        input=(x=readOnly?List.ofArray([(_this=Default.Attr(),_this.NewAttr("readonly","readonly"))]):Runtime.New(T,{
          $:0
-        }));
-        Controls.OnTextChange(function()
+        }),Default.TextArea(x));
+        f=function(control)
         {
-         return!readOnly?state.Trigger(Runtime.New(Result,{
-          $:0,
-          $0:input.get_Value()
-         })):null;
-        },input);
+         return Controls.OnTextChange(function()
+         {
+          if(!readOnly)
+           {
+            return state.Trigger(Runtime.New(Result,{
+             $:0,
+             $0:input.get_Value()
+            }));
+           }
+          else
+           {
+            return null;
+           }
+         },control);
+        };
+        f(input);
         return input;
        });
       }
@@ -491,7 +698,9 @@
      Data:{
       $:function(f,x)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Apply(f,x));
+       var formlet,objectArg;
+       formlet=(objectArg=Data.BaseFormlet(),objectArg.Apply(f,x));
+       return Data.OfIFormlet(formlet);
       },
       BaseFormlet:function()
       {
@@ -508,17 +717,20 @@
        },
        MapResult:function(f)
        {
-        var _this=this;
-        return Runtime.New(Formlet3,{
+        var x,_this=this;
+        x=Runtime.New(Formlet3,{
          BuildInternal:function()
          {
-          var form;
+          var form,objectArg,arg00;
           form=_this.BuildInternal.call(null,null);
           return Runtime.New(Form,{
            Body:form.Body,
            Dispose1:form.Dispose1,
            Notify:form.Notify,
-           State:_this.Utils.Reactive.Select(form.State,f)
+           State:(objectArg=_this.Utils.Reactive,(arg00=form.State,function(arg10)
+           {
+            return objectArg.Select(arg00,arg10);
+           })(f))
           });
          },
          LayoutInternal:_this.LayoutInternal,
@@ -528,27 +740,31 @@
          FormletBase:_this.FormletBase,
          Utils:_this.Utils
         });
+        return x;
        },
        Render:function()
        {
-        return this.Run(function()
+        return this.Run(function(value)
         {
+         value;
         }).Render();
        },
        Run:function(f)
        {
-        var matchValue,formlet,form,matchValue1,el;
+        var matchValue,formlet,form,value,el,matchValue1,patternInput,body,body1,el1;
         matchValue=this.ElementInternal;
         if(matchValue.$==0)
          {
           formlet=this.FormletBase.ApplyLayout(this);
           form=formlet.Build();
-          Util.subscribeTo(form.State,function(res)
+          value=Util.subscribeTo(form.State,function(res)
           {
-           Result.Map(f,res);
+           var value1;
+           value1=Result.Map(f,res);
+           value1;
           });
-          matchValue1=formlet.get_Layout().Apply.call(null,form.Body);
-          el=matchValue1.$==0?Data.DefaultLayout().Apply.call(null,form.Body).$0[0].Element:matchValue1.$0[0].Element;
+          value;
+          el=(matchValue1=formlet.get_Layout().Apply.call(null,form.Body),matchValue1.$==0?(patternInput=Data.DefaultLayout().Apply.call(null,form.Body).$0,(body=patternInput[0],body.Element)):(body1=matchValue1.$0[0],body1.Element));
           this.ElementInternal={
            $:1,
            $0:el
@@ -557,13 +773,15 @@
          }
         else
          {
-          return matchValue.$0;
+          el1=matchValue.$0;
+          return el1;
          }
        },
        get_Body:function()
        {
-        return this.Run(function()
+        return this.Run(function(value)
         {
+         value;
         }).get_Body();
        },
        get_Layout:function()
@@ -579,22 +797,28 @@
       }),
       MkFormlet:function(f)
       {
-       var arg00;
-       arg00=function()
+       var formlet,objectArg;
+       formlet=(objectArg=Data.BaseFormlet(),objectArg.New(function()
        {
-        var patternInput,state,reset,Notify,arg001;
+        var patternInput,state,reset,body,Notify,x,x1,f1,f2;
         patternInput=f(null);
         state=patternInput[2];
         reset=patternInput[1];
+        body=patternInput[0];
         Notify=function()
         {
          return reset(null);
         };
-        arg001=Tree.Set(Data.NewBody(patternInput[0],{
-         $:0
-        }));
         return Runtime.New(Form,{
-         Body:Data.RX().Return(arg001),
+         Body:(x=(x1=Data.NewBody(body,{
+          $:0
+         }),(f1=function(value)
+         {
+          return Tree.Set(value);
+         },f1(x1))),(f2=function(arg00)
+         {
+          return Data.RX().Return(arg00);
+         },f2(x))),
          Dispose1:function()
          {
           return null;
@@ -602,8 +826,8 @@
          Notify:Notify,
          State:state
         });
-       };
-       return Data.OfIFormlet(Data.BaseFormlet().New(arg00));
+       }));
+       return Data.OfIFormlet(formlet);
       },
       NewBody:function(arg00,arg10)
       {
@@ -611,7 +835,8 @@
       },
       OfIFormlet:function(formlet)
       {
-       return Data.PropagateRenderFrom(formlet,Runtime.New(Formlet3,{
+       var f2;
+       f2=Runtime.New(Formlet3,{
         BuildInternal:function()
         {
          return formlet.Build();
@@ -622,7 +847,8 @@
         },
         FormletBase:Data.BaseFormlet(),
         Utils:Data.UtilsProvider()
-       }));
+       });
+       return Data.PropagateRenderFrom(formlet,f2);
       },
       PropagateRenderFrom:function(f1,f2)
       {
@@ -655,7 +881,9 @@
       },{
        New:function()
        {
-        return Runtime.New(this,{});
+        var r;
+        r=Runtime.New(this,{});
+        return r;
        }
       })
      },
@@ -663,19 +891,27 @@
       Init:function()
       {
        this.store=Dictionary.New21();
-       return;
       },
       RegisterElement:function(key,f)
       {
-       return!this.store.ContainsKey(key)?this.store.set_Item(key,f):null;
+       var value;
+       if(value=this.store.ContainsKey(key),!value)
+        {
+         return this.store.set_Item(key,f);
+        }
+       else
+        {
+         return null;
+        }
       },
       Remove:function(key)
       {
+       var value;
        if(this.store.ContainsKey(key))
         {
          (this.store.get_Item(key))(null);
-         this.store.Remove(key);
-         return;
+         value=this.store.Remove(key);
+         value;
         }
        else
         {
@@ -685,7 +921,9 @@
      },{
       New:function()
       {
-       return Runtime.New(this,{});
+       var r;
+       r=Runtime.New(this,{});
+       return r;
       },
       NewElementStore:function()
       {
@@ -700,37 +938,51 @@
       {
        return Formlet2.Replace(formlet,function(value)
        {
-        return isCancel(value)?Formlet2.Empty():Formlet2.Return(value);
+        if(isCancel(value))
+         {
+          return Formlet2.Empty();
+         }
+        else
+         {
+          return Formlet2.Return(value);
+         }
        });
       },
       CustomMany:function(config,formlet)
       {
-       var x,addButton,f,formlet1,c,formlet2,x1,delF,resetS,resetF,reset,_builder_;
-       x=Controls.ElementButton(function()
+       var addButton,x,f,delF,formlet2,x1,c,x2,f1,f2,l,resetS,resetF,x3,f3,reset,x4,_builder_,f8;
+       addButton=(x=Controls.ElementButton(function()
        {
         return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(config.AddIconClass)])),List.ofArray([Default.Div(Runtime.New(T,{
          $:0
         }))]));
-       });
-       addButton=Formlet2.InitWith(1,x);
-       f=function()
+       }),(f=function(formlet1)
        {
-       };
-       formlet1=Controls.ElementButton(function()
+        return Formlet2.InitWith(1,formlet1);
+       },f(x)));
+       delF=(formlet2=(x1=(c=(x2=Controls.ElementButton(function()
        {
         return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(config.RemoveIconClass)])),List.ofArray([Default.Div(Runtime.New(T,{
          $:0
         }))]));
-       });
-       c=Formlet2.Map(f,formlet1);
-       formlet2=Formlet2.WithCancelation(formlet,c);
-       x1=Formlet2.WithLayout(Data.Layout().get_Horizontal(),formlet2);
-       delF=Enhance.Deletable(x1);
+       }),(f1=function(formlet1)
+       {
+        return Formlet2.Map(function(value)
+        {
+         value;
+        },formlet1);
+       },f1(x2))),Formlet2.WithCancelation(formlet,c)),(f2=(l=Data.Layout().get_Horizontal(),function(formlet1)
+       {
+        return Formlet2.WithLayout(l,formlet1);
+       }),f2(x1))),Enhance.Deletable(formlet2));
        resetS=HotStream.New(Runtime.New(Result,{
         $:0,
         $0:null
        }));
-       resetF=Data.OfIFormlet(Data.BaseFormlet().FromState(resetS));
+       resetF=(x3=Data.BaseFormlet().FromState(resetS),(f3=function(formlet1)
+       {
+        return Data.OfIFormlet(formlet1);
+       },f3(x3)));
        reset=function()
        {
         return resetS.Trigger(Runtime.New(Result,{
@@ -738,31 +990,59 @@
          $0:null
         }));
        };
-       _builder_=Formlet2.Do();
-       return Formlet2.WithNotification(reset,_builder_.Delay(function()
+       x4=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
         return _builder_.Bind(resetF,function()
         {
-         return _builder_.ReturnFrom(Formlet2.ApplyLayout(Formlet2.WithLayoutOrDefault(Formlet2.Map(function(source)
+         return _builder_.ReturnFrom(function()
          {
-          return List.ofSeq(source);
-         },Enhance.Many_(addButton,function()
-         {
-          return delF;
-         })))));
+          var x5,x6,x7,f4,f5,f6,f7;
+          x5=(x6=(x7=Enhance.Many_(addButton,function()
+          {
+           return delF;
+          }),(f4=(f5=function(source)
+          {
+           return List.ofSeq(source);
+          },function(formlet1)
+          {
+           return Formlet2.Map(f5,formlet1);
+          }),f4(x7))),(f6=function(formlet1)
+          {
+           return Formlet2.WithLayoutOrDefault(formlet1);
+          },f6(x6)));
+          f7=function(formlet1)
+          {
+           return Formlet2.ApplyLayout(formlet1);
+          };
+          return f7(x5);
+         }(null));
         });
        }));
+       f8=function(formlet1)
+       {
+        return Formlet2.WithNotification(reset,formlet1);
+       };
+       return f8(x4);
       },
       Deletable:function(formlet)
       {
        return Enhance.Replace(formlet,function(value)
        {
-        return value.$==1?Formlet2.Return({
-         $:1,
-         $0:value.$0
-        }):Formlet2.ReturnEmpty({
-         $:0
-        });
+        var value1;
+        if(value.$==1)
+         {
+          value1=value.$0;
+          return Formlet2.Return({
+           $:1,
+           $0:value1
+          });
+         }
+        else
+         {
+          return Formlet2.ReturnEmpty({
+           $:0
+          });
+         }
        });
       },
       FormButtonConfiguration:Runtime.Class({},{
@@ -813,7 +1093,7 @@
       {
        return Data.MkFormlet(function()
        {
-        var state,count,label,x1,arg00,submit,submit1,matchValue,matchValue1,reset;
+        var state,count,submit,label,submit1,x1,_this,_this1,f,arg00,objectArg,arg001,matchValue,style,objectArg1,arg002,matchValue1,cls,objectArg2,arg003,reset;
         state=HotStream.New(Runtime.New(Result,{
          $:1,
          $0:Runtime.New(T,{
@@ -823,12 +1103,10 @@
         count={
          contents:0
         };
-        label=Utils.Maybe("Submit",function(x)
+        submit=(label=Utils.Maybe("Submit",function(x)
         {
          return x;
-        },conf.Label);
-        x1=Operators.add(Default.Input(List.ofArray([Default.Attr().NewAttr("type","button")])),List.ofArray([Default.Attr().Class("submitButton"),Default.Attr().NewAttr("value",label)]));
-        arg00=function()
+        },conf.Label),(submit1=(x1=Operators.add(Default.Input(List.ofArray([(_this=Default.Attr(),_this.NewAttr("type","button"))])),List.ofArray([Default.Attr().Class("submitButton"),(_this1=Default.Attr(),_this1.NewAttr("value",label))])),(f=(arg00=function()
         {
          return function()
          {
@@ -838,24 +1116,19 @@
            $0:count.contents
           }));
          };
-        };
-        EventsPervasives.Events().OnClick(arg00,x1);
-        submit=x1;
-        if(!enabled)
-         {
-          submit["HtmlProvider@32"].AddClass(submit.Body,"disabledButton");
-         }
-        matchValue=conf.Style;
-        if(matchValue.$==1)
-         {
-          submit["HtmlProvider@32"].SetStyle(submit.Body,matchValue.$0);
-         }
-        matchValue1=conf.Class;
-        if(matchValue1.$==1)
-         {
-          submit["HtmlProvider@32"].AddClass(submit.Body,matchValue1.$0);
-         }
-        submit1=submit;
+        },function(arg10)
+        {
+         return EventsPervasives.Events().OnClick(arg00,arg10);
+        }),(f(x1),x1))),(!enabled?(objectArg=submit1["HtmlProvider@32"],(arg001=submit1.Body,function(arg10)
+        {
+         return objectArg.AddClass(arg001,arg10);
+        })("disabledButton")):null,(matchValue=conf.Style,matchValue.$==1?(style=matchValue.$0,(objectArg1=submit1["HtmlProvider@32"],(arg002=submit1.Body,function(arg10)
+        {
+         return objectArg1.SetStyle(arg002,arg10);
+        })(style))):null,(matchValue1=conf.Class,matchValue1.$==1?(cls=matchValue1.$0,(objectArg2=submit1["HtmlProvider@32"],(arg003=submit1.Body,function(arg10)
+        {
+         return objectArg2.AddClass(arg003,arg10);
+        })(cls))):null,submit1)))));
         reset=function()
         {
          count.contents=0;
@@ -872,7 +1145,7 @@
           $:0
          })
         }));
-        return[submit1,reset,state];
+        return[submit,reset,state];
        });
       },
       Many:function(formlet)
@@ -890,15 +1163,22 @@
       }),
       Many_:function(add,f)
       {
-       var chooser;
-       chooser=function(x)
+       var x,formlet,formlet1,f1,f2,f3,f4;
+       x=(formlet=(formlet1=(f1=(f2=f,function(formlet2)
        {
-        return x;
-       };
-       return Formlet2.Map(function(source)
+        return Formlet2.Map(f2,formlet2);
+       }),f1(add)),Formlet2.SelectMany(formlet1)),Formlet2.FlipBody(formlet));
+       f3=(f4=function(source)
        {
-        return Seq.choose(chooser,source);
-       },Formlet2.FlipBody(Formlet2.SelectMany(Formlet2.Map(f,add))));
+        return Seq.choose(function(x1)
+        {
+         return x1;
+        },source);
+       },function(formlet2)
+       {
+        return Formlet2.Map(f4,formlet2);
+       });
+       return f3(x);
       },
       Padding:Runtime.Class({},{
        get_Default:function()
@@ -921,16 +1201,31 @@
       }),
       Replace:function(formlet,f)
       {
-       return Formlet2.Switch(Formlet2.MapResult(function(res)
+       var f1,f2;
+       return Formlet2.Switch((f1=(f2=function(res)
        {
-        return res.$==1?Runtime.New(Result,{
-         $:0,
-         $0:Formlet2.FailWith(res.$0)
-        }):Runtime.New(Result,{
-         $:0,
-         $0:f(res.$0)
-        });
-       },formlet));
+        var fs,arg0,s;
+        if(res.$==1)
+         {
+          fs=res.$0;
+          arg0=Formlet2.FailWith(fs);
+          return Runtime.New(Result,{
+           $:0,
+           $0:arg0
+          });
+         }
+        else
+         {
+          s=res.$0;
+          return Runtime.New(Result,{
+           $:0,
+           $0:f(s)
+          });
+         }
+       },function(formlet1)
+       {
+        return Formlet2.MapResult(f2,formlet1);
+       }),f1(formlet)));
       },
       ValidationFrameConfiguration:Runtime.Class({},{
        get_Default:function()
@@ -964,113 +1259,183 @@
       }),
       WithCssClass:function(css,formlet)
       {
-       return Formlet2.MapElement(function(el)
+       var f,f1;
+       f=(f1=function(el)
        {
-        el["HtmlProvider@32"].AddClass(el.Body,css);
+        var objectArg,arg00;
+        objectArg=el["HtmlProvider@32"];
+        (arg00=el.Body,function(arg10)
+        {
+         return objectArg.AddClass(arg00,arg10);
+        })(css);
         return el;
-       },formlet);
+       },function(formlet1)
+       {
+        return Formlet2.MapElement(f1,formlet1);
+       });
+       return f(formlet);
       },
       WithCustomFormContainer:function(fc,formlet)
       {
-       var x;
-       x=Formlet2.ApplyLayout(formlet);
-       return Formlet2.MapElement(function(formEl)
+       var x,f,f1;
+       x=(f=function(formlet1)
        {
-        var x1,d,description,x2,d1,tb,cell,list,matchValue,matchValue1;
-        x1=fc.Description;
-        d=Runtime.New(T,{
-         $:0
-        });
-        description=Utils.Maybe(d,function(descr)
+        return Formlet2.ApplyLayout(formlet1);
+       },f(formlet));
+       f1=function(formlet1)
+       {
+        return Formlet2.MapElement(function(formEl)
         {
-         var text;
-         if(descr.$==1)
+         var description,x1,f2,d,f3,tb,x2,f4,d1,f5,cell,x3,f6,f7,x4,x5,f8,f9,x6,fa,fb,x7,fd,fe,x8,ff,f10,x9,f11,f12,f13,action,matchValue,style,objectArg1,arg002,matchValue1,cls,objectArg2,arg003;
+         description=(x1=fc.Description,(f2=(d=Runtime.New(T,{
+          $:0
+         }),(f3=function(descr)
+         {
+          var genEl,text;
+          if(descr.$==1)
+           {
+            genEl=descr.$0;
+            return List.ofArray([genEl(null)]);
+           }
+          else
+           {
+            text=descr.$0;
+            return List.ofArray([Default.P(List.ofArray([Default.Tags().text(text)]))]);
+           }
+         },function(o)
+         {
+          return Utils.Maybe(d,f3,o);
+         })),f2(x1)));
+         tb=(x2=fc.Header,(f4=(d1=Utils.InTable(List.ofArray([List.ofArray([Operators.add(Default.Div(List.ofArray([Default.Attr().Class("headerPanel")])),description)]),List.ofArray([formEl])])),(f5=function(formElem)
+         {
+          var header,hdr,genElem,text;
+          header=(hdr=formElem.$==1?(genElem=formElem.$0,genElem(null)):(text=formElem.$0,Default.H1(List.ofArray([Default.Tags().text(text)]))),Operators.add(Default.Div(List.ofArray([Default.Attr().Class("headerPanel")])),Runtime.New(T,{
+           $:1,
+           $0:hdr,
+           $1:description
+          })));
+          return Utils.InTable(List.ofArray([List.ofArray([header]),List.ofArray([formEl])]));
+         },function(o)
+         {
+          return Utils.Maybe(d1,f5,o);
+         })),f4(x2)));
+         cell=Operators.add(Default.TD(List.ofArray([Default.Attr().Class("formlet")])),List.ofArray([tb]));
+         x3=fc.BorderColor;
+         f6=(f7=function(color)
+         {
+          var arg00,objectArg,arg001;
+          arg00="border-color: "+color;
+          objectArg=cell["HtmlProvider@32"];
+          return(arg001=cell.Body,function(arg10)
           {
-           return List.ofArray([descr.$0.call(null,null)]);
+           return objectArg.SetStyle(arg001,arg10);
+          })(arg00);
+         },function(o)
+         {
+          return Utils.Maybe(null,f7,o);
+         });
+         f6(x3);
+         x4=List.ofArray([["background-color",(x5=fc.BackgroundColor,(f8=(f9=function(color)
+         {
+          return color;
+         },function(value)
+         {
+          return Utils.MapOption(f9,value);
+         }),f8(x5)))],["padding-left",(x6=fc.Padding.Left,(fa=(fb=function(v)
+         {
+          return Global.String(v)+"px";
+         },function(value)
+         {
+          return Utils.MapOption(fb,value);
+         }),fa(x6)))],["padding-right",(x7=fc.Padding.Right,(fd=(fe=function(v)
+         {
+          return Global.String(v)+"px";
+         },function(value)
+         {
+          return Utils.MapOption(fe,value);
+         }),fd(x7)))],["padding-top",(x8=fc.Padding.Top,(ff=(f10=function(v)
+         {
+          return Global.String(v)+"px";
+         },function(value)
+         {
+          return Utils.MapOption(f10,value);
+         }),ff(x8)))],["padding-bottom",(x9=fc.Padding.Bottom,(f11=(f12=function(v)
+         {
+          return Global.String(v)+"px";
+         },function(value)
+         {
+          return Utils.MapOption(f12,value);
+         }),f11(x9)))]]);
+         f13=(action=Runtime.Tupled(function(tupledArg)
+         {
+          var name,value,v,objectArg,arg00;
+          name=tupledArg[0];
+          value=tupledArg[1];
+          if(value.$==0)
+           {
+            return null;
+           }
+          else
+           {
+            v=value.$0;
+            objectArg=cell["HtmlProvider@32"];
+            return((arg00=cell.Body,function(arg10)
+            {
+             return function(arg20)
+             {
+              return objectArg.SetCss(arg00,arg10,arg20);
+             };
+            })(name))(v);
+           }
+         }),function(list)
+         {
+          return Seq.iter(action,list);
+         });
+         f13(x4);
+         matchValue=fc.Style;
+         if(matchValue.$==0)
+          {
           }
          else
           {
-           text=descr.$0;
-           return List.ofArray([Default.P(List.ofArray([Default.Tags().text(text)]))]);
+           style=matchValue.$0;
+           objectArg1=cell["HtmlProvider@32"];
+           (arg002=cell.Body,function(arg10)
+           {
+            return objectArg1.SetStyle(arg002,arg10);
+           })(style);
           }
-        },x1);
-        x2=fc.Header;
-        d1=Utils.InTable(List.ofArray([List.ofArray([Operators.add(Default.Div(List.ofArray([Default.Attr().Class("headerPanel")])),description)]),List.ofArray([formEl])]));
-        tb=Utils.Maybe(d1,function(formElem)
-        {
-         var hdr,text;
-         if(formElem.$==1)
+         matchValue1=fc.CssClass;
+         if(matchValue1.$==0)
           {
-           hdr=formElem.$0.call(null,null);
           }
          else
           {
-           text=formElem.$0;
-           hdr=Default.H1(List.ofArray([Default.Tags().text(text)]));
+           cls=matchValue1.$0;
+           objectArg2=cell["HtmlProvider@32"];
+           (arg003=cell.Body,function(arg10)
+           {
+            return objectArg2.AddClass(arg003,arg10);
+           })(cls);
           }
-         return Utils.InTable(List.ofArray([List.ofArray([Operators.add(Default.Div(List.ofArray([Default.Attr().Class("headerPanel")])),Runtime.New(T,{
-          $:1,
-          $0:hdr,
-          $1:description
-         }))]),List.ofArray([formEl])]));
-        },x2);
-        cell=Operators.add(Default.TD(List.ofArray([Default.Attr().Class("formlet")])),List.ofArray([tb]));
-        Utils.Maybe(null,function(color)
-        {
-         return cell["HtmlProvider@32"].SetStyle(cell.Body,"border-color: "+color);
-        },fc.BorderColor);
-        list=List.ofArray([["background-color",Utils.MapOption(function(color)
-        {
-         return color;
-        },fc.BackgroundColor)],["padding-left",Utils.MapOption(function(v)
-        {
-         return Global.String(v)+"px";
-        },fc.Padding.Left)],["padding-right",Utils.MapOption(function(v)
-        {
-         return Global.String(v)+"px";
-        },fc.Padding.Right)],["padding-top",Utils.MapOption(function(v)
-        {
-         return Global.String(v)+"px";
-        },fc.Padding.Top)],["padding-bottom",Utils.MapOption(function(v)
-        {
-         return Global.String(v)+"px";
-        },fc.Padding.Bottom)]]);
-        Seq.iter(Runtime.Tupled(function(tupledArg)
-        {
-         var name,value;
-         name=tupledArg[0];
-         value=tupledArg[1];
-         return value.$==0?null:cell["HtmlProvider@32"].SetCss(cell.Body,name,value.$0);
-        }),list);
-        matchValue=fc.Style;
-        if(matchValue.$==0)
-         {
-         }
-        else
-         {
-          cell["HtmlProvider@32"].SetStyle(cell.Body,matchValue.$0);
-         }
-        matchValue1=fc.CssClass;
-        if(matchValue1.$==0)
-         {
-         }
-        else
-         {
-          cell["HtmlProvider@32"].AddClass(cell.Body,matchValue1.$0);
-         }
-        return Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([cell]))]))]));
-       },x);
+         return Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([cell]))]))]));
+        },formlet1);
+       };
+       return f1(x);
       },
       WithCustomResetButton:function(buttonConf,formlet)
       {
-       return Enhance.WithResetFormlet(formlet,Enhance.InputButton(buttonConf.Label.$==0?Runtime.New(FormButtonConfiguration,{
+       var buttonConf1,matchValue,reset;
+       buttonConf1=(matchValue=buttonConf.Label,matchValue.$==0?Runtime.New(FormButtonConfiguration,{
         Label:{
          $:1,
          $0:"Reset"
         },
         Style:buttonConf.Style,
         Class:buttonConf.Class
-       }):buttonConf,true));
+       }):(matchValue.$0,buttonConf));
+       reset=Enhance.InputButton(buttonConf1,true);
+       return Enhance.WithResetFormlet(formlet,reset);
       },
       WithCustomSubmitAndResetButtons:function(submitConf,resetConf,formlet)
       {
@@ -1078,28 +1443,24 @@
        {
         return function(result)
         {
-         var submit,fs,value,_builder_,reset1,formlet1;
-         if(result.$==1)
-          {
-           fs=result.$0;
-           submit=Formlet2.MapResult(function()
-           {
-            return Runtime.New(Result,{
-             $:1,
-             $0:fs
-            });
-           },Enhance.InputButton(submitConf,false));
-          }
-         else
-          {
-           value=result.$0;
-           submit=Formlet2.Map(function()
-           {
-            return value;
-           },Enhance.InputButton(submitConf,true));
-          }
-         _builder_=Formlet2.Do();
-         reset1=_builder_.Delay(function()
+         var submit,fs,x,f,f1,value,x1,f2,f3,reset1,_builder_,x2,f4,l;
+         submit=result.$==1?(fs=result.$0,(x=Enhance.InputButton(submitConf,false),(f=(f1=function()
+         {
+          return Runtime.New(Result,{
+           $:1,
+           $0:fs
+          });
+         },function(formlet1)
+         {
+          return Formlet2.MapResult(f1,formlet1);
+         }),f(x)))):(value=result.$0,(x1=Enhance.InputButton(submitConf,true),(f2=(f3=function()
+         {
+          return value;
+         },function(formlet1)
+         {
+          return Formlet2.Map(f3,formlet1);
+         }),f2(x1))));
+         reset1=(_builder_=Formlet2.Do(),_builder_.Delay(function()
          {
           return _builder_.Bind(Formlet2.LiftResult(Enhance.InputButton(resetConf,true)),function(_arg1)
           {
@@ -1109,196 +1470,294 @@
             }
            return _builder_.Return(null);
           });
-         });
-         formlet1=Data.$(Data.$(Formlet2.Return(function(v)
+         }));
+         x2=Data.$(Data.$(Formlet2.Return(function(v)
          {
           return function()
           {
            return v;
           };
          }),submit),reset1);
-         return Formlet2.WithLayout(Data.Layout().get_Horizontal(),formlet1);
+         f4=(l=Data.Layout().get_Horizontal(),function(formlet1)
+         {
+          return Formlet2.WithLayout(l,formlet1);
+         });
+         return f4(x2);
         };
        });
       },
       WithCustomSubmitButton:function(buttonConf,formlet)
       {
-       var buttonConf1;
-       buttonConf1=buttonConf.Label.$==0?Runtime.New(FormButtonConfiguration,{
+       var buttonConf1,matchValue;
+       buttonConf1=(matchValue=buttonConf.Label,matchValue.$==0?Runtime.New(FormButtonConfiguration,{
         Label:{
          $:1,
          $0:"Submit"
         },
         Style:buttonConf.Style,
         Class:buttonConf.Class
-       }):buttonConf;
+       }):(matchValue.$0,buttonConf));
        return Enhance.WithSubmitFormlet(formlet,function(res)
        {
-        return Formlet2.Map(function()
+        var x,enabled,f;
+        x=(enabled=res.$==0?true:false,Enhance.InputButton(buttonConf1,enabled));
+        f=function(formlet1)
         {
-        },Enhance.InputButton(buttonConf1,res.$==0?true:false));
+         return Formlet2.Map(function(value)
+         {
+          value;
+         },formlet1);
+        };
+        return f(x);
        });
       },
       WithCustomValidationFrame:function(vc,formlet)
       {
-       return Enhance.WrapFormlet(function(state)
+       var f,wrapper;
+       f=(wrapper=function(state)
        {
         return function(body)
         {
-         var x;
+         var x,f1,f2;
          x=Default.Div(List.ofArray([body.Element]));
-         Operators.OnAfterRender(function(panel)
+         f1=(f2=function(panel)
          {
-          Util.subscribeTo(state,function(res)
+          var x1,f3;
+          x1=Util.subscribeTo(state,function(res)
           {
-           var msgs,matchValue,matchValue1,matchValue2,matchValue3,matchValue4,matchValue5;
+           var msgs,matchValue,cls,objectArg,arg00,matchValue1,cls1,objectArg1,arg001,matchValue2,style,objectArg2,arg002,objectArg3,arg003,matchValue3,cls2,objectArg4,arg004,matchValue4,cls3,objectArg5,arg005,matchValue5,style1,objectArg6,arg006,objectArg7,arg007;
            if(res.$==1)
             {
              msgs=res.$0;
              matchValue=vc.ValidClass;
              if(matchValue.$==1)
               {
-               panel["HtmlProvider@32"].RemoveClass(panel.Body,matchValue.$0);
+               cls=matchValue.$0;
+               objectArg=panel["HtmlProvider@32"];
+               (arg00=panel.Body,function(arg10)
+               {
+                return objectArg.RemoveClass(arg00,arg10);
+               })(cls);
               }
              matchValue1=vc.ErrorClass;
              if(matchValue1.$==1)
               {
-               panel["HtmlProvider@32"].AddClass(panel.Body,matchValue1.$0);
+               cls1=matchValue1.$0;
+               objectArg1=panel["HtmlProvider@32"];
+               (arg001=panel.Body,function(arg10)
+               {
+                return objectArg1.AddClass(arg001,arg10);
+               })(cls1);
               }
              matchValue2=vc.ErrorStyle;
-             return matchValue2.$==1?panel["HtmlProvider@32"].SetStyle(panel.Body,matchValue2.$0):panel["HtmlProvider@32"].SetStyle(panel.Body,"");
+             if(matchValue2.$==1)
+              {
+               style=matchValue2.$0;
+               objectArg2=panel["HtmlProvider@32"];
+               return(arg002=panel.Body,function(arg10)
+               {
+                return objectArg2.SetStyle(arg002,arg10);
+               })(style);
+              }
+             else
+              {
+               objectArg3=panel["HtmlProvider@32"];
+               return(arg003=panel.Body,function(arg10)
+               {
+                return objectArg3.SetStyle(arg003,arg10);
+               })("");
+              }
             }
            else
             {
              matchValue3=vc.ErrorClass;
              if(matchValue3.$==1)
               {
-               panel["HtmlProvider@32"].RemoveClass(panel.Body,matchValue3.$0);
+               cls2=matchValue3.$0;
+               objectArg4=panel["HtmlProvider@32"];
+               (arg004=panel.Body,function(arg10)
+               {
+                return objectArg4.RemoveClass(arg004,arg10);
+               })(cls2);
               }
              matchValue4=vc.ValidClass;
              if(matchValue4.$==1)
               {
-               panel["HtmlProvider@32"].AddClass(panel.Body,matchValue4.$0);
+               cls3=matchValue4.$0;
+               objectArg5=panel["HtmlProvider@32"];
+               (arg005=panel.Body,function(arg10)
+               {
+                return objectArg5.AddClass(arg005,arg10);
+               })(cls3);
               }
              matchValue5=vc.ValidStyle;
-             return matchValue5.$==1?panel["HtmlProvider@32"].SetStyle(panel.Body,matchValue5.$0):panel["HtmlProvider@32"].SetStyle(panel.Body,"");
+             if(matchValue5.$==1)
+              {
+               style1=matchValue5.$0;
+               objectArg6=panel["HtmlProvider@32"];
+               return(arg006=panel.Body,function(arg10)
+               {
+                return objectArg6.SetStyle(arg006,arg10);
+               })(style1);
+              }
+             else
+              {
+               objectArg7=panel["HtmlProvider@32"];
+               return(arg007=panel.Body,function(arg10)
+               {
+                return objectArg7.SetStyle(arg007,arg10);
+               })("");
+              }
             }
           });
-         },x);
+          f3=function(value)
+          {
+           value;
+          };
+          return f3(x1);
+         },function(w)
+         {
+          return Operators.OnAfterRender(f2,w);
+         });
+         f1(x);
          return x;
         };
-       },formlet);
+       },function(formlet1)
+       {
+        return Enhance.WrapFormlet(wrapper,formlet1);
+       });
+       return f(formlet);
       },
       WithCustomValidationIcon:function(vic,formlet)
       {
-       var formlet1,_builder_,x;
-       formlet1=Formlet2.WithLayoutOrDefault(formlet);
-       _builder_=Formlet2.Do();
-       x=Formlet2.MapResult(function(arg00)
+       var formlet1,f,x,x1,_builder_,f3,f4,f5,l;
+       formlet1=(f=function(formlet2)
        {
-        return Result.Join(arg00);
-       },_builder_.Delay(function()
+        return Formlet2.WithLayoutOrDefault(formlet2);
+       },f(formlet));
+       x=(x1=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
         return _builder_.Bind(Formlet2.LiftResult(formlet1),function(_arg1)
         {
-         return _builder_.Bind(Formlet2.OfElement(function()
+         return _builder_.Bind(function(res)
          {
-          var title;
-          if(_arg1.$==1)
-           {
-            title=Seq.fold(function(x1)
+          var x2,f2;
+          x2=function()
+          {
+           var msgs,title,f1,_this,_this1;
+           if(res.$==1)
             {
-             return function(y)
+             msgs=res.$0;
+             title=(f1=function(x3)
              {
-              return x1+" "+y;
-             };
-            },"",_arg1.$0);
-            return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(vic.ErrorIconClass),Default.Attr().NewAttr("title",title)])),List.ofArray([Default.Div(Runtime.New(T,{
-             $:0
-            }))]));
-           }
-          else
-           {
-            return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(vic.ValidIconClass),Default.Attr().NewAttr("title","")])),List.ofArray([Default.Div(Runtime.New(T,{
-             $:0
-            }))]));
-           }
-         }),function()
+              return function(y)
+              {
+               return x3+" "+y;
+              };
+             },Seq.fold(f1,"",msgs));
+             return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(vic.ErrorIconClass),(_this=Default.Attr(),_this.NewAttr("title",title))])),List.ofArray([Default.Div(Runtime.New(T,{
+              $:0
+             }))]));
+            }
+           else
+            {
+             return Operators.add(Default.Div(List.ofArray([Default.Attr().Class(vic.ValidIconClass),(_this1=Default.Attr(),_this1.NewAttr("title",""))])),List.ofArray([Default.Div(Runtime.New(T,{
+              $:0
+             }))]));
+            }
+          };
+          f2=function(genElem)
+          {
+           return Formlet2.OfElement(genElem);
+          };
+          return f2(x2);
+         }(_arg1),function()
          {
           return _builder_.Return(_arg1);
          });
         });
-       }));
-       return Formlet2.WithLayout(Data.Layout().get_Horizontal(),x);
+       })),(f3=(f4=function(arg00)
+       {
+        return Result.Join(arg00);
+       },function(formlet2)
+       {
+        return Formlet2.MapResult(f4,formlet2);
+       }),f3(x1)));
+       f5=(l=Data.Layout().get_Horizontal(),function(formlet2)
+       {
+        return Formlet2.WithLayout(l,formlet2);
+       });
+       return f5(x);
       },
       WithErrorFormlet:function(f,formlet)
       {
-       var _builder_;
-       _builder_=Formlet2.Do();
-       return Formlet2.MapResult(function(arg00)
-       {
-        return Result.Join(arg00);
-       },_builder_.Delay(function()
+       var x,_builder_,f1;
+       x=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
         return _builder_.Bind(Formlet2.LiftResult(formlet),function(_arg1)
         {
-         var _,msgs,_builder_1;
-         if(_arg1.$==1)
+         var msgs,_builder_1;
+         return _builder_.ReturnFrom(_arg1.$==1?(msgs=_arg1.$0,(_builder_1=Formlet2.Do(),_builder_1.Delay(function()
+         {
+          return _builder_1.Bind(f(msgs),function()
           {
-           msgs=_arg1.$0;
-           _builder_1=Formlet2.Do();
-           _=_builder_1.Delay(function()
-           {
-            return _builder_1.Bind(f(msgs),function()
-            {
-             return _builder_1.Return(_arg1);
-            });
-           });
-          }
-         else
-          {
-           _=Formlet2.Return(_arg1);
-          }
-         return _builder_.ReturnFrom(_);
+           return _builder_1.Return(_arg1);
+          });
+         }))):(_arg1.$0,Formlet2.Return(_arg1)));
         });
        }));
+       f1=function(formlet1)
+       {
+        return Formlet2.MapResult(function(arg00)
+        {
+         return Result.Join(arg00);
+        },formlet1);
+       };
+       return f1(x);
       },
       WithErrorSummary:function(label,formlet)
       {
-       var _builder_;
-       _builder_=Formlet2.Do();
-       return Formlet2.MapResult(function(arg00)
-       {
-        return Result.Join(arg00);
-       },_builder_.Delay(function()
+       var x,_builder_,f5,f6;
+       x=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
         return _builder_.Bind(Formlet2.LiftResult(formlet),function(_arg1)
         {
-         var _,fs;
-         if(_arg1.$==1)
+         var fs,x1,f3,f4,s;
+         return _builder_.ReturnFrom(_arg1.$==1?(fs=_arg1.$0,(x1=function(fs1)
+         {
+          return Formlet2.OfElement(function()
           {
-           fs=_arg1.$0;
-           _=Formlet2.Map(function()
+           var x2,x3,_this,x4,f,mapping,f2,_this1;
+           x2=List.ofArray([(x3=List.ofArray([Default.Text(label)]),(_this=Default.Tags(),_this.NewTag("legend",x3))),(x4=(f=(mapping=function(f1)
            {
-            return _arg1;
-           },Formlet2.OfElement(function()
+            return Default.LI(List.ofArray([Default.Text(f1)]));
+           },function(list)
            {
-            var arg10,arg101;
-            arg101=List.ofArray([Default.Text(label)]);
-            arg10=List.ofArray([Default.Tags().NewTag("legend",arg101),Default.UL(List.map(function(f)
-            {
-             return Default.LI(List.ofArray([Default.Text(f)]));
-            },fs))]);
-            return Default.Tags().NewTag("fieldset",arg10);
-           }));
-          }
-         else
-          {
-           _=Formlet2.Return(_arg1);
-          }
-         return _builder_.ReturnFrom(_);
+            return List.map(mapping,list);
+           }),f(fs1)),(f2=function(x5)
+           {
+            return Default.UL(x5);
+           },f2(x4)))]);
+           _this1=Default.Tags();
+           return _this1.NewTag("fieldset",x2);
+          });
+         }(fs),(f3=(f4=function()
+         {
+          return _arg1;
+         },function(formlet1)
+         {
+          return Formlet2.Map(f4,formlet1);
+         }),f3(x1)))):(s=_arg1.$0,Formlet2.Return(_arg1)));
         });
        }));
+       f5=(f6=function(arg00)
+       {
+        return Result.Join(arg00);
+       },function(formlet1)
+       {
+        return Formlet2.MapResult(f6,formlet1);
+       });
+       return f5(x);
       },
       WithFormContainer:function(formlet)
       {
@@ -1306,61 +1765,63 @@
       },
       WithJsonPost:function(conf,formlet)
       {
-       var matchValue,postUrl,arg10,matchValue1,enc,arg101,_this,arg102,arg103,hiddenField,_this1,arg104,submitButton,x,f;
-       matchValue=conf.PostUrl;
-       if(matchValue.$==0)
-        {
-         postUrl=Runtime.New(T,{
-          $:0
-         });
-        }
-       else
-        {
-         arg10=matchValue.$0;
-         postUrl=List.ofArray([Default.Attr().NewAttr("action",arg10)]);
-        }
-       matchValue1=conf.EncodingType;
-       if(matchValue1.$==0)
-        {
-         enc=Runtime.New(T,{
-          $:0
-         });
-        }
-       else
-        {
-         arg101=matchValue1.$0;
-         enc=List.ofArray([Default.Attr().NewAttr("enctype",arg101)]);
-        }
-       _this=Default.Tags();
-       arg103=conf.ParameterName;
-       arg102=List.ofArray([Default.Attr().NewAttr("type","hidden"),Default.Attr().NewAttr("name",arg103)]);
-       hiddenField=_this.NewTag("input",arg102);
-       _this1=Default.Tags();
-       arg104=List.ofArray([Default.Attr().NewAttr("type","submit"),Default.Attr().NewAttr("value","Submit")]);
-       submitButton=_this1.NewTag("input",arg104);
-       x=Operators.add(Default.Form(List.append(Runtime.New(T,{
+       var postUrl,matchValue,url,_this,enc,matchValue1,enc1,_this1,hiddenField,_this2,x,_this3,_this4,x1,submitButton,_this5,x2,_this6,_this7,form,formAttrs,_this8,_this9,x3,f,formlet1,f2,f3;
+       postUrl=(matchValue=conf.PostUrl,matchValue.$==0?Runtime.New(T,{
+        $:0
+       }):(url=matchValue.$0,List.ofArray([(_this=Default.Attr(),_this.NewAttr("action",url))])));
+       enc=(matchValue1=conf.EncodingType,matchValue1.$==0?Runtime.New(T,{
+        $:0
+       }):(enc1=matchValue1.$0,List.ofArray([(_this1=Default.Attr(),_this1.NewAttr("enctype",enc1))])));
+       hiddenField=(_this2=Default.Tags(),(x=List.ofArray([(_this3=Default.Attr(),_this3.NewAttr("type","hidden")),(_this4=Default.Attr(),(x1=conf.ParameterName,_this4.NewAttr("name",x1)))]),_this2.NewTag("input",x)));
+       submitButton=(_this5=Default.Tags(),(x2=List.ofArray([(_this6=Default.Attr(),_this6.NewAttr("type","submit")),(_this7=Default.Attr(),_this7.NewAttr("value","Submit"))]),_this5.NewTag("input",x2)));
+       form=(formAttrs=List.append(Runtime.New(T,{
         $:1,
-        $0:Default.Attr().NewAttr("method","POST"),
+        $0:(_this8=Default.Attr(),_this8.NewAttr("method","POST")),
         $1:Runtime.New(T,{
          $:1,
-         $0:Default.Attr().NewAttr("style","display:none"),
+         $0:(_this9=Default.Attr(),_this9.NewAttr("style","display:none")),
          $1:postUrl
         })
-       }),enc)),List.ofArray([hiddenField,submitButton]));
-       f=function(value)
+       }),enc),(x3=Operators.add(Default.Form(formAttrs),List.ofArray([hiddenField,submitButton])),(f=function(w)
+       {
+        return Operators.OnAfterRender(function(form1)
+        {
+         var matchValue2,enc2,x4,f1;
+         matchValue2=conf.EncodingType;
+         if(matchValue2.$==0)
+          {
+           return null;
+          }
+         else
+          {
+           enc2=matchValue2.$0;
+           if(enc2==="multipart/form-data")
+            {
+             x4=jQuery(form1.Body).attr("encoding","multipart/form-data");
+             f1=function(value)
+             {
+              value;
+             };
+             return f1(x4);
+            }
+           else
+            {
+             return null;
+            }
+          }
+        },w);
+       },(f(x3),x3))));
+       formlet1=(f2=(f3=function(value)
        {
         var data;
         data=JSON.stringify(value);
         jQuery(hiddenField.Body).val(data);
         return jQuery(submitButton.Body).click();
-       };
-       Operators.OnAfterRender(function(form)
+       },function(formlet2)
        {
-        var matchValue2;
-        matchValue2=conf.EncodingType;
-        return matchValue2.$==0?null:matchValue2.$0==="multipart/form-data"?void jQuery(form.Body).attr("encoding","multipart/form-data"):null;
-       },x);
-       return Default.Div(List.ofArray([x,Formlet2.Map(f,formlet)]));
+        return Formlet2.Map(f3,formlet2);
+       }),f2(formlet));
+       return Default.Div(List.ofArray([form,formlet1]));
       },
       WithLabel:function(labelGen,formlet)
       {
@@ -1371,86 +1832,117 @@
       },
       WithLabelAbove:function(formlet)
       {
-       return Formlet2.MapBody(function(body)
+       var f,f1;
+       f=(f1=function(body)
        {
-        var matchValue;
-        matchValue=body.Label;
+        var el,label,matchValue,l,Label;
+        el=(label=(matchValue=body.Label,matchValue.$==0?Default.Span(Runtime.New(T,{
+         $:0
+        })):(l=matchValue.$0,l(null))),Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([Default.TD(List.ofArray([label]))])),Default.TR(List.ofArray([Default.TD(List.ofArray([body.Element]))]))]))])));
+        Label={
+         $:0
+        };
         return Runtime.New(Body,{
-         Element:Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([Default.TD(List.ofArray([matchValue.$==0?Default.Span(Runtime.New(T,{
-          $:0
-         })):matchValue.$0.call(null,null)]))])),Default.TR(List.ofArray([Default.TD(List.ofArray([body.Element]))]))]))])),
-         Label:{
-          $:0
-         }
+         Element:el,
+         Label:Label
         });
-       },formlet);
+       },function(formlet1)
+       {
+        return Formlet2.MapBody(f1,formlet1);
+       });
+       return f(formlet);
       },
       WithLabelAndInfo:function(label,info,formlet)
       {
        return Enhance.WithLabel(function()
        {
-        var arg10;
-        arg10=List.ofArray([Default.Text(label)]);
-        return Utils.InTable(List.ofArray([List.ofArray([Default.Tags().NewTag("label",arg10),Default.Span(List.ofArray([Default.Attr().NewAttr("title",info),Default.Attr().Class("infoIcon")]))])]));
+        var x,_this,_this1;
+        return Utils.InTable(List.ofArray([List.ofArray([(x=List.ofArray([Default.Text(label)]),(_this=Default.Tags(),_this.NewTag("label",x))),Default.Span(List.ofArray([(_this1=Default.Attr(),_this1.NewAttr("title",info)),Default.Attr().Class("infoIcon")]))])]));
        },formlet);
       },
       WithLabelConfiguration:function(lc,formlet)
       {
-       var formlet1;
-       formlet1=Formlet2.ApplyLayout(formlet);
-       return Formlet2.WithLayout(Data.Layout().LabelLayout(lc),formlet1);
+       var x,f,f1,l;
+       x=(f=function(formlet1)
+       {
+        return Formlet2.ApplyLayout(formlet1);
+       },f(formlet));
+       f1=(l=Data.Layout().LabelLayout(lc),function(formlet1)
+       {
+        return Formlet2.WithLayout(l,formlet1);
+       });
+       return f1(x);
       },
       WithLabelLeft:function(formlet)
       {
-       return Formlet2.MapBody(function(body)
+       var f,f1;
+       f=(f1=function(body)
        {
-        var matchValue,label;
-        matchValue=body.Label;
-        label=matchValue.$==0?Default.Span(Runtime.New(T,{
+        var el,label,matchValue,l,Label;
+        el=(label=(matchValue=body.Label,matchValue.$==0?Default.Span(Runtime.New(T,{
          $:0
-        })):matchValue.$0.call(null,null);
+        })):(l=matchValue.$0,l(null))),Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([Default.TD(List.ofArray([body.Element])),Default.TD(List.ofArray([label]))]))]))])));
+        Label={
+         $:0
+        };
         return Runtime.New(Body,{
-         Element:Default.Table(List.ofArray([Default.TBody(List.ofArray([Default.TR(List.ofArray([Default.TD(List.ofArray([body.Element])),Default.TD(List.ofArray([label]))]))]))])),
-         Label:{
-          $:0
-         }
+         Element:el,
+         Label:Label
         });
-       },formlet);
+       },function(formlet1)
+       {
+        return Formlet2.MapBody(f1,formlet1);
+       });
+       return f(formlet);
       },
       WithLegend:function(label,formlet)
       {
-       return Formlet2.MapBody(function(body)
+       var f,f1;
+       f=(f1=function(body)
        {
-        var arg10,arg101,matchValue;
-        arg101=List.ofArray([Default.Tags().text(label)]);
-        matchValue=body.Label;
-        arg10=List.ofArray([Default.Tags().NewTag("legend",arg101),matchValue.$==0?body.Element:Utils.InTable(List.ofArray([List.ofArray([matchValue.$0.call(null,null),body.Element])]))]);
+        var element,x,x1,_this,matchValue,label1,_this1;
+        element=(x=List.ofArray([(x1=List.ofArray([Default.Tags().text(label)]),(_this=Default.Tags(),_this.NewTag("legend",x1))),(matchValue=body.Label,matchValue.$==0?body.Element:(label1=matchValue.$0,Utils.InTable(List.ofArray([List.ofArray([label1(null),body.Element])]))))]),(_this1=Default.Tags(),_this1.NewTag("fieldset",x)));
         return Runtime.New(Body,{
-         Element:Default.Tags().NewTag("fieldset",arg10),
+         Element:element,
          Label:{
           $:0
          }
         });
-       },formlet);
+       },function(formlet1)
+       {
+        return Formlet2.MapBody(f1,formlet1);
+       });
+       return f(formlet);
       },
       WithResetAction:function(f,formlet)
       {
-       var formlet1;
-       formlet1=Formlet2.New(function()
+       var formlet1,f2,x,f1,l;
+       formlet1=(f2=(x=Formlet2.New(function()
        {
-        var form;
+        var form,notify;
         form=formlet.Build();
+        notify=function(o)
+        {
+         if(f(null))
+          {
+           return form.Notify.call(null,o);
+          }
+         else
+          {
+           return null;
+          }
+        };
         return Runtime.New(Form,{
          Body:form.Body,
          Dispose1:form.Dispose1,
-         Notify:function(o)
-         {
-          return f(null)?form.Notify.call(null,o):null;
-         },
+         Notify:notify,
          State:form.State
         });
-       });
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Formlet2.WithLayout(formlet.get_Layout(),formlet1)));
+       }),(f1=(l=formlet.get_Layout(),function(formlet2)
+       {
+        return Formlet2.WithLayout(l,formlet2);
+       }),f1(x))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithResetButton:function(formlet)
       {
@@ -1458,18 +1950,15 @@
       },
       WithResetFormlet:function(formlet,reset)
       {
-       var formlet1,x,formlet2,button,_builder_;
-       formlet1=Formlet2.InitWithFailure(Formlet2.ApplyLayout(Formlet2.WithLayoutOrDefault(formlet)));
-       x=Formlet2.LiftResult(formlet1);
-       formlet2=Formlet2.WithNotificationChannel(x);
+       var formlet1,formlet2,formlet3,formlet4,formlet5,f,button,formlet7,f2,x,_builder_,f1;
+       formlet1=(formlet2=(formlet3=(formlet4=(formlet5=(f=function(formlet6)
+       {
+        return Formlet2.WithLayoutOrDefault(formlet6);
+       },f(formlet)),Formlet2.ApplyLayout(formlet5)),Formlet2.InitWithFailure(formlet4)),Formlet2.LiftResult(formlet3)),Formlet2.WithNotificationChannel(formlet2));
        button=Formlet2.LiftResult(reset);
-       _builder_=Formlet2.Do();
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet2,Formlet2.MapResult(function(arg00)
+       formlet7=(f2=(x=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
-        return Result.Join(arg00);
-       },_builder_.Delay(function()
-       {
-        return _builder_.Bind(formlet2,Runtime.Tupled(function(_arg1)
+        return _builder_.Bind(formlet1,Runtime.Tupled(function(_arg1)
         {
          var v,notify;
          v=_arg1[0];
@@ -1483,49 +1972,69 @@
           return _builder_.Return(v);
          });
         }));
-       }))));
+       })),(f1=function(formlet6)
+       {
+        return Formlet2.MapResult(function(arg00)
+        {
+         return Result.Join(arg00);
+        },formlet6);
+       },f1(x))),Data.PropagateRenderFrom(formlet1,f2));
+       return Data.OfIFormlet(formlet7);
       },
       WithRowConfiguration:function(rc,formlet)
       {
-       var formlet1;
-       formlet1=Formlet2.ApplyLayout(formlet);
-       return Formlet2.WithLayout(Data.Layout().RowLayout(rc),formlet1);
+       var x,f,f1,l;
+       x=(f=function(formlet1)
+       {
+        return Formlet2.ApplyLayout(formlet1);
+       },f(formlet));
+       f1=(l=Data.Layout().RowLayout(rc),function(formlet1)
+       {
+        return Formlet2.WithLayout(l,formlet1);
+       });
+       return f1(x);
       },
       WithSubmitAndReset:function(formlet,submReset)
       {
-       var _builder_;
-       _builder_=Formlet2.Do();
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,_builder_.Delay(function()
+       var formlet1,f2,_builder_;
+       formlet1=(f2=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
-        return _builder_.Bind(Formlet2.WithNotificationChannel(Formlet2.LiftResult(Formlet2.InitWithFailure(formlet))),Runtime.Tupled(function(_arg1)
+        var formlet2,formlet3,f;
+        return _builder_.Bind((formlet2=(formlet3=(f=function(formlet4)
         {
-         var res;
+         return Formlet2.InitWithFailure(formlet4);
+        },f(formlet)),Formlet2.LiftResult(formlet3)),Formlet2.WithNotificationChannel(formlet2)),Runtime.Tupled(function(_arg1)
+        {
+         var res,notify;
          res=_arg1[0];
-         return _builder_.ReturnFrom((submReset(_arg1[1]))(res));
+         notify=_arg1[1];
+         return _builder_.ReturnFrom((submReset(notify))(res));
         }));
-       })));
+       })),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithSubmitAndResetButtons:function(formlet)
       {
-       var inputRecord,submitConf,inputRecord1;
-       inputRecord=FormButtonConfiguration.get_Default();
-       submitConf=Runtime.New(FormButtonConfiguration,{
+       var f,submitConf,inputRecord,resetConf,inputRecord1;
+       f=(submitConf=(inputRecord=FormButtonConfiguration.get_Default(),Runtime.New(FormButtonConfiguration,{
         Label:{
          $:1,
          $0:"Submit"
         },
         Style:inputRecord.Style,
         Class:inputRecord.Class
-       });
-       inputRecord1=FormButtonConfiguration.get_Default();
-       return Enhance.WithCustomSubmitAndResetButtons(submitConf,Runtime.New(FormButtonConfiguration,{
+       })),(resetConf=(inputRecord1=FormButtonConfiguration.get_Default(),Runtime.New(FormButtonConfiguration,{
         Label:{
          $:1,
          $0:"Reset"
         },
         Style:inputRecord1.Style,
         Class:inputRecord1.Class
-       }),formlet);
+       })),function(formlet1)
+       {
+        return Enhance.WithCustomSubmitAndResetButtons(submitConf,resetConf,formlet1);
+       }));
+       return f(formlet);
       },
       WithSubmitButton:function(formlet)
       {
@@ -1533,29 +2042,37 @@
       },
       WithSubmitFormlet:function(formlet,submit)
       {
-       var _builder_;
-       _builder_=Formlet2.Do();
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Formlet2.MapResult(function(arg00)
+       var formlet1,f2,x,_builder_,f1;
+       formlet1=(f2=(x=(_builder_=Formlet2.Do(),_builder_.Delay(function()
        {
-        return Result.Join(arg00);
-       },_builder_.Delay(function()
-       {
-        return _builder_.Bind(Formlet2.LiftResult(Formlet2.InitWithFailure(formlet)),function(_arg1)
+        var formlet2,f;
+        return _builder_.Bind((formlet2=(f=function(formlet3)
+        {
+         return Formlet2.InitWithFailure(formlet3);
+        },f(formlet)),Formlet2.LiftResult(formlet2)),function(_arg1)
         {
          return _builder_.Bind(submit(_arg1),function()
          {
           return _builder_.Return(_arg1);
          });
         });
-       }))));
+       })),(f1=function(formlet2)
+       {
+        return Formlet2.MapResult(function(arg00)
+        {
+         return Result.Join(arg00);
+        },formlet2);
+       },f1(x))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithTextLabel:function(label,formlet)
       {
        return Enhance.WithLabel(function()
        {
-        var arg10;
-        arg10=List.ofArray([Default.Text(label)]);
-        return Default.Tags().NewTag("label",arg10);
+        var x,_this;
+        x=List.ofArray([Default.Text(label)]);
+        _this=Default.Tags();
+        return _this.NewTag("label",x);
        },formlet);
       },
       WithValidationFrame:function(formlet)
@@ -1570,11 +2087,17 @@
       {
        return Data.MkFormlet(function()
        {
-        var formlet1,form,body;
-        formlet1=Formlet2.WithLayoutOrDefault(formlet);
+        var formlet1,f,form,patternInput,disp,body,panel;
+        formlet1=(f=function(formlet2)
+        {
+         return Formlet2.WithLayoutOrDefault(formlet2);
+        },f(formlet));
         form=Formlet2.BuildForm(formlet1);
-        body=formlet1.get_Layout().Apply.call(null,form.Body).$0[0];
-        return[(wrapper(form.State))(body),function()
+        patternInput=formlet1.get_Layout().Apply.call(null,form.Body).$0;
+        disp=patternInput[1];
+        body=patternInput[0];
+        panel=(wrapper(form.State))(body);
+        return[panel,function()
         {
          return form.Notify.call(null,null);
         },form.State];
@@ -1584,15 +2107,26 @@
      Formlet:{
       ApplyLayout:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().ApplyLayout(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().ApplyLayout(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Bind:function(fl,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(fl,Data.BaseFormlet().Bind(fl,f)));
+       var formlet,f2,objectArg,arg10;
+       formlet=(f2=(objectArg=Data.BaseFormlet(),(arg10=function(x)
+       {
+        var y;
+        y=f(x);
+        return y;
+       },objectArg.Bind(fl,arg10))),Data.PropagateRenderFrom(fl,f2));
+       return Data.OfIFormlet(formlet);
       },
       BindWith:function(compose,formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().BindWith(compose,formlet,f)));
+       var formlet1,f2,objectArg,arg20;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg20=f,objectArg.BindWith(compose,formlet,arg20))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       BuildForm:function(f)
       {
@@ -1604,62 +2138,115 @@
       },
       Choose:function(fs)
       {
-       var count,fs1,formlet,x1,arg00;
+       var count,x,x1,x2,fs1,f,mapping,f6,f7,f8;
        count={
         contents:0
        };
-       fs1=Seq.map(function(f)
+       x=(x1=(x2=(fs1=(f=(mapping=function(f1)
        {
-        return Formlet2.LiftResult(Formlet2.InitWithFailure(Formlet2.Map(function(x)
+        var x3,x4,f2,f3,f4,f5;
+        x3=(x4=(f2=(f3=function(x5)
         {
          Operators1.Increment(count);
-         return[x,count.contents];
-        },f)));
-       },fs);
-       formlet=Formlet2.Sequence(fs1);
-       x1=Formlet2.Map(function(xs)
+         return[x5,count.contents];
+        },function(formlet)
+        {
+         return Formlet2.Map(f3,formlet);
+        }),f2(f1)),(f4=function(formlet)
+        {
+         return Formlet2.InitWithFailure(formlet);
+        },f4(x4)));
+        f5=function(formlet)
+        {
+         return Formlet2.LiftResult(formlet);
+        };
+        return f5(x3);
+       },function(source)
        {
-        var x,x3;
-        x=List.choose(function(x2)
-        {
-         return x2.$==0?{
-          $:1,
-          $0:x2.$0
-         }:{
-          $:0
-         };
-        },xs);
-        x3=List.rev(List.sortBy(Runtime.Tupled(function(tupledArg)
-        {
-         return tupledArg[1];
-        }),x));
-        return Seq.tryPick(Runtime.Tupled(function(tupledArg)
-        {
-         return{
-          $:1,
-          $0:tupledArg[0]
-         };
-        }),x3);
-       },formlet);
-       arg00=function(x)
+        return Seq.map(mapping,source);
+       }),f(fs)),Formlet2.Sequence(fs1)),(f6=function(formlet)
        {
-        return x.$==1;
+        return Formlet2.Map(function(xs)
+        {
+         var x3,x4,x5,f1,chooser,f2,projection,f3,f4,chooser1;
+         x3=(x4=(x5=(f1=(chooser=function(x6)
+         {
+          var v;
+          if(x6.$==0)
+           {
+            v=x6.$0;
+            return{
+             $:1,
+             $0:v
+            };
+           }
+          else
+           {
+            return{
+             $:0
+            };
+           }
+         },function(list)
+         {
+          return List.choose(chooser,list);
+         }),f1(xs)),(f2=(projection=Runtime.Tupled(function(tupledArg)
+         {
+          var _arg1,ix;
+          _arg1=tupledArg[0];
+          ix=tupledArg[1];
+          return ix;
+         }),function(list)
+         {
+          return List.sortBy(projection,list);
+         }),f2(x5))),(f3=function(list)
+         {
+          return List.rev(list);
+         },f3(x4)));
+         f4=(chooser1=Runtime.Tupled(function(tupledArg)
+         {
+          var x6,_arg2;
+          x6=tupledArg[0];
+          _arg2=tupledArg[1];
+          return{
+           $:1,
+           $0:x6
+          };
+         }),function(list)
+         {
+          return Seq.tryPick(chooser1,list);
+         });
+         return f4(x3);
+        },formlet);
+       },f6(x2))),(f7=function(arg20)
+       {
+        return Data.Validator().Is(function(x3)
+        {
+         return x3.$==1;
+        },"",arg20);
+       },f7(x1)));
+       f8=function(formlet)
+       {
+        return Formlet2.Map(function(x3)
+        {
+         return x3.$0;
+        },formlet);
        };
-       return Formlet2.Map(function(x)
-       {
-        return x.$0;
-       },Data.Validator().Is(arg00,"",x1));
+       return f8(x);
       },
       Delay:function(f)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Delay(function()
+       var formlet;
+       formlet=Data.BaseFormlet().Delay(function()
        {
         return f(null);
-       }));
+       });
+       return Data.OfIFormlet(formlet);
       },
       Deletable:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Deletable(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().Deletable(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Do:Runtime.Field(function()
       {
@@ -1667,81 +2254,121 @@
       }),
       Empty:function()
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Empty());
+       var formlet;
+       formlet=Data.BaseFormlet().Empty();
+       return Data.OfIFormlet(formlet);
       },
       FailWith:function(fs)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().FailWith(fs));
+       var formlet;
+       formlet=Data.BaseFormlet().FailWith(fs);
+       return Data.OfIFormlet(formlet);
       },
       FlipBody:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().FlipBody(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().FlipBody(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Flowlet:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithLayout(Data.Layout().get_Flowlet(),formlet)));
+       var formlet1,f2,objectArg,arg00;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg00=Data.Layout().get_Flowlet(),objectArg.WithLayout(arg00,formlet))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Horizontal:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithLayout(Data.Layout().get_Horizontal(),formlet)));
+       var formlet1,f2,objectArg,arg00;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg00=Data.Layout().get_Horizontal(),objectArg.WithLayout(arg00,formlet))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       InitWith:function(value,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().InitWith(value,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.InitWith(value,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       InitWithFailure:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().InitWithFailure(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().InitWithFailure(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Join:function(formlet)
       {
-       var x;
-       x=Formlet2.Map(function(f)
+       var formlet1,f2,x,f,f1,f4,objectArg;
+       formlet1=(f2=(x=(f=(f1=function(f3)
        {
-        return f;
-       },formlet);
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Join(x)));
+        return f3;
+       },function(formlet2)
+       {
+        return Formlet2.Map(f1,formlet2);
+       }),f(formlet)),(f4=(objectArg=Data.BaseFormlet(),function(arg00)
+       {
+        return objectArg.Join(arg00);
+       }),f4(x))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       LiftResult:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().LiftResult(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().LiftResult(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Map:function(f,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Map(f,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.Map(f,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       MapBody:function(f,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().MapBody(f,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.MapBody(f,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       MapElement:function(f,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().MapBody(function(b)
+       var formlet1,f2,f1,objectArg,arg00;
+       formlet1=(f2=(f1=(objectArg=Data.BaseFormlet(),(arg00=function(b)
        {
         return Runtime.New(Body,{
          Element:f(b.Element),
          Label:b.Label
         });
-       },formlet)));
+       },function(arg10)
+       {
+        return objectArg.MapBody(arg00,arg10);
+       })),f1(formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       MapResult:function(f,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().MapResult(f,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.MapResult(f,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Never:function()
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Never());
+       var formlet;
+       formlet=Data.BaseFormlet().Never();
+       return Data.OfIFormlet(formlet);
       },
       New:function(f)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().New(f));
+       var formlet;
+       formlet=Data.BaseFormlet().New(f);
+       return Data.OfIFormlet(formlet);
       },
       OfElement:function(genElem)
       {
        return Data.MkFormlet(function()
        {
-        return[genElem(null),function()
+        var elem;
+        elem=genElem(null);
+        return[elem,function(value)
         {
+         value;
         },Data.RX().Return(Runtime.New(Result,{
          $:0,
          $0:null
@@ -1750,25 +2377,36 @@
       },
       Render:function(formlet)
       {
-       return Data.PropagateRenderFrom(formlet,formlet.Run(function()
+       var f2;
+       f2=formlet.Run(function(value)
        {
-       }));
+        value;
+       });
+       return Data.PropagateRenderFrom(formlet,f2);
       },
       Replace:function(formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Replace(formlet,f)));
+       var formlet1,f2,objectArg,arg10;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg10=f,objectArg.Replace(formlet,arg10))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       ReplaceFirstWithFailure:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().ReplaceFirstWithFailure(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().ReplaceFirstWithFailure(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Return:function(x)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Return(x));
+       var formlet;
+       formlet=Data.BaseFormlet().Return(x);
+       return Data.OfIFormlet(formlet);
       },
       ReturnEmpty:function(x)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().ReturnEmpty(x));
+       var formlet;
+       formlet=Data.BaseFormlet().ReturnEmpty(x);
+       return Data.OfIFormlet(formlet);
       },
       Run:function(f,formlet)
       {
@@ -1776,87 +2414,140 @@
       },
       SelectMany:function(formlet)
       {
-       var x;
-       x=Formlet2.Map(function(f)
+       var formlet1,f2,x,f,f1,f4,objectArg;
+       formlet1=(f2=(x=(f=(f1=function(f3)
        {
-        return f;
-       },formlet);
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().SelectMany(x)));
+        return f3;
+       },function(formlet2)
+       {
+        return Formlet2.Map(f1,formlet2);
+       }),f(formlet)),(f4=(objectArg=Data.BaseFormlet(),function(arg00)
+       {
+        return objectArg.SelectMany(arg00);
+       }),f4(x))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Sequence:function(fs)
       {
-       var x;
-       x=Seq.map(function(x1)
+       var formlet,x,f,mapping,f1,objectArg;
+       formlet=(x=(f=(mapping=function(x1)
        {
         return x1;
-       },fs);
-       return Data.OfIFormlet(Data.BaseFormlet().Sequence(x));
+       },function(source)
+       {
+        return Seq.map(mapping,source);
+       }),f(fs)),(f1=(objectArg=Data.BaseFormlet(),function(arg00)
+       {
+        return objectArg.Sequence(arg00);
+       }),f1(x)));
+       return Data.OfIFormlet(formlet);
       },
       Switch:function(formlet)
       {
-       var x;
-       x=Formlet2.Map(function(f)
+       var formlet1,f2,x,f,f1,f4,objectArg;
+       formlet1=(f2=(x=(f=(f1=function(f3)
        {
-        return f;
-       },formlet);
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Switch(x)));
+        return f3;
+       },function(formlet2)
+       {
+        return Formlet2.Map(f1,formlet2);
+       }),f(formlet)),(f4=(objectArg=Data.BaseFormlet(),function(arg00)
+       {
+        return objectArg.Switch(arg00);
+       }),f4(x))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Vertical:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithLayout(Data.Layout().get_Vertical(),formlet)));
+       var formlet1,f2,objectArg,arg00;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg00=Data.Layout().get_Vertical(),objectArg.WithLayout(arg00,formlet))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithCancelation:function(formlet,c)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithCancelation(formlet,c)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.WithCancelation(formlet,c)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithLabel:function(label,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().MapBody(function(body)
+       var formlet1,f2,f,objectArg,arg00;
+       formlet1=(f2=(f=(objectArg=Data.BaseFormlet(),(arg00=function(body)
        {
         return Runtime.New(Body,{
          Element:body.Element,
          Label:label
         });
-       },formlet)));
+       },function(arg10)
+       {
+        return objectArg.MapBody(arg00,arg10);
+       })),f(formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithLayout:function(l,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithLayout(l,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.WithLayout(l,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithLayoutOrDefault:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithLayoutOrDefault(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().WithLayoutOrDefault(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithNotification:function(c,formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithNotification(c,formlet)));
+       var formlet1,f2,objectArg;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),objectArg.WithNotification(c,formlet)),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       WithNotificationChannel:function(formlet)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().WithNotificationChannel(formlet)));
+       var formlet1,f2;
+       formlet1=(f2=Data.BaseFormlet().WithNotificationChannel(formlet),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       }
      },
      FormletBuilder:Runtime.Class({
       Bind:function(formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Bind(formlet,f)));
+       var formlet1,f2,objectArg,arg10;
+       formlet1=(f2=(objectArg=Data.BaseFormlet(),(arg10=function(x)
+       {
+        var y;
+        y=f(x);
+        return y;
+       },objectArg.Bind(formlet,arg10))),Data.PropagateRenderFrom(formlet,f2));
+       return Data.OfIFormlet(formlet1);
       },
       Delay:function(f)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Delay(f));
+       var formlet;
+       formlet=Data.BaseFormlet().Delay(f);
+       return Data.OfIFormlet(formlet);
       },
       Return:function(x)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Return(x));
-      },
-      ReturnFrom:function(formlet)
-      {
+       var formlet;
+       formlet=Data.BaseFormlet().Return(x);
        return Data.OfIFormlet(formlet);
+      },
+      ReturnFrom:function(f)
+      {
+       var f1;
+       f1=function(formlet)
+       {
+        return Data.OfIFormlet(formlet);
+       };
+       return f1(f);
       }
      },{
       New:function()
       {
-       return Runtime.New(this,{});
+       var r;
+       r=Runtime.New(this,{});
+       return r;
       }
      }),
      Layout:{
@@ -1937,7 +2628,10 @@
          {
           var elemId,newCol,jqPanel,index,inserted;
           elemId=body.Element.get_Id();
-          newCol=Default.TD(List.ofArray([Default.Table(List.ofArray([Default.TBody(List.ofArray([_this.MakeRow(rowConfig,rowIx,body)]))]))]));
+          newCol=Default.TD(List.ofArray([Default.Table(List.ofArray([Default.TBody(List.ofArray([function(arg20)
+          {
+           return _this.MakeRow(rowConfig,rowIx,arg20);
+          }(body)]))]))]));
           jqPanel=jQuery(row.Body);
           index={
            contents:0
@@ -1971,11 +2665,14 @@
         {
          var enumerator;
          enumerator=Enumerator.Get(elems);
-         while(enumerator.MoveNext())
-          {
-           store.Remove(enumerator.get_Current().Element.get_Id());
-          }
-         return;
+         Runtime.While(function()
+         {
+          return enumerator.MoveNext();
+         },function()
+         {
+          var b;
+          b=enumerator.get_Current(),store.Remove(b.Element.get_Id());
+         });
         };
         return{
          Body:Runtime.New(Body,{
@@ -1992,24 +2689,23 @@
       },
       HorizontalAlignElem:function(align,el)
       {
-       var arg10;
-       arg10="float:"+(align.$==0?"left":"right")+";";
-       return Operators.add(Default.Div(List.ofArray([Default.Attr().NewAttr("style",arg10)])),List.ofArray([el]));
+       var _float,_this,x;
+       _float=align.$==0?"left":"right";
+       return Operators.add(Default.Div(List.ofArray([(_this=Default.Attr(),(x="float:"+_float+";",_this.NewAttr("style",x)))])),List.ofArray([el]));
       },
       LabelLayout:function(lc)
       {
-       var inputRecord;
-       inputRecord=FormRowConfiguration.get_Default();
-       return this.RowLayout(Runtime.New(FormRowConfiguration,{
+       var inputRecord,LabelConfiguration1;
+       return this.RowLayout((inputRecord=FormRowConfiguration.get_Default(),(LabelConfiguration1={
+        $:1,
+        $0:lc
+       },Runtime.New(FormRowConfiguration,{
         Padding:inputRecord.Padding,
         Color:inputRecord.Color,
         Class:inputRecord.Class,
         Style:inputRecord.Style,
-        LabelConfiguration:{
-         $:1,
-         $0:lc
-        }
-       }));
+        LabelConfiguration:LabelConfiguration1
+       }))));
       },
       MakeLayout:function(lm)
       {
@@ -2029,14 +2725,16 @@
           newElems=(lm1.Insert.call(null,ix))(bd);
           return store.RegisterElement(elemId,function()
           {
-           var enumerator,e;
+           var enumerator;
            enumerator=Enumerator.Get(newElems);
-           while(enumerator.MoveNext())
-            {
-             e=enumerator.get_Current();
-             e["HtmlProvider@32"].Remove(e.Body);
-            }
-           return;
+           Runtime.While(function()
+           {
+            return enumerator.MoveNext();
+           },function()
+           {
+            var e;
+            e=enumerator.get_Current(),e["HtmlProvider@32"].Remove(e.Body);
+           });
           });
          };
         };
@@ -2044,11 +2742,14 @@
         {
          var enumerator;
          enumerator=Enumerator.Get(elems);
-         while(enumerator.MoveNext())
-          {
-           store.Remove(enumerator.get_Current().Element.get_Id());
-          }
-         return;
+         Runtime.While(function()
+         {
+          return enumerator.MoveNext();
+         },function()
+         {
+          var b;
+          b=enumerator.get_Current(),store.Remove(b.Element.get_Id());
+         });
         };
         return{
          Body:Runtime.New(Body,{
@@ -2065,33 +2766,42 @@
       },
       MakeRow:function(rowConfig,rowIndex,body)
       {
-       var x,d,padding,x2,paddingLeft,x3,paddingTop,x4,paddingRight,x5,paddingBottom,makeCell,elem1,matchValue,cells,labelGen,x8,d1,labelConf,x9,arg00,label,matchValue1,xa,xb,xc,d2,rowClass,xd,d3,rowColorStyleProp,xe,d4,matchValue2,rowStyle,arg002;
-       x=rowConfig.Padding;
-       d=Padding1.get_Default();
-       padding=Utils.Maybe(d,function(x1)
+       var padding,x,f,d,paddingLeft,x2,f1,f2,paddingTop,x3,f3,f4,paddingRight,x4,f5,f6,paddingBottom,x5,f7,f8,makeCell,elem1,cells,matchValue,labelGen,labelConf,x9,fd,d1,label,xa,fe,arg00,_this2=this,matchValue1,xb,ff,xc,f10,rowClass,xd,f11,d2,rowColorStyleProp,xe,f12,d3,rowStyleProp,xf,f13,d4,rowStyle,matchValue2,x10,f14,b2,b3;
+       padding=(x=rowConfig.Padding,(f=(d=Padding1.get_Default(),function(o)
+       {
+        return Utils.Maybe(d,function(x1)
+        {
+         return x1;
+        },o);
+       }),f(x)));
+       paddingLeft=(x2=padding.Left,(f1=(f2=function(x1)
        {
         return x1;
-       },x);
-       x2=padding.Left;
-       paddingLeft=Utils.Maybe(0,function(x1)
+       },function(o)
+       {
+        return Utils.Maybe(0,f2,o);
+       }),f1(x2)));
+       paddingTop=(x3=padding.Top,(f3=(f4=function(x1)
        {
         return x1;
-       },x2);
-       x3=padding.Top;
-       paddingTop=Utils.Maybe(0,function(x1)
+       },function(o)
+       {
+        return Utils.Maybe(0,f4,o);
+       }),f3(x3)));
+       paddingRight=(x4=padding.Right,(f5=(f6=function(x1)
        {
         return x1;
-       },x3);
-       x4=padding.Right;
-       paddingRight=Utils.Maybe(0,function(x1)
+       },function(o)
+       {
+        return Utils.Maybe(0,f6,o);
+       }),f5(x4)));
+       paddingBottom=(x5=padding.Bottom,(f7=(f8=function(x1)
        {
         return x1;
-       },x4);
-       x5=padding.Bottom;
-       paddingBottom=Utils.Maybe(0,function(x1)
+       },function(o)
        {
-        return x1;
-       },x5);
+        return Utils.Maybe(0,f8,o);
+       }),f7(x5)));
        makeCell=function(l)
        {
         return function(t)
@@ -2106,31 +2816,44 @@
             {
              return function(elem)
              {
-              var x1,mapping,x6,paddingStyle,arg10;
-              x1=List.ofArray([["padding-left: ",l],["padding-top: ",t],["padding-right: ",r],["padding-bottom: ",b]]);
-              mapping=Runtime.Tupled(function(tupledArg)
+              var paddingStyle,x1,x6,f9,mapping,fa,valignStyle,fb,fc,style,_this,x8,colSpan,_this1,a,b1;
+              paddingStyle=(x1=(x6=List.ofArray([["padding-left: ",l],["padding-top: ",t],["padding-right: ",r],["padding-bottom: ",b]]),(f9=(mapping=Runtime.Tupled(function(tupledArg)
               {
-               return tupledArg[0]+Global.String(tupledArg[1])+"px;";
-              });
-              x6=List.map(mapping,x1);
-              paddingStyle=Seq.reduce(function(x7)
+               var k,v;
+               k=tupledArg[0];
+               v=tupledArg[1];
+               return k+Global.String(v)+"px;";
+              }),function(list)
               {
-               return function(y)
+               return List.map(mapping,list);
+              }),f9(x6))),(fa=function(source)
+              {
+               return Seq.reduce(function(x7)
                {
-                return x7+y;
-               };
-              },x6);
-              arg10=paddingStyle+";"+Utils.Maybe("",function(valign1)
+                return function(y)
+                {
+                 return x7+y;
+                };
+               },source);
+              },fa(x1)));
+              valignStyle=(fb=(fc=function(valign1)
               {
-               return"vertical-align: "+(valign1.$==1?"middle":valign1.$==2?"bottom":"top")+";";
-              },valign);
-              return Default.TD(List.append(Runtime.New(T,{
+               var value;
+               value=valign1.$==1?"middle":valign1.$==2?"bottom":"top";
+               return"vertical-align: "+value+";";
+              },function(o)
+              {
+               return Utils.Maybe("",fc,o);
+              }),fb(valign));
+              style=(_this=Default.Attr(),(x8=paddingStyle+";"+valignStyle,_this.NewAttr("style",x8)));
+              colSpan=csp?List.ofArray([(_this1=Default.Attr(),_this1.NewAttr("colspan","2"))]):Runtime.New(T,{
+               $:0
+              });
+              return Default.TD((a=Runtime.New(T,{
                $:1,
-               $0:Default.Attr().NewAttr("style",arg10),
-               $1:csp?List.ofArray([Default.Attr().NewAttr("colspan","2")]):Runtime.New(T,{
-                $:0
-               })
-              }),List.ofArray([elem])));
+               $0:style,
+               $1:colSpan
+              }),(b1=List.ofArray([elem]),List.append(a,b1))));
              };
             };
            };
@@ -2139,109 +2862,77 @@
         };
        };
        elem1=body.Element;
-       matchValue=body.Label;
-       if(matchValue.$==1)
-        {
-         labelGen=matchValue.$0;
-         x8=rowConfig.LabelConfiguration;
-         d1=LabelConfiguration.get_Default();
-         labelConf=Utils.Maybe(d1,function(x1)
-         {
-          return x1;
-         },x8);
-         x9=labelGen(null);
-         arg00=labelConf.Align;
-         label=this.HorizontalAlignElem(arg00,x9);
-         matchValue1=labelConf.Placement;
-         if(matchValue1.$==3)
-          {
-           xa=Utils.InTable(List.ofArray([List.ofArray([elem1]),List.ofArray([label])]));
-           cells=List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
-            $:0
-           }))(xa)]);
-          }
-         else
-          {
-           if(matchValue1.$==0)
-            {
-             cells=List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(0))(paddingBottom))(false))({
-              $:1,
-              $0:labelConf.VerticalAlign
-             }))(label),((((((makeCell(0))(paddingTop))(paddingRight))(paddingBottom))(false))({
-              $:0
-             }))(elem1)]);
-            }
-           else
-            {
-             if(matchValue1.$==1)
-              {
-               cells=List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(0))(paddingBottom))(false))({
-                $:1,
-                $0:labelConf.VerticalAlign
-               }))(elem1),((((((makeCell(0))(paddingTop))(paddingRight))(paddingBottom))(false))({
-                $:0
-               }))(label)]);
-              }
-             else
-              {
-               xb=Utils.InTable(List.ofArray([List.ofArray([label]),List.ofArray([elem1])]));
-               cells=List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
-                $:0
-               }))(xb)]);
-              }
-            }
-          }
-        }
-       else
-        {
-         cells=List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
-          $:0
-         }))(elem1)]);
-        }
-       xc=rowConfig.Class;
-       d2=Runtime.New(T,{
-        $:0
-       });
-       rowClass=Utils.Maybe(d2,function(classGen)
+       cells=(matchValue=body.Label,matchValue.$==1?(labelGen=matchValue.$0,(labelConf=(x9=rowConfig.LabelConfiguration,(fd=(d1=LabelConfiguration.get_Default(),function(o)
        {
-        var arg001;
-        arg001=classGen(rowIndex);
-        return List.ofArray([Default.Attr().Class(arg001)]);
-       },xc);
-       xd=rowConfig.Color;
-       d3=Runtime.New(T,{
-        $:0
-       });
-       rowColorStyleProp=Utils.Maybe(d3,function(colGen)
-       {
-        return List.ofArray(["background-color: "+colGen(rowIndex)]);
-       },xd);
-       xe=rowConfig.Style;
-       d4=Runtime.New(T,{
-        $:0
-       });
-       matchValue2=List.append(rowColorStyleProp,Utils.Maybe(d4,function(styleGen)
-       {
-        return List.ofArray([styleGen(rowIndex)]);
-       },xe));
-       if(matchValue2.$==0)
+        return Utils.Maybe(d1,function(x1)
         {
-         rowStyle=Runtime.New(T,{
-          $:0
-         });
-        }
-       else
+         return x1;
+        },o);
+       }),fd(x9))),(label=(xa=labelGen(null),(fe=(arg00=labelConf.Align,function(arg10)
+       {
+        return _this2.HorizontalAlignElem(arg00,arg10);
+       }),fe(xa))),(matchValue1=labelConf.Placement,matchValue1.$==3?List.ofArray([(xb=Utils.InTable(List.ofArray([List.ofArray([elem1]),List.ofArray([label])])),(ff=(((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
+        $:0
+       }),ff(xb)))]):matchValue1.$==0?List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(0))(paddingBottom))(false))({
+        $:1,
+        $0:labelConf.VerticalAlign
+       }))(label),((((((makeCell(0))(paddingTop))(paddingRight))(paddingBottom))(false))({
+        $:0
+       }))(elem1)]):matchValue1.$==1?List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(0))(paddingBottom))(false))({
+        $:1,
+        $0:labelConf.VerticalAlign
+       }))(elem1),((((((makeCell(0))(paddingTop))(paddingRight))(paddingBottom))(false))({
+        $:0
+       }))(label)]):List.ofArray([(xc=Utils.InTable(List.ofArray([List.ofArray([label]),List.ofArray([elem1])])),(f10=(((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
+        $:0
+       }),f10(xc)))]))))):List.ofArray([((((((makeCell(paddingLeft))(paddingTop))(paddingRight))(paddingBottom))(true))({
+        $:0
+       }))(elem1)]));
+       rowClass=(xd=rowConfig.Class,(f11=(d2=Runtime.New(T,{
+        $:0
+       }),function(o)
+       {
+        return Utils.Maybe(d2,function(classGen)
         {
-         arg002=Seq.reduce(function(x1)
-         {
-          return function(y)
-          {
-           return x1+";"+y;
-          };
-         },matchValue2);
-         rowStyle=List.ofArray([Default.Attr().NewAttr("style",arg002)]);
-        }
-       return Default.TR(List.append(rowClass,List.append(rowStyle,List.append(rowStyle,cells))));
+         var arg001;
+         return List.ofArray([(arg001=classGen(rowIndex),Default.Attr().Class(arg001))]);
+        },o);
+       }),f11(xd)));
+       rowColorStyleProp=(xe=rowConfig.Color,(f12=(d3=Runtime.New(T,{
+        $:0
+       }),function(o)
+       {
+        return Utils.Maybe(d3,function(colGen)
+        {
+         var col;
+         col=colGen(rowIndex);
+         return List.ofArray(["background-color: "+col]);
+        },o);
+       }),f12(xe)));
+       rowStyleProp=(xf=rowConfig.Style,(f13=(d4=Runtime.New(T,{
+        $:0
+       }),function(o)
+       {
+        return Utils.Maybe(d4,function(styleGen)
+        {
+         return List.ofArray([styleGen(rowIndex)]);
+        },o);
+       }),f13(xf)));
+       rowStyle=(matchValue2=List.append(rowColorStyleProp,rowStyleProp),matchValue2.$==0?Runtime.New(T,{
+        $:0
+       }):List.ofArray([(x10=Seq.reduce(function(x1)
+       {
+        return function(y)
+        {
+         return x1+";"+y;
+        };
+       },matchValue2),(f14=function(arg001)
+       {
+        var _this;
+        _this=Default.Attr();
+        return _this.NewAttr("style",arg001);
+       },f14(x10)))]));
+       return Default.TR((b2=(b3=List.append(rowStyle,cells),List.append(rowStyle,b3)),List.append(rowClass,b2)));
       },
       RowLayout:function(rowConfig)
       {
@@ -2261,7 +2952,10 @@
          {
           var elemId,row,jqPanel,index,inserted;
           elemId=body.Element.get_Id();
-          row=_this.MakeRow(rowConfig,rowIx,body);
+          row=function(arg20)
+          {
+           return _this.MakeRow(rowConfig,rowIx,arg20);
+          }(body);
           jqPanel=jQuery(panel.Body);
           index={
            contents:0
@@ -2295,11 +2989,14 @@
         {
          var enumerator;
          enumerator=Enumerator.Get(elems);
-         while(enumerator.MoveNext())
-          {
-           store.Remove(enumerator.get_Current().Element.get_Id());
-          }
-         return;
+         Runtime.While(function()
+         {
+          return enumerator.MoveNext();
+         },function()
+         {
+          var b;
+          b=enumerator.get_Current(),store.Remove(b.Element.get_Id());
+         });
         };
         return{
          Body:Runtime.New(Body,{
@@ -2316,34 +3013,43 @@
       },
       VerticalAlignedTD:function(valign,elem)
       {
-       var valign1,cell;
+       var valign1,cell,objectArg,arg00;
        valign1=valign.$==1?"middle":valign.$==2?"bottom":"top";
        cell=Default.TD(List.ofArray([elem]));
-       cell["HtmlProvider@32"].SetCss(cell.Body,"vertical-align",valign1);
+       objectArg=cell["HtmlProvider@32"];
+       ((arg00=cell.Body,function(arg10)
+       {
+        return function(arg20)
+        {
+         return objectArg.SetCss(arg00,arg10,arg20);
+        };
+       })("vertical-align"))(valign1);
        return cell;
       },
       get_Flowlet:function()
       {
        return this.MakeLayout(function()
        {
-        var panel;
+        var panel,insert;
         panel=Default.Div(Runtime.New(T,{
          $:0
         }));
-        return{
-         Insert:function()
+        insert=function()
+        {
+         return function(bd)
          {
-          return function(bd)
-          {
-           var nextScreen;
-           nextScreen=Utils.InTable(List.ofArray([List.ofArray([bd.Label.$==1?bd.Label.$0.call(null,null):Default.Span(Runtime.New(T,{
-            $:0
-           })),Default.Div(List.ofArray([bd.Element]))])]));
-           panel["HtmlProvider@32"].Clear(panel.Body);
-           panel.AppendI(nextScreen);
-           return List.ofArray([nextScreen]);
-          };
-         },
+          var label,nextScreen;
+          label=bd.Label.$==1?bd.Label.$0.call(null,null):Default.Span(Runtime.New(T,{
+           $:0
+          }));
+          nextScreen=Utils.InTable(List.ofArray([List.ofArray([label,Default.Div(List.ofArray([bd.Element]))])]));
+          panel["HtmlProvider@32"].Clear(panel.Body);
+          panel.AppendI(nextScreen);
+          return List.ofArray([nextScreen]);
+         };
+        };
+        return{
+         Insert:insert,
          Panel:panel
         };
        });
@@ -2368,26 +3074,56 @@
      Utils:{
       InTable:function(rows)
       {
-       return Default.Table(List.ofArray([Default.TBody(List.map(function(cols)
+       var rs,f,mapping,tb;
+       rs=(f=(mapping=function(cols)
        {
-        return Default.TR(List.map(function(c)
+        var xs,f1,mapping1;
+        xs=(f1=(mapping1=function(c)
         {
          return Default.TD(List.ofArray([c]));
-        },cols));
-       },rows))]));
+        },function(list)
+        {
+         return List.map(mapping1,list);
+        }),f1(cols));
+        return Default.TR(xs);
+       },function(list)
+       {
+        return List.map(mapping,list);
+       }),f(rows));
+       tb=Default.TBody(function(value)
+       {
+        return value;
+       }(rs));
+       return Default.Table(List.ofArray([tb]));
       },
       MapOption:function(f,value)
       {
-       return value.$==1?{
-        $:1,
-        $0:f(value.$0)
-       }:{
-        $:0
-       };
+       var v;
+       if(value.$==1)
+        {
+         v=value.$0;
+         return{
+          $:1,
+          $0:f(v)
+         };
+        }
+       else
+        {
+         return{
+          $:0
+         };
+        }
       },
       Maybe:function(d,f,o)
       {
-       return o.$==0?d:f(o.$0);
+       if(o.$==0)
+        {
+         return d;
+        }
+       else
+        {
+         return f(o.$0);
+        }
       }
      }
     }
@@ -2458,6 +3194,5 @@
   Data.Layout();
   Data.DefaultLayout();
   CssConstants.InputTextClass();
-  return;
  });
 }());

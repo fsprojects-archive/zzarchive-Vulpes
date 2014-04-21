@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Activator,document,Default,JavaScript,Json,JSON,Arrays,Attribute,Implementation,HTML5,Element,Enumerator,Math,jQuery,Events,JQueryEventSupport,AttributeBuilder,DeprecatedTagBuilder,Html5AttributeBuilder,JQueryHtmlProvider,Html5TagBuilder,TagBuilder,Text,HTML51,EventsPervasives;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Activator,document,Default,Json,JSON,JavaScript,Attribute,Implementation,HTML5,Element,Enumerator,Math,jQuery,Events,JQueryEventSupport,AttributeBuilder,DeprecatedTagBuilder,Html5AttributeBuilder,JQueryHtmlProvider,Html5TagBuilder,TagBuilder,Text,HTML51,EventsPervasives;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -8,24 +8,42 @@
      Activator:{
       Activate:Runtime.Field(function()
       {
-       var meta;
+       var doc,meta;
        if(Activator.hasDocument())
         {
-         meta=document.getElementById("websharper-data");
-         return meta?Default.OnLoad(function()
-         {
-          var array;
-          array=JavaScript.GetFields(Json.Activate(JSON.parse(meta.getAttribute("content"))));
-          return Arrays.iter(Runtime.Tupled(function(tupledArg)
+         doc=document;
+         meta=doc.getElementById("websharper-data");
+         if(meta)
           {
-           var k,p,old;
-           k=tupledArg[0];
-           p=tupledArg[1].get_Body();
-           old=document.getElementById(k);
-           old.parentNode.replaceChild(p.get_Body(),old);
-           return p.Render();
-          }),array);
-         }):null;
+           return Default.OnLoad(function()
+           {
+            var text,obj,x,f,action;
+            text=meta.getAttribute("content");
+            obj=Json.Activate(JSON.parse(text));
+            x=JavaScript.GetFields(obj);
+            f=(action=Runtime.Tupled(function(tupledArg)
+            {
+             var k,v,p,old;
+             k=tupledArg[0];
+             v=tupledArg[1];
+             p=v.get_Body();
+             old=doc.getElementById(k);
+             old.parentNode.replaceChild(p.get_Body(),old);
+             return p.Render();
+            }),function(array)
+            {
+             return array.forEach(function(x1)
+             {
+              action(x1);
+             });
+            });
+            return f(x);
+           });
+          }
+         else
+          {
+           return null;
+          }
         }
        else
         {
@@ -74,7 +92,9 @@
       },
       NewAttr:function(name,value)
       {
-       return Attribute.New(this.HtmlProvider,name,value);
+       var a;
+       a=Attribute.New(this.HtmlProvider,name,value);
+       return a;
       },
       get_CheckBox:function()
       {
@@ -116,19 +136,27 @@
      Default:{
       A:function(x)
       {
-       return Default.Tags().NewTag("a",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("a",x);
       },
       Action:function(x)
       {
-       return Default.Attr().NewAttr("action",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("action",x);
       },
       Align:function(x)
       {
-       return Default.Attr().NewAttr("align",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("align",x);
       },
       Alt:function(x)
       {
-       return Default.Attr().NewAttr("alt",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("alt",x);
       },
       Attr:Runtime.Field(function()
       {
@@ -136,23 +164,33 @@
       }),
       B:function(x)
       {
-       return Default.Tags().NewTag("b",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("b",x);
       },
       Body:function(x)
       {
-       return Default.Tags().NewTag("body",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("body",x);
       },
       Br:function(x)
       {
-       return Default.Tags().NewTag("br",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("br",x);
       },
       Button:function(x)
       {
-       return Default.Tags().NewTag("button",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("button",x);
       },
       Code:function(x)
       {
-       return Default.Tags().NewTag("code",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("code",x);
       },
       Deprecated:Runtime.Field(function()
       {
@@ -164,31 +202,45 @@
       },
       Em:function(x)
       {
-       return Default.Tags().NewTag("em",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("em",x);
       },
       Form:function(x)
       {
-       return Default.Tags().NewTag("form",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("form",x);
       },
       H1:function(x)
       {
-       return Default.Tags().NewTag("h1",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("h1",x);
       },
       H2:function(x)
       {
-       return Default.Tags().NewTag("h2",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("h2",x);
       },
       H3:function(x)
       {
-       return Default.Tags().NewTag("h3",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("h3",x);
       },
       H4:function(x)
       {
-       return Default.Tags().NewTag("h4",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("h4",x);
       },
       HRef:function(x)
       {
-       return Default.Attr().NewAttr("href",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("href",x);
       },
       HTML5:{
        Attr:Runtime.Field(function()
@@ -202,43 +254,63 @@
       },
       Head:function(x)
       {
-       return Default.Tags().NewTag("head",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("head",x);
       },
       Height:function(x)
       {
-       return Default.Attr().NewAttr("height",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("height",x);
       },
       Hr:function(x)
       {
-       return Default.Tags().NewTag("hr",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("hr",x);
       },
       I:function(x)
       {
-       return Default.Tags().NewTag("i",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("i",x);
       },
       IFrame:function(x)
       {
-       return Default.Tags().NewTag("iframe",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("iframe",x);
       },
       Id:function(x)
       {
-       return Default.Attr().NewAttr("id",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("id",x);
       },
       Img:function(x)
       {
-       return Default.Tags().NewTag("img",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("img",x);
       },
       Input:function(x)
       {
-       return Default.Tags().NewTag("input",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("input",x);
       },
       LI:function(x)
       {
-       return Default.Tags().NewTag("li",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("li",x);
       },
       Name:function(x)
       {
-       return Default.Attr().NewAttr("name",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("name",x);
       },
       NewAttr:function(x)
       {
@@ -249,7 +321,9 @@
       },
       OL:function(x)
       {
-       return Default.Tags().NewTag("ol",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("ol",x);
       },
       OnLoad:function(init)
       {
@@ -257,63 +331,93 @@
       },
       P:function(x)
       {
-       return Default.Tags().NewTag("p",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("p",x);
       },
       Pre:function(x)
       {
-       return Default.Tags().NewTag("pre",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("pre",x);
       },
       RowSpan:function(x)
       {
-       return Default.Attr().NewAttr("rowspan",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("rowspan",x);
       },
       Script:function(x)
       {
-       return Default.Tags().NewTag("script",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("script",x);
       },
       Select:function(x)
       {
-       return Default.Tags().NewTag("select",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("select",x);
       },
       Selected:function(x)
       {
-       return Default.Attr().NewAttr("selected",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("selected",x);
       },
       Span:function(x)
       {
-       return Default.Tags().NewTag("span",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("span",x);
       },
       Src:function(x)
       {
-       return Default.Attr().NewAttr("src",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("src",x);
       },
       TBody:function(x)
       {
-       return Default.Tags().NewTag("tbody",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("tbody",x);
       },
       TD:function(x)
       {
-       return Default.Tags().NewTag("td",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("td",x);
       },
       TFoot:function(x)
       {
-       return Default.Tags().NewTag("tfoot",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("tfoot",x);
       },
       TH:function(x)
       {
-       return Default.Tags().NewTag("th",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("th",x);
       },
       THead:function(x)
       {
-       return Default.Tags().NewTag("thead",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("thead",x);
       },
       TR:function(x)
       {
-       return Default.Tags().NewTag("tr",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("tr",x);
       },
       Table:function(x)
       {
-       return Default.Tags().NewTag("table",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("table",x);
       },
       Tags:Runtime.Field(function()
       {
@@ -325,25 +429,35 @@
       },
       TextArea:function(x)
       {
-       return Default.Tags().NewTag("textarea",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("textarea",x);
       },
       UL:function(x)
       {
-       return Default.Tags().NewTag("ul",x);
+       var _this;
+       _this=Default.Tags();
+       return _this.NewTag("ul",x);
       },
       VAlign:function(x)
       {
-       return Default.Attr().NewAttr("valign",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("valign",x);
       },
       Width:function(x)
       {
-       return Default.Attr().NewAttr("width",x);
+       var _this;
+       _this=Default.Attr();
+       return _this.NewAttr("width",x);
       }
      },
      DeprecatedAttributeBuilder:Runtime.Class({
       NewAttr:function(name,value)
       {
-       return Attribute.New(this.HtmlProvider,name,value);
+       var a;
+       a=Attribute.New(this.HtmlProvider,name,value);
+       return a;
       }
      },{
       New:function(HtmlProvider)
@@ -360,10 +474,13 @@
        var el,enumerator;
        el=Element.New(this.HtmlProvider,name);
        enumerator=Enumerator.Get(children);
-       while(enumerator.MoveNext())
-        {
-         el.AppendI(enumerator.get_Current());
-        }
+       Runtime.While(function()
+       {
+        return enumerator.MoveNext();
+       },function()
+       {
+        el.AppendI(enumerator.get_Current());
+       });
        return el;
       }
      },{
@@ -378,15 +495,23 @@
      Element:Runtime.Class({
       AppendI:function(pl)
       {
-       var body,r;
-       body=pl.get_Body();
-       if(body.nodeType===2)
+       var attr,objectArg,arg00,objectArg1,arg001,r;
+       if(pl.get_Body().nodeType===2)
         {
-         this["HtmlProvider@32"].AppendAttribute(this.Body,body);
+         attr=pl.get_Body();
+         objectArg=this["HtmlProvider@32"];
+         (arg00=this.Body,function(arg10)
+         {
+          return objectArg.AppendAttribute(arg00,arg10);
+         })(attr);
         }
        else
         {
-         this["HtmlProvider@32"].AppendNode(this.Body,pl.get_Body());
+         objectArg1=this["HtmlProvider@32"];
+         (arg001=this.Body,function(arg10)
+         {
+          return objectArg1.AppendNode(arg001,arg10);
+         })(pl.get_Body());
         }
        if(this.IsRendered)
         {
@@ -400,16 +525,25 @@
           r(null);
           return pl.Render();
          };
-         return;
         }
       },
       AppendN:function(node)
       {
-       return this["HtmlProvider@32"].AppendNode(this.Body,node);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return(arg00=this.Body,function(arg10)
+       {
+        return objectArg.AppendNode(arg00,arg10);
+       })(node);
       },
       OnLoad:function(f)
       {
-       return this["HtmlProvider@32"].OnLoad(this.Body,f);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return(arg00=this.Body,function(arg10)
+       {
+        return objectArg.OnLoad(arg00,arg10);
+       })(f);
       },
       Render:function()
       {
@@ -417,7 +551,6 @@
         {
          this.RenderInternal.call(null,null);
          this.IsRendered=true;
-         return;
         }
        else
         {
@@ -438,12 +571,22 @@
       },
       get_Id:function()
       {
-       var id,newId;
-       id=this["HtmlProvider@32"].GetProperty(this.Body,"id");
+       var id,objectArg,arg00,newId,objectArg1,arg001;
+       id=(objectArg=this["HtmlProvider@32"],(arg00=this.Body,function(arg10)
+       {
+        return objectArg.GetProperty(arg00,arg10);
+       })("id"));
        if(id===undefined?true:id==="")
         {
          newId="id"+Math.round(Math.random()*100000000);
-         this["HtmlProvider@32"].SetProperty(this.Body,"id",newId);
+         objectArg1=this["HtmlProvider@32"];
+         ((arg001=this.Body,function(arg10)
+         {
+          return function(arg20)
+          {
+           return objectArg1.SetProperty(arg001,arg10,arg20);
+          };
+         })("id"))(newId);
          return newId;
         }
        else
@@ -453,8 +596,17 @@
       },
       get_Item:function(name)
       {
-       this["HtmlProvider@32"].GetAttribute(this.Body,name);
-       return this["HtmlProvider@32"].GetAttribute(this.Body,name);
+       var objectArg,arg00,objectArg1,arg001;
+       objectArg=this["HtmlProvider@32"];
+       (arg00=this.Body,function(arg10)
+       {
+        return objectArg.GetAttribute(arg00,arg10);
+       })(name);
+       objectArg1=this["HtmlProvider@32"];
+       return(arg001=this.Body,function(arg10)
+       {
+        return objectArg1.GetAttribute(arg001,arg10);
+       })(name);
       },
       get_Text:function()
       {
@@ -466,19 +618,42 @@
       },
       set_Html:function(x)
       {
-       return this["HtmlProvider@32"].SetHtml(this.Body,x);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return(arg00=this.Body,function(arg10)
+       {
+        return objectArg.SetHtml(arg00,arg10);
+       })(x);
       },
       set_Item:function(name,value)
       {
-       return this["HtmlProvider@32"].SetAttribute(this.Body,name,value);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return((arg00=this.Body,function(arg10)
+       {
+        return function(arg20)
+        {
+         return objectArg.SetAttribute(arg00,arg10,arg20);
+        };
+       })(name))(value);
       },
       set_Text:function(x)
       {
-       return this["HtmlProvider@32"].SetText(this.Body,x);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return(arg00=this.Body,function(arg10)
+       {
+        return objectArg.SetText(arg00,arg10);
+       })(x);
       },
       set_Value:function(x)
       {
-       return this["HtmlProvider@32"].SetValue(this.Body,x);
+       var objectArg,arg00;
+       objectArg=this["HtmlProvider@32"];
+       return(arg00=this.Body,function(arg10)
+       {
+        return objectArg.SetValue(arg00,arg10);
+       })(x);
       }
      },{
       New:function(html,name)
@@ -486,8 +661,9 @@
        var el,dom;
        el=Element.New1(html);
        dom=document.createElement(name);
-       el.RenderInternal=function()
+       el.RenderInternal=function(value)
        {
+        value;
        };
        el.Body=dom;
        el.IsRendered=false;
@@ -519,11 +695,19 @@
        },
        OnClick:function(f,el)
        {
-        return this.OnMouse("click",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("click",f,arg20);
+        }(el);
        },
        OnDoubleClick:function(f,el)
        {
-        return this.OnMouse("dblclick",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("dblclick",f,arg20);
+        }(el);
        },
        OnError:function(f,el)
        {
@@ -541,14 +725,12 @@
        },
        OnKeyDown:function(f,el)
        {
-        var h;
-        h=function(ev)
+        return jQuery(el.get_Body()).bind("keydown",function(ev)
         {
          return(f(el))({
           KeyCode:ev.keyCode
          });
-        };
-        return jQuery(el.get_Body()).bind("keydown",h);
+        });
        },
        OnKeyPress:function(f,el)
        {
@@ -561,14 +743,12 @@
        },
        OnKeyUp:function(f,el)
        {
-        var h;
-        h=function(ev)
+        return jQuery(el.get_Body()).bind("keyup",function(ev)
         {
          return(f(el))({
           KeyCode:ev.keyCode
          });
-        };
-        return jQuery(el.get_Body()).bind("keyup",h);
+        });
        },
        OnLoad:function(f,el)
        {
@@ -579,39 +759,61 @@
        },
        OnMouse:function(name,f,el)
        {
-        var h;
-        h=function(ev)
+        return jQuery(el.get_Body()).bind(name,function(ev)
         {
          return(f(el))({
           X:ev.pageX,
           Y:ev.pageY
          });
-        };
-        return jQuery(el.get_Body()).bind(name,h);
+        });
        },
        OnMouseDown:function(f,el)
        {
-        return this.OnMouse("mousedown",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mousedown",f,arg20);
+        }(el);
        },
        OnMouseEnter:function(f,el)
        {
-        return this.OnMouse("mouseenter",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mouseenter",f,arg20);
+        }(el);
        },
        OnMouseLeave:function(f,el)
        {
-        return this.OnMouse("mouseleave",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mouseleave",f,arg20);
+        }(el);
        },
        OnMouseMove:function(f,el)
        {
-        return this.OnMouse("mousemove",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mousemove",f,arg20);
+        }(el);
        },
        OnMouseOut:function(f,el)
        {
-        return this.OnMouse("mouseout",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mouseout",f,arg20);
+        }(el);
        },
        OnMouseUp:function(f,el)
        {
-        return this.OnMouse("mouseup",f,el);
+        var _this=this;
+        return function(arg20)
+        {
+         return _this.OnMouse("mouseup",f,arg20);
+        }(el);
        },
        OnResize:function(f,el)
        {
@@ -651,7 +853,9 @@
       },{
        New:function()
        {
-        return Runtime.New(this,{});
+        var r;
+        r=Runtime.New(this,{});
+        return r;
        }
       })
      },
@@ -664,7 +868,9 @@
      Html5AttributeBuilder:Runtime.Class({
       NewAttr:function(name,value)
       {
-       return Attribute.New(this.HtmlProvider,name,value);
+       var a;
+       a=Attribute.New(this.HtmlProvider,name,value);
+       return a;
       }
      },{
       New:function(HtmlProvider)
@@ -681,10 +887,13 @@
        var el,enumerator;
        el=Element.New(this.HtmlProvider,name);
        enumerator=Enumerator.Get(children);
-       while(enumerator.MoveNext())
-        {
-         el.AppendI(enumerator.get_Current());
-        }
+       Runtime.While(function()
+       {
+        return enumerator.MoveNext();
+       },function()
+       {
+        el.AppendI(enumerator.get_Current());
+       });
        return el;
       }
      },{
@@ -730,7 +939,12 @@
        },
        AppendAttribute:function(node,attr)
        {
-        return this.SetAttribute(node,attr.nodeName,attr.nodeValue);
+        var name,_this=this;
+        name=attr.nodeName;
+        return function(arg20)
+        {
+         return _this.SetAttribute(node,name,arg20);
+        }(attr.nodeValue);
        },
        AppendNode:function(node,el)
        {
@@ -754,7 +968,12 @@
        },
        GetAttribute:function(node,name)
        {
-        return jQuery(node).attr(name);
+        var attr;
+        attr=jQuery(node).attr(name);
+        return function(value)
+        {
+         return value;
+        }(attr);
        },
        GetHtml:function(node)
        {
@@ -762,15 +981,25 @@
        },
        GetProperty:function(node,name)
        {
-        return jQuery(node).attr(name);
+        var attr;
+        attr=jQuery(node).attr(name);
+        return function(value)
+        {
+         return value;
+        }(attr);
        },
        GetText:function(node)
        {
-        return node.textContent;
+        return jQuery(node).text();
        },
        GetValue:function(node)
        {
-        return jQuery(node).val();
+        var arg10;
+        arg10=jQuery(node).val();
+        return function(value)
+        {
+         return value;
+        }(arg10);
        },
        HasAttribute:function(node,name)
        {
@@ -810,7 +1039,12 @@
        },
        SetProperty:function(node,name,value)
        {
-        return jQuery(node).prop(name,value);
+        var attr;
+        attr=jQuery(node).prop(name,value);
+        return function(value1)
+        {
+         return value1;
+        }(attr);
        },
        SetStyle:function(node,style)
        {
@@ -818,7 +1052,7 @@
        },
        SetText:function(node,text)
        {
-        node.textContent=text;
+        return jQuery(node).text(text);
        },
        SetValue:function(node,value)
        {
@@ -827,7 +1061,9 @@
       },{
        New:function()
        {
-        return Runtime.New(this,{});
+        var r;
+        r=Runtime.New(this,{});
+        return r;
        }
       }),
       Tags:Runtime.Field(function()
@@ -845,7 +1081,6 @@
         r.apply(w);
         return f(w);
        };
-       return;
       },
       OnBeforeRender:function(f,w)
       {
@@ -856,23 +1091,28 @@
         f(w);
         return r.apply(w);
        };
-       return;
       },
       add:function(el,inner)
       {
        var enumerator;
        enumerator=Enumerator.Get(inner);
-       while(enumerator.MoveNext())
-        {
-         el.AppendI(enumerator.get_Current());
-        }
+       Runtime.While(function()
+       {
+        return enumerator.MoveNext();
+       },function()
+       {
+        el.AppendI(enumerator.get_Current());
+       });
        return el;
       }
      },
      PageletExtensions:{
       "IPagelet.AppendTo":function(p,targetId)
       {
-       document.getElementById(targetId).appendChild(p.get_Body());
+       var target,value;
+       target=document.getElementById(targetId);
+       value=target.appendChild(p.get_Body());
+       value;
        return p.Render();
       }
      },
@@ -886,10 +1126,13 @@
        var el,enumerator;
        el=Element.New(this.HtmlProvider,name);
        enumerator=Enumerator.Get(children);
-       while(enumerator.MoveNext())
-        {
-         el.AppendI(enumerator.get_Current());
-        }
+       Runtime.While(function()
+       {
+        return enumerator.MoveNext();
+       },function()
+       {
+        el.AppendI(enumerator.get_Current());
+       });
        return el;
       },
       text:function(data)
@@ -928,10 +1171,9 @@
   Activator=Runtime.Safe(Html.Activator);
   document=Runtime.Safe(Global.document);
   Default=Runtime.Safe(Html.Default);
-  JavaScript=Runtime.Safe(WebSharper.JavaScript);
   Json=Runtime.Safe(WebSharper.Json);
   JSON=Runtime.Safe(Global.JSON);
-  Arrays=Runtime.Safe(WebSharper.Arrays);
+  JavaScript=Runtime.Safe(WebSharper.JavaScript);
   Attribute=Runtime.Safe(Html.Attribute);
   Implementation=Runtime.Safe(Html.Implementation);
   HTML5=Runtime.Safe(Implementation.HTML5);
@@ -967,6 +1209,5 @@
   Default.Deprecated();
   Default.Attr();
   Activator.Activate();
-  return;
  });
 }());

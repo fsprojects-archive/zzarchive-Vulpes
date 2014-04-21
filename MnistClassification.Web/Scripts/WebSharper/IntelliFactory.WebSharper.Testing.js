@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,IntrinsicFunctionProxy,Operators,Unchecked,JavaScript,ok,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Operators,Unchecked,JavaScript,ok,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -8,14 +8,14 @@
      Assert:{
       For:function(times,gen,attempt)
       {
-       var i,i1;
-       for(i=0;i<=IntrinsicFunctionProxy.GetLength(gen.Base)-1;i++){
+       Runtime.For(0,gen.Base.length-1,function(i)
+       {
         attempt(gen.Base[i]);
-       }
-       for(i1=1;i1<=times;i1++){
+       });
+       Runtime.For(1,times,function()
+       {
         attempt(gen.Next.call(null,null));
-       }
-       return;
+       });
       },
       Raises:function(f)
       {
@@ -119,7 +119,9 @@
         Base:[],
         Next:function()
         {
-         return-Math.log(1-Random.StandardUniform().Next.call(null,null))/lambda;
+         var p;
+         p=Random.StandardUniform().Next.call(null,null);
+         return-Math.log(1-p)/lambda;
         }
        };
       },
@@ -129,7 +131,9 @@
         Base:[0],
         Next:function()
         {
-         return(Random.Boolean().Next.call(null,null)?1:-1)*Random.Exponential(0.1).Next.call(null,null);
+         var sign;
+         sign=Random.Boolean().Next.call(null,null)?1:-1;
+         return sign*Random.Exponential(0.1).Next.call(null,null);
         }
        };
       }),
@@ -155,7 +159,14 @@
       },
       Implies:function(a,b)
       {
-       return!a?true:b;
+       if(!a)
+        {
+         return true;
+        }
+       else
+        {
+         return b;
+        }
       },
       Imply:function(a,b)
       {
@@ -173,60 +184,75 @@
       }),
       ListOf:function(generator)
       {
-       return Random.Map(function(array)
+       var x,f;
+       x=Random.ArrayOf(generator);
+       f=function(gen)
        {
-        return List.ofArray(array);
-       },Random.ArrayOf(generator));
+        return Random.Map(function(array)
+        {
+         return List.ofArray(array);
+        },gen);
+       };
+       return f(x);
       },
       Map:function(f,gen)
       {
-       var f1;
-       f1=gen.Next;
+       var arr,f1;
        return{
-        Base:Arrays.map(f,gen.Base),
-        Next:function(x)
+        Base:(arr=gen.Base,arr.map(function(x)
+        {
+         return f(x);
+        })),
+        Next:(f1=gen.Next,function(x)
         {
          return f(f1(x));
-        }
+        })
        };
       },
       Mix:function(a,b)
       {
        var left;
-       left={
-        contents:false
-       };
        return{
         Base:a.Base.concat(b.Base),
-        Next:function()
+        Next:(left={
+         contents:false
+        },function()
         {
          left.contents=!left.contents;
-         return left.contents?a.Next.call(null,null):b.Next.call(null,null);
-        }
+         if(left.contents)
+          {
+           return a.Next.call(null,null);
+          }
+         else
+          {
+           return b.Next.call(null,null);
+          }
+        })
        };
       },
       Natural:Runtime.Field(function()
       {
        var g;
-       g=Random.Int().Next;
        return{
         Base:[0,1],
-        Next:function(x)
+        Next:(g=Random.Int().Next,function(x)
         {
-         return Math.abs(g(x));
-        }
+         return function(value)
+         {
+          return Math.abs(value);
+         }(g(x));
+        })
        };
       }),
       OneOf:function(seeds)
       {
        var index;
-       index=Random.Within(1,IntrinsicFunctionProxy.GetLength(seeds));
        return{
         Base:seeds,
-        Next:function()
+        Next:(index=Random.Within(1,seeds.length),function()
         {
          return seeds[index.Next.call(null,null)-1];
-        }
+        })
        };
       },
       OptionOf:function(generator)
@@ -257,10 +283,13 @@
         Base:[""],
         Next:function()
         {
-         return String.fromCharCode.apply(undefined,Arrays.init(Random.Natural().Next.call(null,null)%100,function()
+         var len,cs;
+         len=Random.Natural().Next.call(null,null)%100;
+         cs=Arrays.init(len,function()
          {
           return Random.Int().Next.call(null,null)%256;
-         }));
+         });
+         return String.fromCharCode.apply(undefined,cs);
         }
        };
       }),
@@ -330,7 +359,6 @@
  Runtime.OnInit(function()
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
-  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   Operators=Runtime.Safe(WebSharper.Operators);
   Unchecked=Runtime.Safe(WebSharper.Unchecked);
   JavaScript=Runtime.Safe(WebSharper.JavaScript);
@@ -358,6 +386,5 @@
   Random.FloatExhaustive();
   Random.Float();
   Random.Boolean();
-  return;
  });
 }());

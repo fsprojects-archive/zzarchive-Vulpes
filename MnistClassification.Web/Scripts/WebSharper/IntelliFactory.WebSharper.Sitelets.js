@@ -5,6 +5,11 @@
   IntelliFactory:{
    WebSharper:{
     Sitelets:{
+     Offline:{
+      Options:{
+       BadOptions:Runtime.Class({})
+      }
+     },
      UrlEncoding:{
       NoFormatError:Runtime.Class({})
      }
@@ -14,6 +19,5 @@
  });
  Runtime.OnLoad(function()
  {
-  return;
  });
 }());

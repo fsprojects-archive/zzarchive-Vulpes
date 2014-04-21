@@ -2,7 +2,7 @@ declare module IntelliFactory {
     module WebSharper {
         module Arrays {
             var reverse : {
-                (array: __ABBREV.__WebSharper.ArrayProxy, offset: number, length: number): void;
+                (array: _WebSharper.ArrayProxy, offset: number, length: number): void;
             };
             var checkRange : {
                 <_M1>(arr: _M1[], start: number, size: number): void;
@@ -23,7 +23,7 @@ declare module IntelliFactory {
             };
             var choose : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
                 }, arr: _M1[]): _M2[];
             };
             var collect : {
@@ -32,7 +32,7 @@ declare module IntelliFactory {
                 }, x: _M1[]): _M2[];
             };
             var concat : {
-                <_M1>(xs: __ABBREV.__WebSharper.seq<_M1[]>): _M1[];
+                <_M1>(xs: _WebSharper.seq<_M1[]>): _M1[];
             };
             var create : {
                 <_M1>(size: number, value: _M1): _M1[];
@@ -47,11 +47,6 @@ declare module IntelliFactory {
             var fill : {
                 <_M1>(arr: _M1[], start: number, length: number, value: _M1): void;
             };
-            var filter : {
-                <_M1>(f: {
-                    (x: _M1): boolean;
-                }, arr: _M1[]): _M1[];
-            };
             var Find : {
                 <_M1>(f: {
                     (x: _M1): boolean;
@@ -62,13 +57,6 @@ declare module IntelliFactory {
                     (x: _M1): boolean;
                 }, arr: _M1[]): number;
             };
-            var fold : {
-                <_M1, _M2>(f: {
-                    (x: _M2): {
-                        (x: _M1): _M2;
-                    };
-                }, zero: _M2, arr: _M1[]): _M2;
-            };
             var fold2 : {
                 <_M1, _M2, _M3>(f: {
                     (x: _M3): {
@@ -77,13 +65,6 @@ declare module IntelliFactory {
                         };
                     };
                 }, zero: _M3, arr1: _M1[], arr2: _M2[]): _M3;
-            };
-            var foldBack : {
-                <_M1, _M2>(f: {
-                    (x: _M1): {
-                        (x: _M2): _M2;
-                    };
-                }, arr: _M1[], zero: _M2): _M2;
             };
             var foldBack2 : {
                 <_M1, _M2, _M3>(f: {
@@ -106,24 +87,12 @@ declare module IntelliFactory {
                     (x: number): _M1;
                 }): _M1[];
             };
-            var iter : {
-                <_M1>(f: {
-                    (x: _M1): void;
-                }, arr: _M1[]): void;
-            };
             var iter2 : {
                 <_M1, _M2>(f: {
                     (x: _M1): {
                         (x: _M2): void;
                     };
                 }, arr1: _M1[], arr2: _M2[]): void;
-            };
-            var iteri : {
-                <_M1>(f: {
-                    (x: number): {
-                        (x: _M1): void;
-                    };
-                }, arr: _M1[]): void;
             };
             var iteri2 : {
                 <_M1, _M2>(f: {
@@ -134,24 +103,12 @@ declare module IntelliFactory {
                     };
                 }, arr1: _M1[], arr2: _M2[]): void;
             };
-            var map : {
-                <_M1, _M2>(f: {
-                    (x: _M1): _M2;
-                }, arr: _M1[]): _M2[];
-            };
             var map2 : {
                 <_M1, _M2, _M3>(f: {
                     (x: _M1): {
                         (x: _M2): _M3;
                     };
                 }, arr1: _M1[], arr2: _M2[]): _M3[];
-            };
-            var mapi : {
-                <_M1, _M2>(f: {
-                    (x: number): {
-                        (x: _M1): _M2;
-                    };
-                }, arr: _M1[]): _M2[];
             };
             var mapi2 : {
                 <_M1, _M2, _M3>(f: {
@@ -179,7 +136,7 @@ declare module IntelliFactory {
                 }, arr: _M1[]): _M1;
             };
             var ofSeq : {
-                <_M1>(xs: __ABBREV.__WebSharper.seq<_M1>): _M1[];
+                <_M1>(xs: _WebSharper.seq<_M1>): _M1[];
             };
             var partition : {
                 <_M1>(f: {
@@ -193,25 +150,11 @@ declare module IntelliFactory {
             };
             var Pick : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
                 }, arr: _M1[]): _M2;
             };
             var nonEmpty : {
                 <_M1>(arr: _M1[]): void;
-            };
-            var reduce : {
-                <_M1>(f: {
-                    (x: _M1): {
-                        (x: _M1): _M1;
-                    };
-                }, arr: _M1[]): _M1;
-            };
-            var reduceBack : {
-                <_M1>(f: {
-                    (x: _M1): {
-                        (x: _M1): _M1;
-                    };
-                }, arr: _M1[]): _M1;
             };
             var scan : {
                 <_M1, _M2>(f: {
@@ -263,17 +206,17 @@ declare module IntelliFactory {
             var tryFind : {
                 <_M1>(f: {
                     (x: _M1): boolean;
-                }, arr: _M1[]): __ABBREV.__WebSharper.OptionProxy<_M1>;
+                }, arr: _M1[]): _WebSharper.OptionProxy<_M1>;
             };
             var tryFindIndex : {
                 <_M1>(f: {
                     (x: _M1): boolean;
-                }, arr: _M1[]): __ABBREV.__WebSharper.OptionProxy<number>;
+                }, arr: _M1[]): _WebSharper.OptionProxy<number>;
             };
             var tryPick : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, arr: _M1[]): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, arr: _M1[]): _WebSharper.OptionProxy<_M2>;
             };
             var unzip : {
                 <_M1, _M2>(arr: any[]): any;
@@ -314,44 +257,44 @@ declare module IntelliFactory {
         module List {
             module T {
                 var Construct : {
-                    (head: any, tail: __ABBREV.__List.T<any>): __ABBREV.__List.T<any>;
+                    (head: any, tail: _List.T<any>): _List.T<any>;
                 };
                 var get_Nil : {
-                    (): __ABBREV.__List.T<any>;
+                    (): _List.T<any>;
                 };
             }
             interface T<_T1> {
-                GetEnumerator(): __ABBREV.__WebSharper.IEnumeratorProxy<_T1>;
+                GetEnumerator(): _WebSharper.IEnumeratorProxy<_T1>;
                 get_Length(): number;
                 get_Item(x: number): _T1;
             }
             var append : {
-                <_M1>(x: __ABBREV.__List.T<_M1>, y: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                <_M1>(x: _List.T<_M1>, y: _List.T<_M1>): _List.T<_M1>;
             };
             var choose : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, l: _List.T<_M1>): _List.T<_M2>;
             };
             var collect : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__List.T<_M2>;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M2>;
+                    (x: _M1): _List.T<_M2>;
+                }, l: _List.T<_M1>): _List.T<_M2>;
             };
             var concat : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<__ABBREV.__List.T<_M1>>): __ABBREV.__List.T<_M1>;
+                <_M1>(s: _WebSharper.seq<_List.T<_M1>>): _List.T<_M1>;
             };
             var exists2 : {
                 <_M1, _M2>(p: {
                     (x: _M1): {
                         (x: _M2): boolean;
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): boolean;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): boolean;
             };
             var filter : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                }, l: _List.T<_M1>): _List.T<_M1>;
             };
             var fold2 : {
                 <_M1, _M2, _M3>(f: {
@@ -360,14 +303,14 @@ declare module IntelliFactory {
                             (x: _M2): _M3;
                         };
                     };
-                }, s: _M3, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): _M3;
+                }, s: _M3, l1: _List.T<_M1>, l2: _List.T<_M2>): _M3;
             };
             var foldBack : {
                 <_M1, _M2>(f: {
                     (x: _M1): {
                         (x: _M2): _M2;
                     };
-                }, l: __ABBREV.__List.T<_M1>, s: _M2): _M2;
+                }, l: _List.T<_M1>, s: _M2): _M2;
             };
             var foldBack2 : {
                 <_M1, _M2, _M3>(f: {
@@ -376,26 +319,26 @@ declare module IntelliFactory {
                             (x: _M3): _M3;
                         };
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>, s: _M3): _M3;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>, s: _M3): _M3;
             };
             var forall2 : {
                 <_M1, _M2>(p: {
                     (x: _M1): {
                         (x: _M2): boolean;
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): boolean;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): boolean;
             };
             var init : {
                 <_M1>(s: number, f: {
                     (x: number): _M1;
-                }): __ABBREV.__List.T<_M1>;
+                }): _List.T<_M1>;
             };
             var iter2 : {
                 <_M1, _M2>(f: {
                     (x: _M1): {
                         (x: _M2): void;
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): void;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): void;
             };
             var iteri2 : {
                 <_M1, _M2>(f: {
@@ -404,19 +347,19 @@ declare module IntelliFactory {
                             (x: _M2): void;
                         };
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): void;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): void;
             };
             var map : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M2>;
+                }, l: _List.T<_M1>): _List.T<_M2>;
             };
             var map2 : {
                 <_M1, _M2, _M3>(f: {
                     (x: _M1): {
                         (x: _M2): _M3;
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): __ABBREV.__List.T<_M3>;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): _List.T<_M3>;
             };
             var map3 : {
                 <_M1, _M2, _M3, _M4>(f: {
@@ -425,14 +368,14 @@ declare module IntelliFactory {
                             (x: _M3): _M4;
                         };
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>, l3: __ABBREV.__List.T<_M3>): __ABBREV.__List.T<_M4>;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>, l3: _List.T<_M3>): _List.T<_M4>;
             };
             var mapi : {
                 <_M1, _M2>(f: {
                     (x: number): {
                         (x: _M1): _M2;
                     };
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M2>;
+                }, l: _List.T<_M1>): _List.T<_M2>;
             };
             var mapi2 : {
                 <_M1, _M2, _M3>(f: {
@@ -441,104 +384,104 @@ declare module IntelliFactory {
                             (x: _M2): _M3;
                         };
                     };
-                }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): __ABBREV.__List.T<_M3>;
+                }, l1: _List.T<_M1>, l2: _List.T<_M2>): _List.T<_M3>;
             };
             var max : {
-                <_M1>(l: __ABBREV.__List.T<_M1>): _M1;
+                <_M1>(l: _List.T<_M1>): _M1;
             };
             var maxBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, l: __ABBREV.__List.T<_M1>): _M1;
+                }, l: _List.T<_M1>): _M1;
             };
             var min : {
-                <_M1>(l: __ABBREV.__List.T<_M1>): _M1;
+                <_M1>(l: _List.T<_M1>): _M1;
             };
             var minBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, l: __ABBREV.__List.T<_M1>): _M1;
+                }, l: _List.T<_M1>): _M1;
             };
             var ofArray : {
-                <_M1>(arr: _M1[]): __ABBREV.__List.T<_M1>;
+                <_M1>(arr: _M1[]): _List.T<_M1>;
             };
             var ofSeq : {
-                <_M1, _M2>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__List.T<_M2>;
+                <_M1, _M2>(s: _WebSharper.seq<_M1>): _List.T<_M2>;
             };
             var partition : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, l: __ABBREV.__List.T<_M1>): any;
+                }, l: _List.T<_M1>): any;
             };
             var permute : {
                 <_M1>(f: {
                     (x: number): number;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                }, l: _List.T<_M1>): _List.T<_M1>;
             };
             var reduceBack : {
                 <_M1>(f: {
                     (x: _M1): {
                         (x: _M1): _M1;
                     };
-                }, l: __ABBREV.__List.T<_M1>): _M1;
+                }, l: _List.T<_M1>): _M1;
             };
             var replicate : {
-                <_M1>(size: number, value: _M1): __ABBREV.__List.T<_M1>;
+                <_M1>(size: number, value: _M1): _List.T<_M1>;
             };
             var rev : {
-                <_M1>(l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                <_M1>(l: _List.T<_M1>): _List.T<_M1>;
             };
             var scan : {
                 <_M1, _M2>(f: {
                     (x: _M2): {
                         (x: _M1): _M2;
                     };
-                }, s: _M2, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M2>;
+                }, s: _M2, l: _List.T<_M1>): _List.T<_M2>;
             };
             var scanBack : {
                 <_M1, _M2>(f: {
                     (x: _M1): {
                         (x: _M2): _M2;
                     };
-                }, l: __ABBREV.__List.T<_M1>, s: _M2): __ABBREV.__List.T<_M2>;
+                }, l: _List.T<_M1>, s: _M2): _List.T<_M2>;
             };
             var sort : {
-                <_M1>(l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                <_M1>(l: _List.T<_M1>): _List.T<_M1>;
             };
             var sortBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                }, l: _List.T<_M1>): _List.T<_M1>;
             };
             var sortWith : {
                 <_M1>(f: {
                     (x: _M1): {
                         (x: _M1): number;
                     };
-                }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+                }, l: _List.T<_M1>): _List.T<_M1>;
             };
             var unzip : {
-                <_M1, _M2>(l: __ABBREV.__List.T<any>): any;
+                <_M1, _M2>(l: _List.T<any>): any;
             };
             var unzip3 : {
-                <_M1, _M2, _M3>(l: __ABBREV.__List.T<any>): any;
+                <_M1, _M2, _M3>(l: _List.T<any>): any;
             };
             var zip : {
-                <_M1, _M2>(l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): __ABBREV.__List.T<any>;
+                <_M1, _M2>(l1: _List.T<_M1>, l2: _List.T<_M2>): _List.T<any>;
             };
             var zip3 : {
-                <_M1, _M2, _M3>(l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>, l3: __ABBREV.__List.T<_M3>): __ABBREV.__List.T<any>;
+                <_M1, _M2, _M3>(l1: _List.T<_M1>, l2: _List.T<_M2>, l3: _List.T<_M3>): _List.T<any>;
             };
         }
         module Unchecked {
             var compareArrays : {
-                (a: __ABBREV.__WebSharper.ObjectProxy[], b: __ABBREV.__WebSharper.ObjectProxy[]): number;
+                (a: _WebSharper.ObjectProxy[], b: _WebSharper.ObjectProxy[]): number;
             };
             var Compare : {
                 <_M1>(a: _M1, b: _M1): number;
             };
             var arrayEquals : {
-                (a: __ABBREV.__WebSharper.ObjectProxy[], b: __ABBREV.__WebSharper.ObjectProxy[]): boolean;
+                (a: _WebSharper.ObjectProxy[], b: _WebSharper.ObjectProxy[]): boolean;
             };
             var Equals : {
                 <_M1>(a: _M1, b: _M1): boolean;
@@ -547,13 +490,13 @@ declare module IntelliFactory {
                 (x: number, y: number): number;
             };
             var hashArray : {
-                (o: __ABBREV.__WebSharper.ObjectProxy[]): number;
+                (o: _WebSharper.ObjectProxy[]): number;
             };
             var hashString : {
                 (s: string): number;
             };
             var hashObject : {
-                (o: __ABBREV.__WebSharper.ObjectProxy): number;
+                (o: _WebSharper.ObjectProxy): number;
             };
             var Hash : {
                 <_M1>(o: _M1): number;
@@ -587,7 +530,7 @@ declare module IntelliFactory {
                 (s: string, startIndex: number, length: number): number[];
             };
             var Split : {
-                (s: string, pat: __ABBREV.__WebSharper.ObjectProxy, opts: any): string[];
+                (s: string, pat: _WebSharper.ObjectProxy, opts: any): string[];
             };
             var SplitChars : {
                 (s: string, sep: number[], opts: any): string[];
@@ -604,7 +547,7 @@ declare module IntelliFactory {
                 }, s: string): string;
             };
             var concat : {
-                (separator: string, strings: __ABBREV.__WebSharper.seq<string>): string;
+                (separator: string, strings: _WebSharper.seq<string>): string;
             };
             var exists : {
                 (f: {
@@ -661,296 +604,296 @@ declare module IntelliFactory {
                 <_M1>(): _M1;
             };
             var append : {
-                <_M1>(s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var average : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                <_M1>(s: _WebSharper.seq<_M1>): _M1;
             };
             var averageBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M2;
+                }, s: _WebSharper.seq<_M1>): _M2;
             };
             var cache : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var choose : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M2>;
             };
             var collect : {
                 <_M1, _M2, _M3>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M3>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M3>;
             };
             var compareWith : {
                 <_M1>(f: {
                     (x: _M1): {
                         (x: _M1): number;
                     };
-                }, s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M1>): number;
+                }, s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M1>): number;
             };
             var concat : {
-                <_M1, _M2>(ss: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M2>;
+                <_M1, _M2>(ss: _WebSharper.seq<_M1>): _WebSharper.seq<_M2>;
             };
             var countBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<any>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<any>;
             };
             var delay : {
                 <_M1>(f: {
-                    (): __ABBREV.__WebSharper.seq<_M1>;
-                }): __ABBREV.__WebSharper.seq<_M1>;
+                    (): _WebSharper.seq<_M1>;
+                }): _WebSharper.seq<_M1>;
             };
             var distinct : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var distinctBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var empty : {
-                <_M1>(): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(): _WebSharper.seq<_M1>;
             };
             var exists : {
                 <_M1, _M2>(p: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M2>): boolean;
+                }, s: _WebSharper.seq<_M2>): boolean;
             };
             var exists2 : {
                 <_M1, _M2, _M3, _M4>(p: {
                     (x: _M1): {
                         (x: _M2): boolean;
                     };
-                }, s1: __ABBREV.__WebSharper.seq<_M3>, s2: __ABBREV.__WebSharper.seq<_M4>): boolean;
+                }, s1: _WebSharper.seq<_M3>, s2: _WebSharper.seq<_M4>): boolean;
             };
             var filter : {
                 <_M1>(f: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var find : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                }, s: _WebSharper.seq<_M1>): _M1;
             };
             var findIndex : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): number;
+                }, s: _WebSharper.seq<_M1>): number;
             };
             var fold : {
                 <_M1, _M2>(f: {
                     (x: _M2): {
                         (x: _M1): _M2;
                     };
-                }, x: _M2, s: __ABBREV.__WebSharper.seq<_M1>): _M2;
+                }, x: _M2, s: _WebSharper.seq<_M1>): _M2;
             };
             var forall : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): boolean;
+                }, s: _WebSharper.seq<_M1>): boolean;
             };
             var forall2 : {
                 <_M1, _M2>(p: {
                     (x: _M1): {
                         (x: _M2): boolean;
                     };
-                }, s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M2>): boolean;
+                }, s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M2>): boolean;
             };
             var groupBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<any>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<any>;
             };
             var head : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                <_M1>(s: _WebSharper.seq<_M1>): _M1;
             };
             var init : {
                 <_M1>(n: number, f: {
                     (x: number): _M1;
-                }): __ABBREV.__WebSharper.seq<_M1>;
+                }): _WebSharper.seq<_M1>;
             };
             var initInfinite : {
                 <_M1>(f: {
                     (x: number): _M1;
-                }): __ABBREV.__WebSharper.seq<_M1>;
+                }): _WebSharper.seq<_M1>;
             };
             var isEmpty : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): boolean;
+                <_M1>(s: _WebSharper.seq<_M1>): boolean;
             };
             var iter : {
                 <_M1>(p: {
                     (x: _M1): void;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): void;
+                }, s: _WebSharper.seq<_M1>): void;
             };
             var iter2 : {
                 <_M1, _M2, _M3, _M4>(p: {
                     (x: _M1): {
                         (x: _M2): void;
                     };
-                }, s1: __ABBREV.__WebSharper.seq<_M3>, s2: __ABBREV.__WebSharper.seq<_M4>): void;
+                }, s1: _WebSharper.seq<_M3>, s2: _WebSharper.seq<_M4>): void;
             };
             var iteri : {
                 <_M1, _M2>(p: {
                     (x: number): {
                         (x: _M1): void;
                     };
-                }, s: __ABBREV.__WebSharper.seq<_M2>): void;
+                }, s: _WebSharper.seq<_M2>): void;
             };
             var length : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): number;
+                <_M1>(s: _WebSharper.seq<_M1>): number;
             };
             var map : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M2>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M2>;
             };
             var mapi : {
                 <_M1, _M2>(f: {
                     (x: number): {
                         (x: _M1): _M2;
                     };
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M2>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M2>;
             };
             var mapi2 : {
                 <_M1, _M2, _M3>(f: {
                     (x: _M1): {
                         (x: _M2): _M3;
                     };
-                }, s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M2>): __ABBREV.__WebSharper.seq<_M3>;
+                }, s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M2>): _WebSharper.seq<_M3>;
             };
             var maxBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                }, s: _WebSharper.seq<_M1>): _M1;
             };
             var minBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                }, s: _WebSharper.seq<_M1>): _M1;
             };
             var max : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                <_M1>(s: _WebSharper.seq<_M1>): _M1;
             };
             var min : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                <_M1>(s: _WebSharper.seq<_M1>): _M1;
             };
             var nth : {
-                <_M1, _M2>(index: number, s: __ABBREV.__WebSharper.seq<_M1>): _M2;
+                <_M1, _M2>(index: number, s: _WebSharper.seq<_M1>): _M2;
             };
             var pairwise : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<any>;
+                <_M1>(s: _WebSharper.seq<_M1>): _WebSharper.seq<any>;
             };
             var pick : {
                 <_M1, _M2>(p: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M2;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, s: _WebSharper.seq<_M1>): _M2;
             };
             var readOnly : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var reduce : {
                 <_M1>(f: {
                     (x: _M1): {
                         (x: _M1): _M1;
                     };
-                }, source: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                }, source: _WebSharper.seq<_M1>): _M1;
             };
             var scan : {
                 <_M1, _M2>(f: {
                     (x: _M2): {
                         (x: _M1): _M2;
                     };
-                }, x: _M2, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M2>;
+                }, x: _M2, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M2>;
             };
             var skip : {
-                <_M1>(n: number, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(n: number, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var skipWhile : {
                 <_M1>(f: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var sort : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var sortBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var sum : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1;
+                <_M1>(s: _WebSharper.seq<_M1>): _M1;
             };
             var sumBy : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): _M2;
+                }, s: _WebSharper.seq<_M1>): _M2;
             };
             var take : {
-                <_M1>(n: number, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(n: number, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var takeWhile : {
                 <_M1>(f: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var toArray : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): _M1[];
+                <_M1>(s: _WebSharper.seq<_M1>): _M1[];
             };
             var toList : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__List.T<_M1>;
+                <_M1>(s: _WebSharper.seq<_M1>): _List.T<_M1>;
             };
             var truncate : {
-                <_M1>(n: number, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(n: number, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
             var tryFind : {
                 <_M1, _M2>(ok: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M2>): __ABBREV.__WebSharper.OptionProxy<_M1>;
+                }, s: _WebSharper.seq<_M2>): _WebSharper.OptionProxy<_M1>;
             };
             var tryFindIndex : {
                 <_M1, _M2>(ok: {
                     (x: _M1): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M2>): __ABBREV.__WebSharper.OptionProxy<number>;
+                }, s: _WebSharper.seq<_M2>): _WebSharper.OptionProxy<number>;
             };
             var tryPick : {
                 <_M1, _M2, _M3>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, s: __ABBREV.__WebSharper.seq<_M3>): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, s: _WebSharper.seq<_M3>): _WebSharper.OptionProxy<_M2>;
             };
             var unfold : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<any>;
-                }, s: _M1): __ABBREV.__WebSharper.seq<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<any>;
+                }, s: _M1): _WebSharper.seq<_M2>;
             };
             var windowed : {
-                <_M1>(windowSize: number, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1[]>;
+                <_M1>(windowSize: number, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1[]>;
             };
             var zip : {
-                <_M1, _M2>(s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M2>): __ABBREV.__WebSharper.seq<any>;
+                <_M1, _M2>(s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M2>): _WebSharper.seq<any>;
             };
             var zip3 : {
-                <_M1, _M2, _M3>(s1: __ABBREV.__WebSharper.seq<_M1>, s2: __ABBREV.__WebSharper.seq<_M2>, s3: __ABBREV.__WebSharper.seq<_M3>): __ABBREV.__WebSharper.seq<any>;
+                <_M1, _M2, _M3>(s1: _WebSharper.seq<_M1>, s2: _WebSharper.seq<_M2>, s3: _WebSharper.seq<_M3>): _WebSharper.seq<any>;
             };
             var enumFinally : {
-                <_M1>(s: __ABBREV.__WebSharper.seq<_M1>, f: {
+                <_M1>(s: _WebSharper.seq<_M1>, f: {
                     (): void;
-                }): __ABBREV.__WebSharper.seq<_M1>;
+                }): _WebSharper.seq<_M1>;
             };
             var enumUsing : {
                 <_M1, _M2, _M3>(x: _M1, f: {
                     (x: _M1): _M2;
-                }): __ABBREV.__WebSharper.seq<_M3>;
+                }): _WebSharper.seq<_M3>;
             };
             var enumWhile : {
                 <_M1>(f: {
                     (): boolean;
-                }, s: __ABBREV.__WebSharper.seq<_M1>): __ABBREV.__WebSharper.seq<_M1>;
+                }, s: _WebSharper.seq<_M1>): _WebSharper.seq<_M1>;
             };
         }
         module Queue {
@@ -960,79 +903,79 @@ declare module IntelliFactory {
         module Option {
             var bind : {
                 <_M1, _M2>(f: {
-                    (x: _M1): __ABBREV.__WebSharper.OptionProxy<_M2>;
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                    (x: _M1): _WebSharper.OptionProxy<_M2>;
+                }, x: _WebSharper.OptionProxy<_M1>): _WebSharper.OptionProxy<_M2>;
             };
             var exists : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>): boolean;
+                }, x: _WebSharper.OptionProxy<_M1>): boolean;
             };
             var fold : {
                 <_M1, _M2>(f: {
                     (x: _M2): {
                         (x: _M1): _M2;
                     };
-                }, s: _M2, x: __ABBREV.__WebSharper.OptionProxy<_M1>): _M2;
+                }, s: _M2, x: _WebSharper.OptionProxy<_M1>): _M2;
             };
             var foldBack : {
                 <_M1, _M2>(f: {
                     (x: _M1): {
                         (x: _M2): _M2;
                     };
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>, s: _M2): _M2;
+                }, x: _WebSharper.OptionProxy<_M1>, s: _M2): _M2;
             };
             var forall : {
                 <_M1>(p: {
                     (x: _M1): boolean;
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>): boolean;
+                }, x: _WebSharper.OptionProxy<_M1>): boolean;
             };
             var iter : {
                 <_M1>(p: {
                     (x: _M1): void;
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>): void;
+                }, x: _WebSharper.OptionProxy<_M1>): void;
             };
             var map : {
                 <_M1, _M2>(f: {
                     (x: _M1): _M2;
-                }, x: __ABBREV.__WebSharper.OptionProxy<_M1>): __ABBREV.__WebSharper.OptionProxy<_M2>;
+                }, x: _WebSharper.OptionProxy<_M1>): _WebSharper.OptionProxy<_M2>;
             };
             var toArray : {
-                <_M1>(x: __ABBREV.__WebSharper.OptionProxy<_M1>): _M1[];
+                <_M1>(x: _WebSharper.OptionProxy<_M1>): _M1[];
             };
             var toList : {
-                <_M1>(x: __ABBREV.__WebSharper.OptionProxy<_M1>): __ABBREV.__List.T<_M1>;
+                <_M1>(x: _WebSharper.OptionProxy<_M1>): _List.T<_M1>;
             };
         }
         module OperatorIntrinsics {
             var GetStringSlice : {
-                (source: string, start: __ABBREV.__WebSharper.OptionProxy<number>, finish: __ABBREV.__WebSharper.OptionProxy<number>): string;
+                (source: string, start: _WebSharper.OptionProxy<number>, finish: _WebSharper.OptionProxy<number>): string;
             };
             var GetArraySlice : {
-                <_M1>(source: _M1[], start: __ABBREV.__WebSharper.OptionProxy<number>, finish: __ABBREV.__WebSharper.OptionProxy<number>): _M1[];
+                <_M1>(source: _M1[], start: _WebSharper.OptionProxy<number>, finish: _WebSharper.OptionProxy<number>): _M1[];
             };
         }
         module Operators {
             var range : {
-                <_M1>(min: _M1, max: _M1): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1>(min: _M1, max: _M1): _WebSharper.seq<_M1>;
             };
             var step : {
-                <_M1, _M2>(min: _M1, step: _M2, max: _M1): __ABBREV.__WebSharper.seq<_M1>;
+                <_M1, _M2>(min: _M1, step: _M2, max: _M1): _WebSharper.seq<_M1>;
             };
             var Compare : {
                 <_M1>(a: _M1, b: _M1): number;
             };
             var Decrement : {
-                (x: __ABBREV.__WebSharper.ref<number>): void;
+                (x: _WebSharper.ref<number>): void;
             };
             var DefaultArg : {
-                <_M1>(x: __ABBREV.__WebSharper.OptionProxy<_M1>, d: _M1): _M1;
+                <_M1>(x: _WebSharper.OptionProxy<_M1>, d: _M1): _M1;
             };
             var FailWith : {
                 <_M1>(msg: string): _M1;
             };
             var Increment : {
-                (x: __ABBREV.__WebSharper.ref<number>): void;
+                (x: _WebSharper.ref<number>): void;
             };
             var Max : {
                 <_M1>(a: _M1, b: _M1): _M1;
@@ -1055,20 +998,20 @@ declare module IntelliFactory {
                 }): _M2;
             };
             var KeyValue : {
-                <_M1, _M2>(kvp: __ABBREV.__WebSharper.KeyValuePairProxy<_M1, _M2>): any;
+                <_M1, _M2>(kvp: _WebSharper.KeyValuePairProxy<_M1, _M2>): any;
             };
         }
         module Lazy {
             var Create : {
                 <_M1>(f: {
                     (): _M1;
-                }): __ABBREV.__WebSharper.LazyProxy<_M1>;
+                }): _WebSharper.LazyProxy<_M1>;
             };
             var CreateFromValue : {
-                <_M1>(v: _M1): __ABBREV.__WebSharper.LazyProxy<_M1>;
+                <_M1>(v: _M1): _WebSharper.LazyProxy<_M1>;
             };
             var Force : {
-                <_M1>(x: __ABBREV.__WebSharper.LazyProxy<_M1>): _M1;
+                <_M1>(x: _WebSharper.LazyProxy<_M1>): _M1;
             };
         }
         module Util {
@@ -1085,61 +1028,61 @@ declare module IntelliFactory {
             var subscribeTo : {
                 <_M1>(event: any, h: {
                     (x: _M1): void;
-                }): __ABBREV.__WebSharper.IDisposableProxy;
+                }): _WebSharper.IDisposableProxy;
             };
         }
         module Pervasives {
             var NewFromList : {
-                <_M1>(fields: __ABBREV.__WebSharper.seq<any>): _M1;
+                <_M1>(fields: _WebSharper.seq<any>): _M1;
             };
         }
         module Remoting {
             interface IAjaxProvider {
-                Async(x0: string, x1: __ABBREV.__WebSharper.ObjectProxy, x2: string, x3: {
+                Async(x0: string, x1: _WebSharper.ObjectProxy, x2: string, x3: {
                     (x: string): void;
                 }, x4: {
-                    (x: __ABBREV.__WebSharper.ExceptionProxy): void;
+                    (x: _WebSharper.ExceptionProxy): void;
                 }): void;
-                Sync(x0: string, x1: __ABBREV.__WebSharper.ObjectProxy, x2: string): string;
+                Sync(x0: string, x1: _WebSharper.ObjectProxy, x2: string): string;
             }
             var makeHeaders : {
-                (m: string): __ABBREV.__WebSharper.ObjectProxy;
+                (m: string): _WebSharper.ObjectProxy;
             };
             var makePayload : {
-                (data: __ABBREV.__WebSharper.ObjectProxy[]): string;
+                (data: _WebSharper.ObjectProxy[]): string;
             };
             var Call : {
-                (m: string, data: __ABBREV.__WebSharper.ObjectProxy[]): __ABBREV.__WebSharper.ObjectProxy;
+                (m: string, data: _WebSharper.ObjectProxy[]): _WebSharper.ObjectProxy;
             };
             var Async : {
-                (m: string, data: __ABBREV.__WebSharper.ObjectProxy[]): any;
+                (m: string, data: _WebSharper.ObjectProxy[]): any;
             };
             var Send : {
-                (m: string, data: __ABBREV.__WebSharper.ObjectProxy[]): void;
+                (m: string, data: _WebSharper.ObjectProxy[]): void;
             };
             var EndPoint : {
                 (): string;
             };
             var AjaxProvider : {
-                (): __ABBREV.__Remoting.IAjaxProvider;
+                (): _Remoting.IAjaxProvider;
             };
         }
         module Json {
             interface Resource {
             }
             var lookup : {
-                <_M1>(x: string[]): __ABBREV.__WebSharper.ObjectProxy;
+                <_M1>(x: string[]): _WebSharper.ObjectProxy;
             };
             var restore : {
-                (ty: __ABBREV.__WebSharper.ObjectProxy, obj: __ABBREV.__WebSharper.ObjectProxy): __ABBREV.__WebSharper.ObjectProxy;
+                (ty: _WebSharper.ObjectProxy, obj: _WebSharper.ObjectProxy): _WebSharper.ObjectProxy;
             };
             var shallowMap : {
                 (f: {
-                    (x: __ABBREV.__WebSharper.ObjectProxy): __ABBREV.__WebSharper.ObjectProxy;
-                }, x: __ABBREV.__WebSharper.ObjectProxy): __ABBREV.__WebSharper.ObjectProxy;
+                    (x: _WebSharper.ObjectProxy): _WebSharper.ObjectProxy;
+                }, x: _WebSharper.ObjectProxy): _WebSharper.ObjectProxy;
             };
             var Activate : {
-                <_M1>(json: __ABBREV.__WebSharper.ObjectProxy): _M1;
+                <_M1>(json: _WebSharper.ObjectProxy): _M1;
             };
         }
         module JavaScript {
@@ -1182,7 +1125,7 @@ declare module IntelliFactory {
         interface IEnumeratorProxy1 {
             MoveNext(): boolean;
             Reset(): void;
-            get_Current(): __ABBREV.__WebSharper.ObjectProxy;
+            get_Current(): _WebSharper.ObjectProxy;
         }
         interface ObjectProxy {
         }
@@ -1204,10 +1147,8 @@ declare module IntelliFactory {
         interface ref<_T1> {
         }
     }
-}
-declare module __ABBREV {
     
-    export import __WebSharper = IntelliFactory.WebSharper;
-    export import __List = IntelliFactory.WebSharper.List;
-    export import __Remoting = IntelliFactory.WebSharper.Remoting;
+    import _WebSharper = IntelliFactory.WebSharper;
+    import _List = IntelliFactory.WebSharper.List;
+    import _Remoting = IntelliFactory.WebSharper.Remoting;
 }
