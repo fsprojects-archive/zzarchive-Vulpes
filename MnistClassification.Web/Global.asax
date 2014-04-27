@@ -1,1 +1,1 @@
-<%@ Application Inherits="Website1.Global" %>
+<%@ Application Inherits="MnistClassification.Web.Global" %>
