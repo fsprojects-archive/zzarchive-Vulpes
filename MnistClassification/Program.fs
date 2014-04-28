@@ -1,25 +1,4 @@
-﻿// The MIT License (MIT)
-// 
-// Copyright (c) 2014 SpiegelSoft Ltd
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-namespace MnistClassification
+﻿namespace MnistClassification
 
 module Main =
 
@@ -30,6 +9,8 @@ module Main =
     open CudaNeuralNet
     open NeuralNet
     open DbnClassification
+    open ImageClassification
+    open MnistDataLoad
     open Utils
 
     // Pretraining parameters
@@ -52,18 +33,22 @@ module Main =
 
     [<EntryPoint>]
     let main argv = 
+
+        let mnistTrainingData = loadMnistDataSet TrainingData
+        let mnistTestData = loadMnistDataSet TestData
+
         let rand = new Random()
 
-        let trainedMnistDbn = trainMnistDbn rand dbnParameters
+        let trainedMnistDbn = trainMnistDbn rand dbnParameters mnistTrainingData
 
         let backPropagationNetwork = toBackPropagationNetwork backPropagationParameters trainedMnistDbn
-        let backPropagationResults = gpuComputeNnetResults backPropagationNetwork mnistTrainingSet mnistTestSet rand backPropagationParameters
+        let backPropagationResults = gpuComputeNnetResults backPropagationNetwork (toBackPropagationInput mnistTrainingData) (toBackPropagationInput mnistTestData) rand backPropagationParameters
         
         let intResults = backPropagationResults |> Array.map (fun r -> 
             let m = Array.max r
             r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))
 
-        let targets = mnistTestSet |> Array.map (fun x -> snd x)
+        let targets = (toBackPropagationInput mnistTestData) |> Array.map (fun x -> snd x)
         let fpTestError = 
             Array.zip targets backPropagationResults
             |> Array.fold (fun E (x, t) -> 

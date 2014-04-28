@@ -32,15 +32,7 @@ module DbnClassification =
     open DeepBelief.ImageClassification
     open MnistDataLoad
 
-    let mnistTrainingImages = loadMnistImage MnistTrainingImageData |> to2dFloat32Array
-    let mnistTrainingLabels = loadMnistLabel MnistTrainingLabelData |> Array.map (fun x -> value x)
-
-    let mnistTestImages = loadMnistImage MnistTestImageData |> to2dFloat32Array
-    let mnistTestLabels = loadMnistLabel MnistTestLabelData |> Array.map (fun x -> value x)
-
-    let trainMnistDbn rand (deepBeliefParameters : DeepBeliefParameters) = 
-        let mnistDbn = initDbn deepBeliefParameters mnistTrainingImages
-        gpuDbnTrain rand mnistDbn mnistTrainingImages
-
-    let mnistTrainingSet = Array.zip (toArray mnistTrainingImages) mnistTrainingLabels
-    let mnistTestSet = Array.zip (toArray mnistTestImages) mnistTestLabels
+    let trainMnistDbn rand (deepBeliefParameters : DeepBeliefParameters) mnistTrainingData = 
+        let xInputs = toDbnInputs mnistTrainingData
+        let mnistDbn = initDbn deepBeliefParameters xInputs
+        gpuDbnTrain rand mnistDbn xInputs

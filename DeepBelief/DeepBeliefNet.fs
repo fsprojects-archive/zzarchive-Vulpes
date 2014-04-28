@@ -114,8 +114,7 @@ module DeepBeliefNet =
                 let nHidden = element
                 let rbmParams = toRbmParameters deepBeliefParameters
                 (element, (initRbm rbmParams nVisible nHidden) :: snd acc))
-                (width xInputs, [])
-                |> snd |> List.rev 
+                (width xInputs, []) |> snd |> List.rev 
         }
 
     let activateFirstRow (v:Matrix) = v.[1..,0..] |> prependRowOfOnes

@@ -28,6 +28,7 @@ open IntelliFactory.WebSharper.Sitelets
 open System.Web
 
 module Remoting =
+    open MnistClassification
 
     let pageKey page =
         "td" + page

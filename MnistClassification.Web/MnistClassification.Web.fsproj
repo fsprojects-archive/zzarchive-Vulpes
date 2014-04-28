@@ -121,4 +121,11 @@
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MnistClassification\MnistClassification.fsproj">
+      <Name>MnistClassification</Name>
+      <Project>{f4f50893-a044-490f-bd48-b06fa62c323b}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
 </Project>
