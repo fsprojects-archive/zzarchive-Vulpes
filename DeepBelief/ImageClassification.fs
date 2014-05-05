@@ -13,7 +13,7 @@ module ImageClassification =
 
     and ImagePixels = ImagePixels of ImagePixel[,]
 
-    and ImageLabel = ImageLabel of float32[]
+    and ImageLabel = ImageLabel of ImagePixel[]
 
     and LabelSize = LabelSize of int
 
@@ -39,8 +39,8 @@ module ImageClassification =
     let createImagePixel value =
         value |> max 0.0f |> min 1.0f |> ImagePixel
 
-    let createLabel value =
-        value |> ImageLabel
+    let createLabel array =
+        array |> Array.map (fun value -> createImagePixel value) |> ImageLabel
 
     let toDbnInputs (imageSet : ImageSet) =
         let toDbnInput height width (labelledImage : LabelledImage) =
@@ -55,7 +55,7 @@ module ImageClassification =
 
     let toBackPropagationInput (imageSet : ImageSet) =
         let pixelValue (ImagePixel pValue) = pValue
-        let toLabelArray (ImageLabel label) = label
+        let toLabelArray (ImageLabel label) = label |> Array.map (fun (ImagePixel pixelValue) -> pixelValue)
         let flattenImage (ImageHeight height) (ImageWidth width) (ImagePixels pixels) =
             Array.init (height * width) (fun i -> pixels.[i / width, i % width] |> pixelValue)
         imageSet.Images |> Array.map (fun labelledImage -> (flattenImage imageSet.Height imageSet.Width labelledImage.Image, toLabelArray labelledImage.Label))

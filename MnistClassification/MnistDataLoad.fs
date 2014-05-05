@@ -77,7 +77,7 @@ module MnistDataLoad =
                 LabelDimension = LabelSize 10
                 Images = Array.init nImages (fun _ -> 
                 {
-                    Label = Array.init 10 (fun _ -> 0.0f) |> ImageLabel
+                    Label = Array.init 10 (fun _ -> createImagePixel 0.0f) |> ImageLabel
                     Image = Array2D.init nRows nCols (fun _ _ -> readPixel imageReader) |> ImagePixels
                 })
             }
