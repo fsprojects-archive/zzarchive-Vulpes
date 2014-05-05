@@ -97,7 +97,7 @@ declare module IntelliFactory {
                     Zero(): void;
                 }
                 var Test : {
-                    (name: string): _Pervasives.TestBuilder;
+                    (name: string): __ABBREV.__Pervasives.TestBuilder;
                 };
                 var Is : {
                     <_M1>(a: _M1, b: _M1): void;
@@ -108,6 +108,8 @@ declare module IntelliFactory {
             }
         }
     }
+}
+declare module __ABBREV {
     
-    import _Pervasives = IntelliFactory.WebSharper.Testing.Pervasives;
+    export import __Pervasives = IntelliFactory.WebSharper.Testing.Pervasives;
 }

@@ -20,34 +20,30 @@
     HotStream:Runtime.Class({
      Subscribe:function(o)
      {
-      var _this;
       if(this.Latest.contents.$==1)
        {
         o.OnNext(this.Latest.contents.$0);
        }
-      return(_this=this.Event,_this.event).Subscribe(o);
+      return this.Event.event.Subscribe(o);
      },
      Trigger:function(v)
      {
-      var _this;
       this.Latest.contents={
        $:1,
        $0:v
       };
-      _this=this.Event;
-      return _this.event.Trigger(v);
+      return this.Event.event.Trigger(v);
      }
     },{
      New:function(x)
      {
-      var value;
       return Runtime.New(HotStream,{
-       Latest:(value={
-        $:1,
-        $0:x
-       },{
-        contents:value
-       }),
+       Latest:{
+        contents:{
+         $:1,
+         $0:x
+        }
+       },
        Event:FSharpEvent.New()
       });
      },
@@ -70,10 +66,7 @@
      },
      SubscribeWith:function(onNext,onComplete)
      {
-      var x,f;
-      x=Observer.New(onNext,onComplete);
-      f=this.OnSubscribe;
-      return f(x);
+      return this.OnSubscribe.call(null,Observer.New(onNext,onComplete));
      }
     },{
      New:function(f)
@@ -127,17 +120,9 @@
       {
        return Util.subscribeTo(io,function(v)
        {
-        var matchValue,v1;
+        var matchValue;
         matchValue=f(v);
-        if(matchValue.$==0)
-         {
-          return null;
-         }
-        else
-         {
-          v1=matchValue.$0;
-          return o1.OnNext(v1);
-         }
+        return matchValue.$==0?null:o1.OnNext(matchValue.$0);
        });
       });
      },
@@ -152,23 +137,21 @@
        };
        return Util.subscribeTo(outer,function(inner)
        {
-        var currentIndex,value;
+        var currentIndex;
         Operators.Increment(index);
         currentIndex=index.contents;
-        value=Util.subscribeTo(inner,function(value1)
+        Util.subscribeTo(inner,function(value)
         {
-         var arg00;
-         dict.set_Item(currentIndex,value1);
-         arg00=Seq.delay(function()
+         dict.set_Item(currentIndex,value);
+         return o.OnNext(Seq.delay(function()
          {
           return Seq.map(function(pair)
           {
            return pair.V;
           },dict);
-         });
-         return o.OnNext(arg00);
+         }));
         });
-        value;
+        return;
        });
       });
      },
@@ -176,7 +159,7 @@
      {
       return Observable.New(function(o)
       {
-       var lv1,lv2,update,o1,onNext,arg10,o2,onNext1,arg101,d1,d2;
+       var lv1,lv2,update,o1,o2,d1,d2;
        lv1={
         contents:{
          $:0
@@ -189,15 +172,14 @@
        };
        update=function()
        {
-        var matchValue,v1,v2;
+        var matchValue,v2;
         matchValue=[lv1.contents,lv2.contents];
         if(matchValue[0].$==1)
          {
           if(matchValue[1].$==1)
            {
-            v1=matchValue[0].$0;
             v2=matchValue[1].$0;
-            return o.OnNext((f(v1))(v2));
+            return o.OnNext((f(matchValue[0].$0))(v2));
            }
           else
            {
@@ -209,28 +191,26 @@
           return null;
          }
        };
-       o1=(onNext=function(x)
+       o1=Observer.New(function(x)
        {
         lv1.contents={
          $:1,
          $0:x
         };
         return update(null);
-       },(arg10=function(value)
+       },function()
        {
-        value;
-       },Observer.New(onNext,arg10)));
-       o2=(onNext1=function(y)
+       });
+       o2=Observer.New(function(y)
        {
         lv2.contents={
          $:1,
          $0:y
         };
         return update(null);
-       },(arg101=function(value)
+       },function()
        {
-        value;
-       },Observer.New(onNext1,arg101)));
+       });
        d1=io1.Subscribe(o1);
        d2=io2.Subscribe(o2);
        return Disposable.New(function()
@@ -244,25 +224,22 @@
      {
       return Observable.New(function(o)
       {
-       var innerDisp,outerDisp,x,arg00,arg10,f;
+       var innerDisp,outerDisp;
        innerDisp={
         contents:{
          $:0
         }
        };
-       outerDisp=(x=(arg00=function(arg001)
+       outerDisp=io1.Subscribe(Observer.New(function(arg00)
        {
-        return o.OnNext(arg001);
-       },(arg10=function()
+        return o.OnNext(arg00);
+       },function()
        {
         innerDisp.contents={
          $:1,
          $0:io2.Subscribe(o)
         };
-       },Observer.New(arg00,arg10))),(f=function(arg001)
-       {
-        return io1.Subscribe(arg001);
-       },f(x)));
+       }));
        return Disposable.New(function()
        {
         if(innerDisp.contents.$==1)
@@ -288,14 +265,7 @@
        return Util.subscribeTo(io,function(v)
        {
         Operators.Increment(index);
-        if(index.contents>count)
-         {
-          return o1.OnNext(v);
-         }
-        else
-         {
-          return null;
-         }
+        return index.contents>count?o1.OnNext(v):null;
        });
       });
      },
@@ -313,49 +283,29 @@
      {
       return Observable.New(function(o)
       {
-       var completed1,completed2,disp1,x,arg00,arg10,f,disp2,x1,arg002,arg101,f1;
+       var completed1,completed2,disp1,disp2;
        completed1={
         contents:false
        };
        completed2={
         contents:false
        };
-       disp1=(x=(arg00=function(arg001)
+       disp1=io1.Subscribe(Observer.New(function(arg00)
        {
-        return o.OnNext(arg001);
-       },(arg10=function()
+        return o.OnNext(arg00);
+       },function()
        {
         completed1.contents=true;
-        if(completed1.contents?completed2.contents:false)
-         {
-          return o.OnCompleted();
-         }
-        else
-         {
-          return null;
-         }
-       },Observer.New(arg00,arg10))),(f=function(arg001)
+        return(completed1.contents?completed2.contents:false)?o.OnCompleted():null;
+       }));
+       disp2=io2.Subscribe(Observer.New(function(arg00)
        {
-        return io1.Subscribe(arg001);
-       },f(x)));
-       disp2=(x1=(arg002=function(arg001)
-       {
-        return o.OnNext(arg001);
-       },(arg101=function()
+        return o.OnNext(arg00);
+       },function()
        {
         completed2.contents=true;
-        if(completed1.contents?completed2.contents:false)
-         {
-          return o.OnCompleted();
-         }
-        else
-         {
-          return null;
-         }
-       },Observer.New(arg002,arg101))),(f1=function(arg001)
-       {
-        return io2.Subscribe(arg001);
-       },f1(x1)));
+        return(completed1.contents?completed2.contents:false)?o.OnCompleted():null;
+       }));
        return Disposable.New(function()
        {
         disp1.Dispose();
@@ -367,9 +317,8 @@
      {
       return Observable.New(function()
       {
-       return Disposable.New(function(value)
+       return Disposable.New(function()
        {
-        value;
        });
       });
      },
@@ -377,13 +326,12 @@
      {
       return Observable.New(function(o)
       {
-       Runtime.For(start,start+count,function(i)
-       {
+       var i;
+       for(i=start;i<=start+count;i++){
         o.OnNext(i);
-       });
-       return Disposable.New(function(value)
+       }
+       return Disposable.New(function()
        {
-        value;
        });
       });
      },
@@ -451,9 +399,7 @@
      },{
       New:function()
       {
-       var r;
-       r=Runtime.New(this,{});
-       return r;
+       return Runtime.New(this,{});
       }
      }),
      Return:function(x)
@@ -462,9 +408,8 @@
       {
        o.OnNext(x);
        o.OnCompleted();
-       return Disposable.New(function(value)
+       return Disposable.New(function()
        {
-        value;
        });
       });
      },
@@ -484,9 +429,8 @@
       {
        var disp,d;
        disp={
-        contents:function(value)
+        contents:function()
         {
-         value;
         }
        };
        d=Util.subscribeTo(io,function(o1)
@@ -501,6 +445,7 @@
          disp.contents.call(null,null);
          return d1.Dispose();
         };
+        return;
        });
        return Disposable.New(function()
        {
@@ -514,30 +459,19 @@
       var sequence;
       sequence=function(ios1)
       {
-       var xs,x,rest;
-       if(ios1.$==1)
+       return ios1.$==1?Reactive1.CombineLatest(ios1.$0,sequence(ios1.$1),function(x)
+       {
+        return function(y)
         {
-         xs=ios1.$1;
-         x=ios1.$0;
-         rest=sequence(xs);
-         return Reactive1.CombineLatest(x,rest,function(x1)
-         {
-          return function(y)
-          {
-           return Runtime.New(T,{
-            $:1,
-            $0:x1,
-            $1:y
-           });
-          };
+         return Runtime.New(T,{
+          $:1,
+          $0:x,
+          $1:y
          });
-        }
-       else
-        {
-         return Reactive1.Return(Runtime.New(T,{
-          $:0
-         }));
-        }
+        };
+       }):Reactive1.Return(Runtime.New(T,{
+        $:0
+       }));
       };
       return Reactive1.Select(sequence(List.ofSeq(ios)),function(source)
       {
@@ -548,39 +482,33 @@
      {
       return Observable.New(function(o)
       {
-       var disp,index,disp1;
-       disp=(index={
+       var index,disp;
+       index={
         contents:0
-       },(disp1={
+       };
+       disp={
         contents:{
          $:0
         }
-       },Util.subscribeTo(io,function(o1)
+       };
+       return Util.subscribeTo(io,function(o1)
        {
-        var currentIndex,d,arg0;
+        var currentIndex;
         Operators.Increment(index);
-        if(disp1.contents.$==1)
+        if(disp.contents.$==1)
          {
-          disp1.contents.$0.Dispose();
+          disp.contents.$0.Dispose();
          }
         currentIndex=index.contents;
-        d=(arg0=Util.subscribeTo(o1,function(v)
-        {
-         if(currentIndex===index.contents)
-          {
-           return o.OnNext(v);
-          }
-         else
-          {
-           return null;
-          }
-        }),{
+        disp.contents={
          $:1,
-         $0:arg0
-        });
-        disp1.contents=d;
-       })));
-       return disp;
+         $0:Util.subscribeTo(o1,function(v)
+         {
+          return currentIndex===index.contents?o.OnNext(v):null;
+         })
+        };
+        return;
+       });
       });
      },
      Where:function(io,f)
@@ -589,14 +517,7 @@
       {
        return Util.subscribeTo(io,function(v)
        {
-        if(f(v))
-         {
-          return o1.OnNext(v);
-         }
-        else
-         {
-          return null;
-         }
+        return f(v)?o1.OnNext(v):null;
        });
       });
      }
@@ -627,5 +548,6 @@
  Runtime.OnLoad(function()
  {
   Reactive1.Default();
+  return;
  });
 }());

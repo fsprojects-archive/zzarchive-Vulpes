@@ -11,6 +11,7 @@
     <TargetFSharpCoreVersion>4.3.0.0</TargetFSharpCoreVersion>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
     <UseIISExpress>true</UseIISExpress>
+    <NuGetPackageImportStamp>e78641d2</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -94,12 +95,12 @@
       </FlavorProperties>
     </VisualStudio>
   </ProjectExtensions>
-  <Import Project="..\packages\WebSharper.2.5.92.21\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.92.21\build\WebSharper.targets')" />
+  <Import Project="..\packages\WebSharper.2.5.106.39\build\WebSharper.targets" Condition="Exists('..\packages\WebSharper.2.5.106.39\build\WebSharper.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\WebSharper.2.5.92.21\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.2.5.92.21\build\WebSharper.targets'))" />
+    <Error Condition="!Exists('..\packages\WebSharper.2.5.106.39\build\WebSharper.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebSharper.2.5.106.39\build\WebSharper.targets'))" />
   </Target>
   <ItemGroup>
     <Compile Include="Remoting.fs" />
@@ -120,8 +121,6 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\MnistClassification\MnistClassification.fsproj">
       <Name>MnistClassification</Name>
       <Project>{f4f50893-a044-490f-bd48-b06fa62c323b}</Project>

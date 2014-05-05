@@ -1,16 +1,17 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,T;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,HTML5,T,Unchecked,G_vmlCanvasManager,Operators;
  Runtime.Define(Global,{
   MnistClassification:{
    Web:{
     Client:{
      Main:function()
      {
-      var input,label,x,f,arg00;
+      var input,label,x,arg00;
       input=Default.Input(List.ofArray([Default.Text("")]));
       label=Default.Div(List.ofArray([Default.Text("")]));
-      return Default.Div(List.ofArray([input,label,(x=Default.Button(List.ofArray([Default.Text("Click")])),(f=(arg00=function()
+      x=Default.Button(List.ofArray([Default.Text("Click")]));
+      arg00=function()
       {
        return function()
        {
@@ -19,42 +20,58 @@
          return label.set_Text(out);
         });
        };
-      },function(arg10)
-      {
-       return EventsPervasives.Events().OnClick(arg00,arg10);
-      }),(f(x),x)))]));
+      };
+      EventsPervasives.Events().OnClick(arg00,x);
+      return Default.Div(List.ofArray([input,label,x]));
      },
      Start:function(input,k)
      {
-      var arg00,clo1,t;
-      arg00=Concurrency.Delay((clo1=function()
+      return Concurrency.Start(Concurrency.Delay(function()
       {
-       var x,f;
-       x=Remoting.Async("MnistClassification.Web:0",[input]);
-       f=function(_arg1)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[input]),function(_arg1)
        {
-        var x1;
-        x1=k(_arg1);
-        return Concurrency.Return(x1);
-       };
-       return Concurrency.Bind(x,f);
-      },clo1));
-      t={
-       $:0
-      };
-      return Concurrency.Start(arg00);
+        return Concurrency.Return(k(_arg1));
+       });
+      }));
      },
      TrainingSet:function()
      {
-      var margin;
+      var margin,width,height,Example;
       margin={
        Top:10,
        Right:10,
        Bottom:100,
        Left:40
       };
-      800-margin.Left-margin.Right;
-      500-margin.Top-margin.Bottom;
+      width=800-margin.Left-margin.Right;
+      height=500-margin.Top-margin.Bottom;
+      Example=function(draw)
+      {
+       return function(width1)
+       {
+        return function(height1)
+        {
+         return function(caption)
+         {
+          var _this,arg10,element,canvas;
+          _this=HTML5.Tags();
+          arg10=Runtime.New(T,{
+           $:0
+          });
+          element=_this.NewTag("canvas",arg10);
+          canvas=element.Body;
+          if(Unchecked.Equals(canvas.getContext,undefined))
+           {
+            G_vmlCanvasManager.initElement(canvas);
+           }
+          canvas.height=height1;
+          canvas.width=width1;
+          draw(canvas.getContext("2d"));
+          return Operators.add(Default.Div(List.ofArray([Default.Attr().NewAttr("style","float: left")])),List.ofArray([element,Operators.add(Default.P(List.ofArray([Default.Align("center")])),List.ofArray([Default.I(List.ofArray([Default.Text("Example "+caption)]))]))]));
+         };
+        };
+       };
+      };
       return Default.Div(Runtime.New(T,{
        $:0
       }));
@@ -83,9 +100,14 @@
   EventsPervasives=Runtime.Safe(Html.EventsPervasives);
   Concurrency=Runtime.Safe(WebSharper.Concurrency);
   Remoting=Runtime.Safe(WebSharper.Remoting);
-  return T=Runtime.Safe(List.T);
+  HTML5=Runtime.Safe(Default.HTML5);
+  T=Runtime.Safe(List.T);
+  Unchecked=Runtime.Safe(WebSharper.Unchecked);
+  G_vmlCanvasManager=Runtime.Safe(Global.G_vmlCanvasManager);
+  return Operators=Runtime.Safe(Html.Operators);
  });
  Runtime.OnLoad(function()
  {
+  return;
  });
 }());

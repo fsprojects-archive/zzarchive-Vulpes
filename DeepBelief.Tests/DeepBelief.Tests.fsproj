@@ -83,6 +83,7 @@
     <Compile Include="CudaRbmEpoch.fs" />
     <Compile Include="CudaNeuralNetTests.fs" />
     <None Include="CudaNeuralNetTests.fsx" />
+    <Compile Include="ImageClassificationTests.fs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
