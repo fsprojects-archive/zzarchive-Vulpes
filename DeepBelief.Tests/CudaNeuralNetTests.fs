@@ -98,7 +98,6 @@ module CudaNeuralNetTests =
             use sigmoidProgram = i |> sigmoidTemplate |> Compiler.load Worker.Default in
             sigmoidProgram.Run logitVector 0 8 |> should equal vector
 
-
     type ``CUDA Neural Net: Feed Forward``()=
 
         let alpha = 0.5f

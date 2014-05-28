@@ -76,6 +76,18 @@
     <None Include="packages.config" />
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Backpropagation\Backpropagation.fsproj">
+      <Name>Backpropagation</Name>
+      <Project>{2157c4bb-5753-4fea-b25c-4a4a07191af3}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.fsproj">
+      <Name>Common</Name>
+      <Project>{2c3c4ae2-a531-4fdf-8d3b-4dd746af97ff}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>

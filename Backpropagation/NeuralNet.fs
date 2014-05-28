@@ -1,30 +1,10 @@
-﻿namespace DeepBelief
+﻿namespace Backproagation
 
 module NeuralNet =
 
     open System
-    open Utils
-    open DeepBeliefNet
     open Common.Analytics
-
-    /// precision for calculating the derivatives
-    let prc = 1e-6f
-
-    type BackPropagationLayer = {
-        Weight : Matrix
-        Activation : DifferentiableFunction
-    }
-
-    type BackPropagationParameters = {
-        LearningRate : LearningRate
-        Momentum : Momentum
-        Epochs : Epochs
-    }
-
-    type BackPropagationNetwork = {
-        Parameters : BackPropagationParameters
-        Layers : BackPropagationLayer list
-    }
+    open Backpropagation.Parameters
 
     type NnetInput = NnetInput of Matrix
 
@@ -32,33 +12,19 @@ module NeuralNet =
 
     type SupervisedLearning = SupervisedLearning of (NnetInput -> NnetOutput)
 
-    let toBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
-        let layers = 
-            deepBeliefNetwork
-            |> fun dbn -> dbn.Machines
-            |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative) })
-        { Parameters = backPropagationParameters; Layers = layers }
-
-
     /// returns list of (out, out') vectors per layer
     // Taken from Reto Matter's blog, http://retomatter.blogspot.ch/2013/01/functional-feed-forward-neural-networks.html
     let feedForward (network : BackPropagationNetwork) input = 
         List.fold 
-            (fun (os : (Vector * Vector) list) (W, f) -> 
+            (fun (os : Signals list) layer -> 
                 let prevLayerOutput = 
                     match os.IsEmpty with
                     | true -> input
-                    | _    -> fst (os.Head)
-                let prevOut = prependForBias prevLayerOutput
-                let layerInput = prevOut |> multiplyVectorByMatrix W
+                    | _    -> os.Head
+                let layerInput = layer.Weight * prevLayerOutput.ValuesPrependedForBias
                 (layerInput |> Array.map (fst f), 
                  layerInput |> Array.map (fun x -> (snd f) (x |> fst f) x)) :: os) 
-          [] (network.Layers |> List.map (fun layer -> (layer.Weight, layer.Activation |> fun a -> value a |> fun f -> (value <| fst f, value <| snd f))))
-
-    /// matlab like pointwise multiply
-    let (.*) (v1 : Vector) (v2 : Vector) = 
-        let n = Array.length v1
-        Array.init n (fun i -> v1.[i] * v2.[i])
+          [] network.Layers
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer

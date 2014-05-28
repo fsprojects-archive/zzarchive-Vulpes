@@ -122,10 +122,6 @@ type ``Numerical Utilities``() =
         permute rand 10 |> Array.sort |> should equal [|0..9|] 
 
     [<Fact>] member test.
-        ``The sumOfRows function maps the identity matrix to a vector of ones.``()=
-            identityMatrix 10 |> sumOfRows |> allElementsOfVector (fun i -> i = 1.0f) |> should equal true
-
-    [<Fact>] member test.
         ``The prependRow function maps M and vb to MWithVisibleBiases.``()=
             prependRow vb M |> should equal MWithVisibleBiases
 

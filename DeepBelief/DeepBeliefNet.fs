@@ -4,6 +4,8 @@ module DeepBeliefNet =
 
     open System
     open Utils
+    open Common.NeuralNet
+    open Backpropagation.Parameters
 
     type DeepBeliefParameters = {
         Layers : LayerSizes
@@ -19,6 +21,13 @@ module DeepBeliefNet =
         BatchSize : BatchSize
         Epochs : Epochs
     }
+
+    let toBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
+        let layers = 
+            deepBeliefNetwork
+            |> fun dbn -> dbn.Machines
+            |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative) })
+        { Parameters = backPropagationParameters; Layers = layers }
 
     type RestrictedBoltzmannMachine = {
         Parameters : RestrictedBoltzmannParameters
@@ -86,14 +95,16 @@ module DeepBeliefNet =
         }
 
     let initDbn (deepBeliefParameters : DeepBeliefParameters) xInputs =
-        { 
-            Parameters = deepBeliefParameters;
-            Machines = value deepBeliefParameters.Layers |> List.fold(fun acc element -> 
+        let toMachines (LayerSizes layers) =
+            layers |> List.fold(fun acc element -> 
                 let nVisible = fst acc
                 let nHidden = element
                 let rbmParams = toRbmParameters deepBeliefParameters
                 (element, (initRbm rbmParams nVisible nHidden) :: snd acc))
                 (width xInputs, []) |> snd |> List.rev 
+        { 
+            Parameters = deepBeliefParameters;
+            Machines = deepBeliefParameters.Layers |> toMachines
         }
 
     let activateFirstRow (v:Matrix) = v.[1..,0..] |> prependRowOfOnes
@@ -106,8 +117,8 @@ module DeepBeliefNet =
         xInputs |> mapMatrix (fun x -> activation x > float32 (rnd.NextDouble()) |> Convert.ToInt32 |> float32)
 
     let updateWeights rnd (rbm : RestrictedBoltzmannMachine) batch =
-        let batchSize = float32 (height batch)
-        let weightedLearningRate = value rbm.Parameters.LearningRate / batchSize
+        let batchSize = height batch
+        let weightedLearningRate = rbm.Parameters.LearningRate / batchSize
         let weightsAndBiases = toWeightsAndBiases rbm
         let dWeightsAndBiases = toDWeightsAndBiases rbm
 
@@ -135,7 +146,6 @@ module DeepBeliefNet =
         let batchSize = value rbm.Parameters.BatchSize
         let samples = xRand |> batchesOf batchSize |> Array.map array2D
         samples |> Array.fold(fun acc batch ->
-            let learningRate = value rbm.Parameters.LearningRate
             let result = updateWeights rnd (snd acc) batch
             let resultErrors = fst result
             let cumulativeErrors = fst acc

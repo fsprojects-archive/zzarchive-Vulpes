@@ -36,7 +36,10 @@
         {
          var form;
          form=_this.Build1.call(null,null);
-         _this.Utils.Reactive.Select(form.State,f);
+         _this.Utils.Reactive.Select(form.State,function(x)
+         {
+          return f(x);
+         });
          return Runtime.New(Form,{
           Body:form.Body,
           Dispose1:form.Dispose1,
@@ -418,7 +421,10 @@
          {
           return form1.Dispose1.call(null,null);
          },
-         Notify:form1.Notify,
+         Notify:function(o)
+         {
+          return form1.Notify.call(null,o);
+         },
          State:_this.U.Reactive.Switch(_this.U.Reactive.Select(formStream,function(f)
          {
           return f.State;
@@ -491,7 +497,10 @@
          Body:form.Body,
          Dispose1:form.Dispose1,
          Notify:form.Notify,
-         State:_this.U.Reactive.Select(form.State,f)
+         State:_this.U.Reactive.Select(form.State,function(x)
+         {
+          return f(x);
+         })
         });
        };
        return Runtime.New(Formlet1,{
@@ -527,7 +536,10 @@
       },
       Replace:function(formlet,f)
       {
-       return this.Switch(this.Map(f,formlet));
+       return this.Switch(this.Map(function(value)
+       {
+        return f(value);
+       },formlet));
       },
       ReplaceFirstWithFailure:function(formlet)
       {
@@ -652,7 +664,10 @@
          {
           return form1.Dispose1.call(null,null);
          },
-         Notify:form1.Notify,
+         Notify:function(o)
+         {
+          return form1.Notify.call(null,o);
+         },
          State:_this.U.Reactive.Select(_this.U.Reactive.CollectLatest(_this.U.Reactive.Select(formStream,function(f)
          {
           return f.State;
@@ -719,7 +734,10 @@
          {
           return form1.Dispose1.call(null,null);
          },
-         Notify:form1.Notify,
+         Notify:function(o)
+         {
+          return form1.Notify.call(null,o);
+         },
          State:_this.U.Reactive.Switch(_this.U.Reactive.Select(formStream,function(f)
          {
           return f.State;

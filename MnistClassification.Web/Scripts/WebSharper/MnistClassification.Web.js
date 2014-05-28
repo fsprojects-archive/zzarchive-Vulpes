@@ -28,9 +28,9 @@
      {
       return Concurrency.Start(Concurrency.Delay(function()
       {
-       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[input]),function(_arg1)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[input]),function(arg101)
        {
-        return Concurrency.Return(k(_arg1));
+        return Concurrency.Return(k(arg101));
        });
       }));
      },

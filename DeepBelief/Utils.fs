@@ -9,43 +9,6 @@ module Utils =
     open System.Threading.Tasks
     open Alea.CUDA.Utilities
 
-    type [<ReflectedDefinition>] Matrix = float32[,]
-    type [<ReflectedDefinition>] Vector = float32[]
-    
-    type IWrappedType<'T> = abstract Value : 'T
-    
-    let apply f (s:IWrappedType<'T>) = 
-        s.Value |> f 
-
-    let value x = apply id x
-        
-    type LayerSizes = LayerSizes of int list with
-        interface IWrappedType<int list> with
-            member this.Value = let (LayerSizes s) = this in s
-
-    type ScaledLearningRate = ScaledLearningRate of float32 with
-        interface IWrappedType<float32> with
-            member this.Value = let (ScaledLearningRate slr) = this in slr
-
-    type LearningRate = LearningRate of float32 with
-        static member (/) (lhs : LearningRate, rhs : int) =
-            match lhs with
-            | LearningRate lr -> ScaledLearningRate (lr / (float32 rhs))
-        interface IWrappedType<float32> with
-            member this.Value = let (LearningRate lr) = this in lr
-
-    type Momentum = Momentum of float32 with
-        interface IWrappedType<float32> with
-            member this.Value = let (Momentum m) = this in m
-
-    type BatchSize = BatchSize of int with
-        interface IWrappedType<int> with
-            member this.Value = let (BatchSize bs) = this in bs
-
-    type Epochs = Epochs of int with
-        interface IWrappedType<int> with
-            member this.Value = let (Epochs e) = this in e
-
     let LCG_A = 1664525u
     let LCG_C = 1013904223u
 
@@ -80,8 +43,8 @@ module Utils =
         samples |> Array.map flattenMatrix
         |> Array.fold (fun acc element -> Array.concat [acc; element]) [| |]
 
-    let rebuildMatrix wFull h w (X : Vector) =
-        Array2D.init h w (fun i j -> X.[i * wFull + j])
+    let rebuildMatrix wFull h w (Vector X) =
+        Array2D.init h w (fun i j -> X.[i * wFull + j]) |> Matrix
 
     let nextMultipleOf n i =
         let r = i % n
@@ -107,16 +70,8 @@ module Utils =
     let subvector size (x : float32[]) =
         Array.init size (fun i -> x.[i])
 
-    let height = Array2D.length1
-    let width = Array2D.length2
-
-    let row i M =
-        Array.init (width M) (fun j -> M.[i, j])
-
     let column j M =
         Array.init (height M) (fun i -> M.[i, j])
-
-    let scalarProduct (v : Vector) w = Array.map2 (*) v w |> Array.sum
 
     let multiply A B =
         let rowsA, colsA = height A, width A
@@ -151,20 +106,8 @@ module Utils =
         |> ignore
         result
 
-    let multiplyVectorByMatrix A v  =
-        let h = height A
-        let w = width A
-        let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-        Array.init h (fun i -> scalarProduct rowsOfA.[i] v)
-
     let mapMatrix f M =
         Array2D.init (height M) (width M) (fun i j -> f M.[i, j])
-
-    let outerProduct (v1 : Vector) v2 =
-        Array2D.init (Array.length v1) (Array.length v2) (fun i j -> v1.[i] * v2.[j])
-
-    let prepend value vector = value :: List.ofArray vector |> Array.ofList
-    let prependForBias = prepend 1.0f
 
     let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
     let logitFunction x = log x - log (1.0f - x)
@@ -185,33 +128,33 @@ module Utils =
         let w = height M
         Array2D.init h w (fun i j -> M.[j, i])
 
-    let toColumns (M : Matrix) = 
+    let toColumns (Matrix M) = 
         let h = height M
         let w = width M
         [|0..w - 1|] |> Array.map (fun j -> Array.init h (fun i -> M.[i, j])) 
 
-    let prependColumn (column : Vector) M =
+    let prependColumn (Vector column) (Matrix M) =
         Array2D.init (height M) (width M + 1)
             (fun i j ->
                 match i, j with
                 | (m, 0) -> column.[m]
                 | (m, n) -> M.[m, n - 1])
 
-    let prependRow (row : Vector) M =
+    let prependRow (Vector row) (Matrix M) =
         Array2D.init (height M + 1) (width M)
             (fun i j ->
                 match i, j with
                 | (0, n) -> row.[n]
                 | (m, n) -> M.[m - 1, n])
 
-    let prependRowOfOnes M =
-        M |> prependRow (Array.init (width M) (fun _ -> 1.0f))
+    let prependRowOfOnes (Matrix M) =
+        Matrix M |> prependRow (Vector (Array.init (width M) (fun _ -> 1.0f)))
 
-    let prependRowOfZeroes M =
-        M |> prependRow (Array.init (width M) (fun _ -> 0.0f))
+    let prependRowOfZeroes (Matrix M) =
+        Matrix M |> prependRow (Vector (Array.init (width M) (fun _ -> 0.0f)))
 
-    let prependColumnOfOnes M =
-        M |> prependColumn (Array.init (height M) (fun _ -> 1.0f))
+    let prependColumnOfOnes (Matrix M) =
+        Matrix M |> prependColumn (Vector (Array.init (height M) (fun _ -> 1.0f)))
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.
@@ -219,24 +162,6 @@ module Utils =
 
     let initGaussianWeights nRows nColumns =
         Array2D.init nRows nColumns (fun _ _ -> gaussianDistribution.Sample() |> float32)
-
-    let addVectors v1 (v2 : Vector) =
-        let n = Array.length v1
-        Array.init n (fun i -> v1.[i] + v2.[i])
-
-    let subtractVectors v1 (v2 : Vector) =
-        let n = Array.length v1
-        Array.init n (fun i -> v1.[i] - v2.[i])
-
-    let addMatrices (A : Matrix) (B : Matrix) =
-        let h = height A
-        let w = width B
-        Array2D.init h w (fun i j -> A.[i, j] + B.[i, j])
-
-    let subtractMatrices (A : Matrix) (B : Matrix) =
-        let h = height A
-        let w = width B
-        Array2D.init h w (fun i j -> A.[i, j] - B.[i, j])
 
     let multiplyVectorByScalar (lambda : float32) v =
         let n = Array.length v
@@ -250,7 +175,6 @@ module Utils =
     let identityMatrix n =
         Array2D.init n n (fun i j -> if i = j then 1.0f else 0.0f)
 
-    let sumOfRows M = M |> toArray |> Array.fold (fun acc element -> addVectors acc element) (Array.init (width M) (fun _ -> 0.0f))
     let sumOfSquares v = v |> Array.map (fun element -> element * element) |> Array.sum
     let sumOfSquaresMatrix M = M |> toArray |> Array.fold (fun acc element -> acc + (sumOfSquares element)) 0.0f
 
@@ -260,7 +184,7 @@ module Utils =
     // for the wrong guess, and zero for an incorrect guess.  So
     // dividing it by the set size gives the pecentage error of 
     // the test run.
-    let error (target : Vector) (output : Vector) =
+    let error (Vector target) (Vector output) =
         (Array.zip target output |> Array.map (fun (t, o) -> t - o) |> sumOfSquares) / 2.0f
     
     let batchesOf n =
@@ -268,14 +192,14 @@ module Utils =
         Seq.groupBy fst >> Seq.map snd >>
         Seq.map (Seq.map snd >> Seq.toArray) >> Seq.toArray
     
-    let nextSingle (rnd : Random) =
-        rnd.NextDouble() |> float32
+    let nextSingle (rnd : Random) = rnd.NextDouble() |> float32
 
     let permutation rnd arr =
         arr |> Array.sortBy (fun element -> nextSingle rnd)
     let permute rnd n = permutation rnd [|0..(n-1)|]
     let permuteRows rnd M = 
-        permute rnd (height M) |> Array.map (fun i -> row i M)
+        let row i = Array.init (width M) (fun j -> M.[i, j])
+        permute rnd (height M) |> Array.map (fun i -> row i)
 
     let proportionOfVisibleUnits v =
         v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
