@@ -60,13 +60,11 @@ module Analytics =
             Array.init h (fun i -> Array.map2 (*) rowsOfA.[i] v |> Array.sum) 
             |> Vector
 
-    type Signal = Signal of (float32 * float32) with
-        member signal.Value = match signal with (Signal (fx, dfx)) -> fx
-        member signal.Derivative = match signal with (Signal (fx, dfx)) -> dfx
+    type Signal = Signal of (float32 * float32 option)
 
     type Signals = Signals of Signal[] with
         member signals.ValuesPrependedForBias = 
-            match signals with (Signals signalsArray) -> 1.0f :: List.ofArray (Array.map (fun (s : Signal) -> s.Value) signalsArray) |> Array.ofList |> Vector
+            match signals with (Signals signalsArray) -> 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
 
     type DifferentiableFunction with
         member this.GenerateSignals(Vector vector) =
@@ -75,7 +73,7 @@ module Analytics =
                 let derivative = this.EvaluateDerivative2 x y
                 (y, derivative)
             let signal (Range y, Gradient d) =
-                Signal (y, d)
+                Signal (y, Some d)
             vector |> Array.map (fun x -> Domain x |> valueAndDerivative |> signal) |> Signals
 
     let prepend value (Vector vector) = value :: List.ofArray vector |> Array.ofList |> Vector

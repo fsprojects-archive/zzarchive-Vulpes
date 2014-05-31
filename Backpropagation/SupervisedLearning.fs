@@ -1,6 +1,6 @@
 ﻿namespace Backproagation
 
-module NeuralNet =
+module SupervisedLearning =
 
     open System
     open Common.Analytics
@@ -10,20 +10,15 @@ module NeuralNet =
 
     type NnetOutput = NnetOutput of Matrix
 
-    type SupervisedLearning = SupervisedLearning of (NnetInput -> NnetOutput)
+    type PropagatedSignals = PropagatedSignals of Signals list
 
-    /// returns list of (out, out') vectors per layer
-    // Taken from Reto Matter's blog, http://retomatter.blogspot.ch/2013/01/functional-feed-forward-neural-networks.html
-    let feedForward (network : BackPropagationNetwork) input = 
-        List.fold 
-            (fun (os : Signals list) layer -> 
-                let prevLayerOutput = 
-                    match os.IsEmpty with
-                    | true -> input
-                    | _    -> os.Head
+    type BackPropagationNetwork with
+        member network.FeedForward input = 
+            let nextLayerOfSignals (os : Signals list) layer =
+                let prevLayerOutput = if os.IsEmpty then input else os.Head
                 let layerInput = layer.Weight * prevLayerOutput.ValuesPrependedForBias
-                (layer.Activation.GenerateSignals layerInput :: os))
-          [] network.Layers
+                (layer.Activation.GenerateSignals layerInput :: os)
+            List.fold nextLayerOfSignals [] network.Layers |> PropagatedSignals
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer

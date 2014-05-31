@@ -44,7 +44,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Parameters.fs" />
-    <Compile Include="NeuralNet.fs" />
+    <Compile Include="SupervisedLearning.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <ItemGroup>

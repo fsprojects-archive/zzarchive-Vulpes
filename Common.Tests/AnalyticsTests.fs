@@ -51,7 +51,7 @@ module AnalyticsTests =
         
         [<Fact>]
         member test.``The values prepended for bias match the expected input pattern.``()=
-            let signals = Signals [|Signal (0.1f, 0.0f); Signal (0.2f, 0.0f); Signal (0.3f, 0.0f)|] in
+            let signals = Signals [|Signal (0.1f, None); Signal (0.2f, None); Signal (0.3f, None)|] in
             signals.ValuesPrependedForBias |> should equal <| Vector [| 1.0f; 0.1f; 0.2f; 0.3f |]
 
     type ``A differentiable function can generate signals from a vector``()=
@@ -65,6 +65,6 @@ module AnalyticsTests =
             let vector = [|1.0f..10.0f|] in
             let power x n = float32 (Math.Pow(float x, float n))
             let differentiableFunction = DifferentiableFunction (FloatingPointFunction (fun (Domain x) -> Range (power x exponent)), ArgumentForm (fun (Domain x) -> Gradient (exponent * power x (exponent - 1.0f)))) in
-            differentiableFunction.GenerateSignals (Vector vector) |> should equal <| Signals (vector |> Array.map (fun x -> Signal (power x exponent, exponent * power x (exponent - 1.0f))))
+            differentiableFunction.GenerateSignals (Vector vector) |> should equal <| Signals (vector |> Array.map (fun x -> Signal (power x exponent, exponent * power x (exponent - 1.0f) |> Some)))
 
     

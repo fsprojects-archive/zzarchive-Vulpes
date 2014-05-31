@@ -19,10 +19,6 @@ module Parameters =
         Activation : DifferentiableFunction
     }
 
-    type BackPropagationLayer with
-        member this.FeedForward(Vector values) =
-            values |> Array.map (fun v -> Domain v |> this.Activation.Evaluate)
-
     type BackPropagationParameters = {
         LearningRate : LearningRate
         Momentum : Momentum
