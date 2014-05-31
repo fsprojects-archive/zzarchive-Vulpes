@@ -22,7 +22,7 @@ module NeuralNet =
                     | true -> input
                     | _    -> os.Head
                 let layerInput = layer.Weight * prevLayerOutput.ValuesPrependedForBias
-                (layer.Activation.GenerateSignals layerInput :: os)
+                (layer.Activation.GenerateSignals layerInput :: os))
           [] network.Layers
 
     /// computes the error signals per layer
