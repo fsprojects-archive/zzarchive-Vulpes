@@ -43,6 +43,7 @@ module Analytics =
             let h = height lhs
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] + rhs.[i, j])
+            |> Matrix
         static member (-) (Matrix lhs, Matrix rhs) =
             let h = height lhs
             let w = width rhs
@@ -59,8 +60,19 @@ module Analytics =
             let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
             Array.init h (fun i -> Array.map2 (*) rowsOfA.[i] v |> Array.sum) 
             |> Vector
+        static member (*) (Matrix A, Matrix B) =
+            0
+        static member (^*) (Matrix A, Vector v) =
+            let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
+            let h = height A
+            let w = width A
+            let columnsOfA = [|0..w - 1|] |> Array.map (fun j -> column j A)
+            Array.init w (fun j -> Array.map2 (*) columnsOfA.[j] v |> Array.sum) 
+            |> Vector
 
     type Signal = Signal of (float32 * float32 option)
+
+    type SignalError = SignalError of float32
 
     type Signals = Signals of Signal[] with
         member signals.ValuesPrependedForBias = 

@@ -67,4 +67,23 @@ module AnalyticsTests =
             let differentiableFunction = DifferentiableFunction (FloatingPointFunction (fun (Domain x) -> Range (power x exponent)), ArgumentForm (fun (Domain x) -> Gradient (exponent * power x (exponent - 1.0f)))) in
             differentiableFunction.GenerateSignals (Vector vector) |> should equal <| Signals (vector |> Array.map (fun x -> Signal (power x exponent, exponent * power x (exponent - 1.0f) |> Some)))
 
-    
+    type ``Matrix arithmetic``()=
+
+        [<Fact>]
+        member test.``Matrix addition``()=
+            let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ] |> Matrix in
+            let B = array2D [ [7.0f; 8.0f; 9.0f]; [10.0f; 11.0f; 12.0f] ] |> Matrix in
+            let C = array2D [ [8.0f; 10.0f; 12.0f]; [14.0f; 16.0f; 18.0f] ] |> Matrix in
+            A + B |> should equal <| C
+
+        [<Fact>]
+        member test.``Matrix multplication``()=
+            let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ] |> Matrix in
+            let x = [|7.0f; 8.0f; 9.0f|] |> Vector in
+            A * x |> should equal <| Vector [|50.0f; 122.0f|]
+
+        [<Fact>]
+        member test.``Matrix transpose multplication``()=
+            let A = array2D [ [1.0f; 4.0f; ]; [2.0f; 5.0f;]; [3.0f; 6.0f] ] |> Matrix in
+            let x = [|7.0f; 8.0f; 9.0f|] |> Vector in
+            A ^* x |> should equal <| Vector [|50.0f; 122.0f|]

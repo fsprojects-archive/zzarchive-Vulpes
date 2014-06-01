@@ -15,7 +15,7 @@ module Parameters =
     let prc = 1e-6f
 
     type BackPropagationLayer = {
-        Weight : Matrix
+        Weights : Matrix
         Activation : DifferentiableFunction
     }
 
