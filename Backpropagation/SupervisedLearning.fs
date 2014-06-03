@@ -22,7 +22,7 @@ module SupervisedLearning =
                 (layer.Activation.GenerateSignals layerInput :: os)
             List.fold generateNextLayerOfSignals [] network.Layers |> LayerOutputs
         member network.ComputeErrors (LayerOutputs layerOutputs) target =
-            0
+            let topLevelErrors = 
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer

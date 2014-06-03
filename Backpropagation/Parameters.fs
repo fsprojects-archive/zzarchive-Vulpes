@@ -11,9 +11,6 @@ module Parameters =
 
     type TrainingData = TrainingData of (InputSignal * OutputLabel)[]
 
-    /// precision for calculating the derivatives
-    let prc = 1e-6f
-
     type BackPropagationLayer = {
         Weights : Matrix
         Activation : DifferentiableFunction

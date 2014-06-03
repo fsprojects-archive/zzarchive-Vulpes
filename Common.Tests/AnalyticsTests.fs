@@ -87,3 +87,11 @@ module AnalyticsTests =
             let A = array2D [ [1.0f; 4.0f; ]; [2.0f; 5.0f;]; [3.0f; 6.0f] ] |> Matrix in
             let x = [|7.0f; 8.0f; 9.0f|] |> Vector in
             A ^* x |> should equal <| Vector [|50.0f; 122.0f|]
+
+    type ``Vector arithmetic``()=
+
+        [<Fact>]
+        member test.``Vector subtraction``()=
+            let x = [|4.0f; 5.0f; 6.0f|] |> Vector in
+            let y = [|1.0f; 2.0f; 3.0f|] |> Vector in
+            x - y |> should equal <| Vector [|3.0f; 3.0f; 3.0f|]

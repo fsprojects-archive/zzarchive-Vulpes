@@ -36,7 +36,9 @@ module Analytics =
 
     type [<ReflectedDefinition>] Vector = Vector of float32[] with
         static member (.*) (Vector lhs, Vector rhs) =
-            Array.map2 (*) lhs rhs |> Array.sum
+            Array.map2 (*) lhs rhs |> Vector
+        static member (-) (Vector lhs, Vector rhs) =
+            Array.map2 (-) lhs rhs |> Vector
 
     type [<ReflectedDefinition>] Matrix = Matrix of float32[,] with
         static member (+) (Matrix lhs, Matrix rhs) =
@@ -61,7 +63,14 @@ module Analytics =
             Array.init h (fun i -> Array.map2 (*) rowsOfA.[i] v |> Array.sum) 
             |> Vector
         static member (*) (Matrix A, Matrix B) =
-            0
+            let row i (M : float32[,]) = Array.init (width M) (fun j -> M.[i, j])
+            let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
+            let h = height A
+            let w = width B
+            let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
+            let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j A)
+            Array2D.init h w (fun i j -> Array.map2 (*) rowsOfA.[i] columnsOfB.[j] |> Array.sum)
+            |> Matrix
         static member (^*) (Matrix A, Vector v) =
             let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
             let h = height A
@@ -70,13 +79,17 @@ module Analytics =
             Array.init w (fun j -> Array.map2 (*) columnsOfA.[j] v |> Array.sum) 
             |> Vector
 
-    type Signal = Signal of (float32 * float32 option)
-
     type SignalError = SignalError of float32
+
+    type Signal = Signal of (float32 * float32 option) with
+        static member (-) (target : float32, Signal signal) =
+            target - fst signal
 
     type Signals = Signals of Signal[] with
         member signals.ValuesPrependedForBias = 
             match signals with (Signals signalsArray) -> 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
+        static member (-) (Vector target, Signals signals) =
+            signals |> Array.map (fun (Signal signal) -> fst signal) |> Array.map2 (-) target |> Vector
 
     type DifferentiableFunction with
         member this.GenerateSignals(Vector vector) =
