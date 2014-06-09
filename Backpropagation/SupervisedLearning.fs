@@ -12,17 +12,16 @@ module SupervisedLearning =
 
     type LayerOutputs = LayerOutputs of Signals list
 
-    type SignalErrors = SignalErrors of SignalError list
-
     type BackPropagationNetwork with
         member network.FeedForward input = 
             let generateNextLayerOfSignals (os : Signals list) layer =
                 let prevLayerOutput = if os.IsEmpty then input else os.Head
-                let layerInput = layer.Weights * prevLayerOutput.ValuesPrependedForBias
+                let layerInput = layer.Weights * prevLayerOutput
                 (layer.Activation.GenerateSignals layerInput :: os)
             List.fold generateNextLayerOfSignals [] network.Layers |> LayerOutputs
         member network.ComputeErrors (LayerOutputs layerOutputs) target =
-            let topLevelErrors = 
+            let topLevelErrors = target - layerOutputs.Head
+
 
     /// computes the error signals per layer
     /// starting at output layer towards first hidden layer

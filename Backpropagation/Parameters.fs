@@ -12,7 +12,7 @@ module Parameters =
     type TrainingData = TrainingData of (InputSignal * OutputLabel)[]
 
     type BackPropagationLayer = {
-        Weights : Matrix
+        Weights : WeightsAndBiases
         Activation : DifferentiableFunction
     }
 

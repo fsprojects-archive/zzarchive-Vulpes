@@ -79,7 +79,13 @@ module Analytics =
             Array.init w (fun j -> Array.map2 (*) columnsOfA.[j] v |> Array.sum) 
             |> Vector
 
-    type SignalError = SignalError of float32
+    type Error = Error of float32
+    
+    type ErrorSignal = ErrorSignal of float32
+
+    type ErrorSignals = ErrorSignals of ErrorSignal[]
+
+    type Errors = Errors of Error[]
 
     type Signal = Signal of (float32 * float32 option) with
         static member (-) (target : float32, Signal signal) =
@@ -89,7 +95,16 @@ module Analytics =
         member signals.ValuesPrependedForBias = 
             match signals with (Signals signalsArray) -> 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
         static member (-) (Vector target, Signals signals) =
-            signals |> Array.map (fun (Signal signal) -> fst signal) |> Array.map2 (-) target |> Vector
+            signals |> Array.map (fun (Signal signal) -> fst signal) |> Array.map2 (-) target |> Array.map Error |> Errors
+
+    type Errors with
+        member this.ToErrorSignals (Signals signalsArray) =
+            0
+
+    type WeightsAndBiases = WeightsAndBiases of Matrix with
+        static member (*) (WeightsAndBiases weightsAndBiases, Signals signalsArray) =
+            let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
+            weightsAndBiases * prependedSignals
 
     type DifferentiableFunction with
         member this.GenerateSignals(Vector vector) =
