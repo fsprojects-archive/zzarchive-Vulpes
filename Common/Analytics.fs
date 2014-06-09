@@ -35,8 +35,6 @@ module Analytics =
     let width = Array2D.length2
 
     type [<ReflectedDefinition>] Vector = Vector of float32[] with
-        static member (.*) (Vector lhs, Vector rhs) =
-            Array.map2 (*) lhs rhs |> Vector
         static member (-) (Vector lhs, Vector rhs) =
             Array.map2 (-) lhs rhs |> Vector
 
@@ -87,23 +85,23 @@ module Analytics =
 
     type Errors = Errors of Error[]
 
-    type Signal = Signal of (float32 * float32 option) with
-        static member (-) (target : float32, Signal signal) =
-            target - fst signal
+    type HiddenUnit = HiddenUnit of (float32 * float32) with
+        static member (-) (target : float32, HiddenUnit hiddenUnit) = target - fst hiddenUnit
 
-    type Signals = Signals of Signal[] with
-        member signals.ValuesPrependedForBias = 
-            match signals with (Signals signalsArray) -> 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
-        static member (-) (Vector target, Signals signals) =
-            signals |> Array.map (fun (Signal signal) -> fst signal) |> Array.map2 (-) target |> Array.map Error |> Errors
+    type HiddenUnits = HiddenUnits of HiddenUnit[] with
+        static member (-) (Vector target, HiddenUnits hiddenUnits) =
+            hiddenUnits |> Array.map (fun (HiddenUnit hiddenUnit) -> fst hiddenUnit) |> Array.map2 (-) target |> Array.map Error |> Errors
 
     type Errors with
-        member this.ToErrorSignals (Signals signalsArray) =
-            0
+        static member (.*) (HiddenUnits lhs, Errors rhs) =
+            let derivative (HiddenUnit (x, x')) = x'
+            let error (Error e) = e
+            Array.map2 (*) (lhs |> Array.map derivative) (rhs |> Array.map error) |> Array.map ErrorSignal |> ErrorSignals
+        member this.ToErrorSignals hiddenUnits = hiddenUnits .* this 
 
     type WeightsAndBiases = WeightsAndBiases of Matrix with
-        static member (*) (WeightsAndBiases weightsAndBiases, Signals signalsArray) =
-            let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (Signal (x, d)) -> x) signalsArray) |> Array.ofList |> Vector
+        static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =
+            let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (HiddenUnit (x, d)) -> x) hiddenUnitsArray) |> Array.ofList |> Vector
             weightsAndBiases * prependedSignals
 
     type DifferentiableFunction with
@@ -112,9 +110,9 @@ module Analytics =
                 let y = this.Evaluate x;
                 let derivative = this.EvaluateDerivative2 x y
                 (y, derivative)
-            let signal (Range y, Gradient d) =
-                Signal (y, Some d)
-            vector |> Array.map (fun x -> Domain x |> valueAndDerivative |> signal) |> Signals
+            let hiddenUnit (Range y, Gradient d) =
+                HiddenUnit (y, d)
+            vector |> Array.map (fun x -> Domain x |> valueAndDerivative |> hiddenUnit) |> HiddenUnits
 
     let prepend value (Vector vector) = value :: List.ofArray vector |> Array.ofList |> Vector
 
