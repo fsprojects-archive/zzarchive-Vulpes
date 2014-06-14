@@ -10,17 +10,19 @@ module SupervisedLearning =
 
     type NnetOutput = NnetOutput of Matrix
 
-    type LayerOutputs = LayerOutputs of Signals list
+    type LayerOutputs = LayerOutputs of HiddenUnits list
 
     type BackPropagationNetwork with
-        member network.FeedForward input = 
-            let generateNextLayerOfSignals (os : Signals list) layer =
-                let prevLayerOutput = if os.IsEmpty then input else os.Head
-                let layerInput = layer.Weights * prevLayerOutput
-                (layer.Activation.GenerateSignals layerInput :: os)
-            List.fold generateNextLayerOfSignals [] network.Layers |> LayerOutputs
+        member network.FeedForward (input : VisibleUnits) = 
+            let generateNextLayerOfSignals (outputs : HiddenUnits list) layer =
+                (layer.Weights * outputs.Head |> layer.Activation.GenerateHiddenUnits) :: outputs
+            let firstLayer = network.Layers.Head
+            let firstSetOfHiddenUnits = firstLayer.Weights * input |> firstLayer.Activation.GenerateHiddenUnits
+            List.fold generateNextLayerOfSignals [firstSetOfHiddenUnits] network.Layers.Tail |> LayerOutputs
         member network.ComputeErrors (LayerOutputs layerOutputs) target =
-            let topLevelErrors = target - layerOutputs.Head
+            let topLevelErrorSignals = layerOutputs.Head .* (target - layerOutputs.Head)
+            let generatePreviousErrorSignals (errorSignalLayers : ErrorSignals) layer =
+                (layer.Weights )
 
 
     /// computes the error signals per layer

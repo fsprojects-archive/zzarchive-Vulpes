@@ -5,12 +5,6 @@ module Parameters =
     open Common.NeuralNet
     open Common.Analytics
 
-    type InputSignal = InputSignal of Signals
-
-    type OutputLabel = OutputLabel of Signals
-
-    type TrainingData = TrainingData of (InputSignal * OutputLabel)[]
-
     type BackPropagationLayer = {
         Weights : WeightsAndBiases
         Activation : DifferentiableFunction

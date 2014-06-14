@@ -85,6 +85,10 @@ module Analytics =
 
     type Errors = Errors of Error[]
 
+    type VisibleUnit = VisibleUnit of float32
+
+    type VisibleUnits = VisibleUnits of VisibleUnit[]
+
     type HiddenUnit = HiddenUnit of (float32 * float32) with
         static member (-) (target : float32, HiddenUnit hiddenUnit) = target - fst hiddenUnit
 
@@ -103,15 +107,17 @@ module Analytics =
         static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =
             let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (HiddenUnit (x, d)) -> x) hiddenUnitsArray) |> Array.ofList |> Vector
             weightsAndBiases * prependedSignals
+        static member (*) (WeightsAndBiases weightsAndBiases, VisibleUnits visibleUnitsArray) =
+            let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (VisibleUnit x) -> x) visibleUnitsArray) |> Array.ofList |> Vector
+            weightsAndBiases * prependedSignals
 
     type DifferentiableFunction with
-        member this.GenerateSignals(Vector vector) =
+        member this.GenerateHiddenUnits(Vector vector) =
             let valueAndDerivative x =
                 let y = this.Evaluate x;
                 let derivative = this.EvaluateDerivative2 x y
                 (y, derivative)
-            let hiddenUnit (Range y, Gradient d) =
-                HiddenUnit (y, d)
+            let hiddenUnit (Range y, Gradient d) = HiddenUnit (y, d)
             vector |> Array.map (fun x -> Domain x |> valueAndDerivative |> hiddenUnit) |> HiddenUnits
 
     let prepend value (Vector vector) = value :: List.ofArray vector |> Array.ofList |> Vector
