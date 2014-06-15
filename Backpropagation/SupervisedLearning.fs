@@ -12,6 +12,10 @@ module SupervisedLearning =
 
     type LayerOutputs = LayerOutputs of HiddenUnits list
 
+    type ErrorSignalsAndHiddenUnits = ErrorSignalsAndHiddenUnits of ErrorSignals * HiddenUnits with
+        member this.ErrorSignals = match this with ErrorSignalsAndHiddenUnits (errorSignals, hiddenUnits) -> errorSignals
+        member this.HiddenUnits = match this with ErrorSignalsAndHiddenUnits (errorSignals, hiddenUnits) -> hiddenUnits
+
     type BackPropagationNetwork with
         member network.FeedForward (input : VisibleUnits) = 
             let generateNextLayerOfSignals (outputs : HiddenUnits list) layer =
@@ -20,9 +24,12 @@ module SupervisedLearning =
             let firstSetOfHiddenUnits = firstLayer.Weights * input |> firstLayer.Activation.GenerateHiddenUnits
             List.fold generateNextLayerOfSignals [firstSetOfHiddenUnits] network.Layers.Tail |> LayerOutputs
         member network.ComputeErrors (LayerOutputs layerOutputs) target =
-            let topLevelErrorSignals = layerOutputs.Head .* (target - layerOutputs.Head)
-            let generatePreviousErrorSignals (errorSignalLayers : ErrorSignals) layer =
-                (layer.Weights )
+            let topLevel = ErrorSignalsAndHiddenUnits (layerOutputs.Head .* (target - layerOutputs.Head), layerOutputs.Head)
+            let generatePreviousErrorSignals (errorSignalAndHiddenUnitLayers : ErrorSignalsAndHiddenUnits list) layer =
+                let errorSignalsAndHiddenUnits = errorSignalAndHiddenUnitLayers.Head
+                let error = layer.Weights * errorSignalsAndHiddenUnits.ErrorSignals
+                ErrorSignalsAndHiddenUnits (errorSignalsAndHiddenUnits.HiddenUnits .* error, errorSignalsAndHiddenUnits.HiddenUnits) :: errorSignalAndHiddenUnitLayers
+            List.fold generatePreviousErrorSignals [topLevel] (layerOutputs.Tail |> List.map (fun layerOutput -> (layerOutput.))
 
 
     /// computes the error signals per layer

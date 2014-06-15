@@ -110,6 +110,9 @@ module Analytics =
         static member (*) (WeightsAndBiases weightsAndBiases, VisibleUnits visibleUnitsArray) =
             let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (VisibleUnit x) -> x) visibleUnitsArray) |> Array.ofList |> Vector
             weightsAndBiases * prependedSignals
+        static member (*) (WeightsAndBiases weightsAndBiases, ErrorSignals errorSignals) =
+            let product = weightsAndBiases ^* (errorSignals |> Array.map (fun (ErrorSignal errorSignal) -> errorSignal) |> Vector)
+            product |> fun (Vector vector) -> vector.[1..] |> Array.map Error |> Errors
 
     type DifferentiableFunction with
         member this.GenerateHiddenUnits(Vector vector) =
