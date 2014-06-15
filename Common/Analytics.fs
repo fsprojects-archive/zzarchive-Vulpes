@@ -48,7 +48,7 @@ module Analytics =
             let h = height lhs
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] - rhs.[i, j])
-        static member (!*) (Vector v1, Vector v2) =
+        static member (*) (Vector v1, Vector v2) =
             Array2D.init (Array.length v1) (Array.length v2) (fun i j -> v1.[i] * v2.[j])
             |> Matrix
         static member (.*) (Vector v1, Vector v2) = 

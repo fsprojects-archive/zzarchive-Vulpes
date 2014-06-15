@@ -23,34 +23,21 @@ module SupervisedLearning =
             let firstLayer = network.Layers.Head
             let firstSetOfHiddenUnits = firstLayer.Weights * input |> firstLayer.Activation.GenerateHiddenUnits
             List.fold generateNextLayerOfSignals [firstSetOfHiddenUnits] network.Layers.Tail |> LayerOutputs
-        member network.ComputeErrors (LayerOutputs layerOutputs) target =
+        member network.ComputeErrorSignals (LayerOutputs layerOutputs) target =
             let topLevel = ErrorSignalsAndHiddenUnits (layerOutputs.Head .* (target - layerOutputs.Head), layerOutputs.Head)
             let generatePreviousErrorSignals (errorSignalAndHiddenUnitLayers : ErrorSignalsAndHiddenUnits list) layer =
                 let errorSignalsAndHiddenUnits = errorSignalAndHiddenUnitLayers.Head
                 let error = layer.Weights * errorSignalsAndHiddenUnits.ErrorSignals
                 ErrorSignalsAndHiddenUnits (errorSignalsAndHiddenUnits.HiddenUnits .* error, errorSignalsAndHiddenUnits.HiddenUnits) :: errorSignalAndHiddenUnitLayers
-            List.fold generatePreviousErrorSignals [topLevel] (layerOutputs.Tail |> List.map (fun layerOutput -> (layerOutput.))
+            List.fold generatePreviousErrorSignals [topLevel] (network.Layers |> List.rev)
+        member network.Gradients (LayerOutputs layerOutputs) (input : VisibleUnits) target =
+            let layerValues (VisibleUnits visibleUnits) (outputs : HiddenUnits list) =
+                let visibleUnitValues = visibleUnits |> Array.map (fun (VisibleUnit value) -> value) |> Vector
+                let hiddenUnitValues = outputs |> List.rev |> List.map (Array.map (fun (HiddenUnit (value, derivative)) -> value) |> Vector)
+                visibleUnitValues :: hiddenUnitValues
+            let signals = layerValues input layerOutputs
+            0
 
-
-    /// computes the error signals per layer
-    /// starting at output layer towards first hidden layer
-    let cpuErrorSignals (network : BackPropagationNetwork) layeroutputs (target : Vector) = 
-        let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
-        let trp = fun W -> Some(transpose W)
-
-        // need weights and layer outputs in reverse order, 
-        // e.g starting from output layer
-        let weightsAndOutputs = 
-            let transposed = Ws |> List.tail |> List.map trp |> List.rev
-            List.zip (None :: transposed) layeroutputs
-
-        List.fold (fun prevDs ((W : Matrix option), (o, o')) -> 
-            match W with
-            | None    -> (o' .* (subtractVectors target o)) :: prevDs 
-            | Some(W) -> (o' .* ((multiplyVectorByMatrix W prevDs.Head)).[1..]) :: prevDs) 
-          [] weightsAndOutputs
-
-    /// computes a list of gradients matrices
     let cpuGradients (network : BackPropagationNetwork) layeroutputs input target = 
         let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
         let signals = cpuErrorSignals network layeroutputs target
