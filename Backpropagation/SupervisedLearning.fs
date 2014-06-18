@@ -30,45 +30,31 @@ module SupervisedLearning =
                 let error = layer.Weights * errorSignalsAndHiddenUnits.ErrorSignals
                 ErrorSignalsAndHiddenUnits (errorSignalsAndHiddenUnits.HiddenUnits .* error, errorSignalsAndHiddenUnits.HiddenUnits) :: errorSignalAndHiddenUnitLayers
             List.fold generatePreviousErrorSignals [topLevel] (network.Layers |> List.rev)
+                |> List.map (fun (ErrorSignalsAndHiddenUnits (es, hu)) -> es)
         member network.Gradients (LayerOutputs layerOutputs) (input : VisibleUnits) target =
             let layerValues (VisibleUnits visibleUnits) (outputs : HiddenUnits list) =
                 let visibleUnitValues = visibleUnits |> Array.map (fun (VisibleUnit value) -> value) |> Vector
                 let hiddenUnitValues = outputs |> List.rev |> List.map (Array.map (fun (HiddenUnit (value, derivative)) -> value) |> Vector)
                 visibleUnitValues :: hiddenUnitValues
             let signals = layerValues input layerOutputs
-            0
+            let errorSignals = 
+                (network.ComputeErrorSignals (LayerOutputs layerOutputs) target)
+                |> List.map (fun (ErrorSignals e) -> Array.map(fun (ErrorSignal errorSignal) ->  errorSignal) e |> Vector)
+            List.zip errorSignals signals |> List.map (fun (errorSignal, signal) -> errorSignal * signal |> WeightGradients)
+        member network.Update (input : VisibleUnits) target (previousWeightChanges : WeightChanges) =
+            let layerOutputs = network.FeedForward input
+            let gradients = network.Gradients layerOutputs input target
+            let currentWeightChanges = previousWeightChanges.NextChanges network.Parameters.LearningRate network.Parameters.Momentum gradients previousWeightChanges
+            {
+                Parameters = network.Parameters;
+                Layers = network.Layers |> List.map (fun layer -> 
+                    { 
+                        Weights = layer.Weights.Update currentWeightChanges;
+                        Activation = layer.Activation
+                    })
+            }
 
-    let cpuGradients (network : BackPropagationNetwork) layeroutputs input target = 
-        let actualOuts = layeroutputs |> List.unzip |> fst |> List.tail |> List.rev
-        let signals = cpuErrorSignals network layeroutputs target
-        (input :: actualOuts, signals) 
-            ||> List.zip 
-            |> List.map (fun (zs, ds) -> outerProduct ds (prependForBias zs))
-
-    /// updates the weights matrices with the given deltas 
-    /// of timesteps (t) and (t-1)
-    /// returns the new weights matrices
-    let updateWeights (network : BackPropagationNetwork) (Gs : Matrix list) (prevDs : Matrix list) (parameters : BackPropagationParameters) = 
-        let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
-        (List.zip3 Ws Gs prevDs) 
-            |> List.map (fun (W, G, prevD) ->
-                let dW = addMatrices (multiplyMatrixByScalar (value parameters.LearningRate) G) (multiplyMatrixByScalar (value parameters.Momentum) prevD)
-                addMatrices W dW, dW)
-
-    /// for each weight matrix builds another matrix with same dimension
-    /// initialized with 0.0
-    let initDeltaWeights (Ws : Matrix list) = 
-        Ws |> List.map (fun W -> initGaussianWeights (height W) (width W))
-
-    let initZeroWeights (Ws : Matrix list) = 
-        Ws |> List.map (fun W -> Array2D.zeroCreate (height W) (width W))
-
-    let step (network : BackPropagationNetwork) prevDs input target parameters = 
-        let layeroutputs = feedForward network input
-        let Gs = cpuGradients network layeroutputs input target
-        (updateWeights network Gs prevDs parameters)
-
-    let nnetTrain (rnd : Random) (network : BackPropagationNetwork) samples (parameters : BackPropagationParameters) = 
+    let nnetTrain (rnd : Random) (network : BackPropagationNetwork) samples = 
         let count = samples |> Array.length
         let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
         let fs = network.Layers |> List.map (fun layer -> layer.Activation)

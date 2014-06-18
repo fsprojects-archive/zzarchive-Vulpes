@@ -43,8 +43,8 @@
     <Reference Include="System.Numerics" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Analytics.fs" />
     <Compile Include="NeuralNet.fs" />
+    <Compile Include="Analytics.fs" />
     <None Include="Script.fsx" />
   </ItemGroup>
   <PropertyGroup>

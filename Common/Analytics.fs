@@ -1,7 +1,8 @@
 ﻿namespace Common
 
 module Analytics =
-    
+    open NeuralNet
+
     type Domain = Domain of float32
 
     type Range = Range of float32
@@ -37,6 +38,8 @@ module Analytics =
     type [<ReflectedDefinition>] Vector = Vector of float32[] with
         static member (-) (Vector lhs, Vector rhs) =
             Array.map2 (-) lhs rhs |> Vector
+        member vector.PrependForBias =
+            match vector with Vector array -> 1.0f :: List.ofArray array |> Array.ofList |> Vector
 
     type [<ReflectedDefinition>] Matrix = Matrix of float32[,] with
         static member (+) (Matrix lhs, Matrix rhs) =
@@ -48,9 +51,6 @@ module Analytics =
             let h = height lhs
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] - rhs.[i, j])
-        static member (*) (Vector v1, Vector v2) =
-            Array2D.init (Array.length v1) (Array.length v2) (fun i j -> v1.[i] * v2.[j])
-            |> Matrix
         static member (.*) (Vector v1, Vector v2) = 
             Array.init (Array.length v1) (fun i -> v1.[i] * v2.[i])
         static member (*) (Matrix A, Vector v) =
@@ -60,6 +60,11 @@ module Analytics =
             let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
             Array.init h (fun i -> Array.map2 (*) rowsOfA.[i] v |> Array.sum) 
             |> Vector
+        static member (*) (lambda : float32, Matrix M) =
+            let h = height M
+            let w = width M
+            Array2D.init h w (fun i j -> lambda * M.[i, j]) 
+            |> Matrix
         static member (*) (Matrix A, Matrix B) =
             let row i (M : float32[,]) = Array.init (width M) (fun j -> M.[i, j])
             let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
@@ -76,6 +81,11 @@ module Analytics =
             let columnsOfA = [|0..w - 1|] |> Array.map (fun j -> column j A)
             Array.init w (fun j -> Array.map2 (*) columnsOfA.[j] v |> Array.sum) 
             |> Vector
+
+    type Vector with
+        static member (*) (Vector v1, Vector v2) =
+            Array2D.init (Array.length v1) (Array.length v2) (fun i j -> v1.[i] * v2.[j])
+            |> Matrix
 
     type Error = Error of float32
     
@@ -103,6 +113,12 @@ module Analytics =
             Array.map2 (*) (lhs |> Array.map derivative) (rhs |> Array.map error) |> Array.map ErrorSignal |> ErrorSignals
         member this.ToErrorSignals hiddenUnits = hiddenUnits .* this 
 
+    type WeightGradients = WeightGradients of Matrix
+
+    type WeightChanges = WeightChanges of Matrix with
+        member changes.NextChanges (LearningRate learningRate) (Momentum momentum) (WeightGradients weightGradients) (WeightChanges currentChanges) =
+            momentum * currentChanges + learningRate * weightGradients |> WeightChanges
+
     type WeightsAndBiases = WeightsAndBiases of Matrix with
         static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =
             let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (HiddenUnit (x, d)) -> x) hiddenUnitsArray) |> Array.ofList |> Vector
@@ -113,6 +129,8 @@ module Analytics =
         static member (*) (WeightsAndBiases weightsAndBiases, ErrorSignals errorSignals) =
             let product = weightsAndBiases ^* (errorSignals |> Array.map (fun (ErrorSignal errorSignal) -> errorSignal) |> Vector)
             product |> fun (Vector vector) -> vector.[1..] |> Array.map Error |> Errors
+        member this.Update (WeightChanges weightChanges) =
+            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases + weightChanges |> WeightsAndBiases
 
     type DifferentiableFunction with
         member this.GenerateHiddenUnits(Vector vector) =
