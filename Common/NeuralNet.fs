@@ -14,8 +14,6 @@ module NeuralNet =
     
     and BatchSize = BatchSize of int
 
-    and Epochs = Epochs of int
-
     and Signal = Signal of float32
 
     and Output = Output of Signal[]
@@ -27,6 +25,9 @@ module NeuralNet =
     and TrainingExample = { Input : Input; Target : Target } 
 
     and TrainingSet = TrainingSet of TrainingExample list
+
+    and Epochs = Epochs of int with
+        member this.NumberOfSteps (TrainingSet trainingSet) = match this with Epochs epochs -> epochs * trainingSet.Length
 
     and TestSet = TestSet of Input list
 
