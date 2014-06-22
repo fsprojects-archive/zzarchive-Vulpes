@@ -19,6 +19,12 @@ module SupervisedLearning =
         member this.HiddenUnits = match this with ErrorSignalsAndHiddenUnits (errorSignals, hiddenUnits) -> hiddenUnits
 
     type BackPropagationNetwork with
+        member network.Read (NeuralNet.Input input) =
+            let readLayer (signals : NeuralNet.Signal[]) layer =
+                (layer.Weights * signals |> layer.Activation.GenerateSignals)
+            network.Layers 
+            |> List.fold (fun signals layer -> readLayer signals layer) input
+            |> NeuralNet.Output
         member network.Train (NeuralNet.TrainingSet trainingSet) (rnd : Random) =
             let gradients (LayerOutputs layerOutputs) (input : VisibleUnits) target =
                 let computeErrorSignals =

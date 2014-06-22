@@ -131,6 +131,9 @@ module Analytics =
         static member (*) (WeightsAndBiases weightsAndBiases, VisibleUnits visibleUnitsArray) =
             let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (VisibleUnit x) -> x) visibleUnitsArray) |> Array.ofList |> Vector
             weightsAndBiases * prependedSignals
+        static member (*) (WeightsAndBiases weightsAndBiases, signals : Signal[]) =
+            let prependedSignals = 1.0f :: List.ofArray (Array.map (fun (Signal s) -> s) signals) |> Array.ofList |> Vector
+            weightsAndBiases * prependedSignals
         static member (*) (WeightsAndBiases weightsAndBiases, ErrorSignals errorSignals) =
             let product = weightsAndBiases ^* (errorSignals |> Array.map (fun (ErrorSignal errorSignal) -> errorSignal) |> Vector)
             product |> fun (Vector vector) -> vector.[1..] |> Array.map Error |> Errors
@@ -145,6 +148,9 @@ module Analytics =
                 (y, derivative)
             let hiddenUnit (Range y, Gradient d) = HiddenUnit (y, d)
             vector |> Array.map (fun x -> Domain x |> valueAndDerivative |> hiddenUnit) |> HiddenUnits
+        member this.GenerateSignals(Vector vector) =
+            let signal (Range y) = Signal y
+            vector |> Array.map (fun x -> Domain x |> this.Evaluate |> signal)
 
     let prepend value (Vector vector) = value :: List.ofArray vector |> Array.ofList |> Vector
 
