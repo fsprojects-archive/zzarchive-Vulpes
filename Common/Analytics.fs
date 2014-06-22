@@ -47,6 +47,8 @@ module Analytics =
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] + rhs.[i, j])
             |> Matrix
+        member this.Height = match this with Matrix matrix -> height matrix
+        member this.Width = match this with Matrix matrix -> width matrix
         static member (-) (Matrix lhs, Matrix rhs) =
             let h = height lhs
             let w = width rhs
@@ -99,12 +101,15 @@ module Analytics =
 
     type VisibleUnits = VisibleUnits of VisibleUnit[]
 
+    type TrainingExample with
+        member trainingExample.VisibleUnits = trainingExample.Input |> fun (Input input) -> input |> Array.map (fun (Signal signal) -> VisibleUnit signal) |> VisibleUnits
+
     type HiddenUnit = HiddenUnit of (float32 * float32) with
-        static member (-) (target : float32, HiddenUnit hiddenUnit) = target - fst hiddenUnit
+        static member (-) (Signal signal, HiddenUnit hiddenUnit) = signal - fst hiddenUnit
 
     type HiddenUnits = HiddenUnits of HiddenUnit[] with
-        static member (-) (Vector target, HiddenUnits hiddenUnits) =
-            hiddenUnits |> Array.map (fun (HiddenUnit hiddenUnit) -> fst hiddenUnit) |> Array.map2 (-) target |> Array.map Error |> Errors
+        static member (-) (Target target, HiddenUnits hiddenUnits) =
+            hiddenUnits |> Array.map2 (-) target |> Array.map Error |> Errors
 
     type Errors with
         static member (.*) (HiddenUnits lhs, Errors rhs) =

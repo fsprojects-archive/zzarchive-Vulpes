@@ -15,3 +15,18 @@ module NeuralNet =
     and BatchSize = BatchSize of int
 
     and Epochs = Epochs of int
+
+    and Signal = Signal of float32
+
+    and Output = Output of Signal[]
+
+    and Target = Target of Signal[]
+
+    and Input = Input of Signal[]
+
+    and TrainingExample = { Input : Input; Target : Target } 
+
+    and TrainingSet = TrainingSet of TrainingExample list
+
+    and TestSet = TestSet of Input list
+
