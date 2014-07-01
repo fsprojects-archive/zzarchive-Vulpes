@@ -6,6 +6,7 @@ module AnalyticsTests =
     open Xunit.Extensions
     open FsUnit.Xunit
     open Common.Analytics
+    open Common.NeuralNet
     open System
 
     type ``Floating point derivatives evaluate correctly``()=
@@ -47,12 +48,12 @@ module AnalyticsTests =
             let Df = ArgumentAndFunctionValueForm (fun (Domain x) -> fun (Range y) -> 2.0f * y |> Gradient) in 
             verifyDerivative value Df
 
-    type ``Signals can be converted into values prepended for bias``()=
+    type ``Vectors can be prepended for bias``()=
         
         [<Fact>]
         member test.``The values prepended for bias match the expected input pattern.``()=
-            let signals = Signals [|Signal (0.1f, None); Signal (0.2f, None); Signal (0.3f, None)|] in
-            signals.ValuesPrependedForBias |> should equal <| Vector [| 1.0f; 0.1f; 0.2f; 0.3f |]
+            let signals = Vector [| 0.1f; 0.2f; 0.3f|] in
+            signals.PrependForBias |> should equal <| Vector [| 1.0f; 0.1f; 0.2f; 0.3f |]
 
     type ``A differentiable function can generate signals from a vector``()=
 
@@ -65,7 +66,7 @@ module AnalyticsTests =
             let vector = [|1.0f..10.0f|] in
             let power x n = float32 (Math.Pow(float x, float n))
             let differentiableFunction = DifferentiableFunction (FloatingPointFunction (fun (Domain x) -> Range (power x exponent)), ArgumentForm (fun (Domain x) -> Gradient (exponent * power x (exponent - 1.0f)))) in
-            differentiableFunction.GenerateSignals (Vector vector) |> should equal <| Signals (vector |> Array.map (fun x -> Signal (power x exponent, exponent * power x (exponent - 1.0f) |> Some)))
+            differentiableFunction.GenerateSignals (Vector vector) |> should equal <| (vector |> Array.map (fun x -> power x exponent |> Signal))
 
     type ``Matrix arithmetic``()=
 
