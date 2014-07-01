@@ -49,6 +49,7 @@ module Analytics =
             |> Matrix
         member this.Height = match this with Matrix matrix -> height matrix
         member this.Width = match this with Matrix matrix -> width matrix
+        member this.Value i j = match this with Matrix matrix -> matrix.[i, j]
         static member (-) (Matrix lhs, Matrix rhs) =
             let h = height lhs
             let w = width rhs
@@ -87,6 +88,15 @@ module Analytics =
     type Vector with
         static member (*) (Vector v1, Vector v2) =
             Array2D.init (Array.length v1) (Array.length v2) (fun i j -> v1.[i] * v2.[j])
+            |> Matrix
+
+    type Matrix with
+        member this.PrependColumn (Vector column) =
+            Array2D.init this.Height (this.Width + 1)
+                (fun i j ->
+                    match i, j with
+                    | (m, 0) -> column.[m]
+                    | (m, n) -> this.Value m (n - 1))
             |> Matrix
 
     type Error = Error of float32

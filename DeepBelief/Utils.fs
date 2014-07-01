@@ -8,6 +8,7 @@ module Utils =
     open System
     open System.Threading.Tasks
     open Alea.CUDA.Utilities
+    open Common.Analytics
 
     let LCG_A = 1664525u
     let LCG_C = 1013904223u
@@ -109,9 +110,10 @@ module Utils =
     let mapMatrix f M =
         Array2D.init (height M) (width M) (fun i j -> f M.[i, j])
 
-    let sigmoidFunction x = 1.0f / (1.0f + exp(-x))
+    let sigmoidFunction = FloatingPointFunction (fun (Domain x)  -> 1.0f / (1.0f + exp(-x)) |> Range)
+    let sigmoidDerivative = FunctionValueForm (fun (Range s) -> s * (1.0f - s) |> Gradient)
+    let sigmoidActivation = DifferentiableFunction (sigmoidFunction, sigmoidDerivative)
     let logitFunction x = log x - log (1.0f - x)
-    let sigmoidDerivative s (x : float32) = s * (1.0f - s)
 
     let toList M =
         let h = height M
@@ -133,13 +135,6 @@ module Utils =
         let w = width M
         [|0..w - 1|] |> Array.map (fun j -> Array.init h (fun i -> M.[i, j])) 
 
-    let prependColumn (Vector column) (Matrix M) =
-        Array2D.init (height M) (width M + 1)
-            (fun i j ->
-                match i, j with
-                | (m, 0) -> column.[m]
-                | (m, n) -> M.[m, n - 1])
-
     let prependRow (Vector row) (Matrix M) =
         Array2D.init (height M + 1) (width M)
             (fun i j ->
@@ -152,9 +147,6 @@ module Utils =
 
     let prependRowOfZeroes (Matrix M) =
         Matrix M |> prependRow (Vector (Array.init (width M) (fun _ -> 0.0f)))
-
-    let prependColumnOfOnes (Matrix M) =
-        Matrix M |> prependColumn (Vector (Array.init (height M) (fun _ -> 1.0f)))
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.

@@ -65,7 +65,6 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Kernels.fs" />
     <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="NeuralNet.fs" />
     <Compile Include="CudaTemplates.fs" />
     <Compile Include="CudaDeepBeliefNet.fs" />
     <Compile Include="CudaNeuralNet.fs" />

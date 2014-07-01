@@ -4,6 +4,7 @@ module DeepBeliefNet =
 
     open System
     open Utils
+    open Common.Analytics
     open Common.NeuralNet
     open Backpropagation.Parameters
 
@@ -22,13 +23,6 @@ module DeepBeliefNet =
         Epochs : Epochs
     }
 
-    let toBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
-        let layers = 
-            deepBeliefNetwork
-            |> fun dbn -> dbn.Machines
-            |> List.map (fun rbm -> { Weight = prependColumn rbm.HiddenBiases rbm.Weights; Activation = DifferentiableFunction (FloatingPointFunction sigmoidFunction, FloatingPointDerivative sigmoidDerivative) })
-        { Parameters = backPropagationParameters; Layers = layers }
-
     type RestrictedBoltzmannMachine = {
         Parameters : RestrictedBoltzmannParameters
         Weights : Matrix
@@ -43,6 +37,15 @@ module DeepBeliefNet =
         Parameters : DeepBeliefParameters
         Machines : RestrictedBoltzmannMachine list
     }
+
+    type WeightsAndBiases with
+        static member FromRbm (rbm : RestrictedBoltzmannMachine) =
+            rbm.Weights.PrependColumn rbm.HiddenBiases |> WeightsAndBiases
+
+    type DeepBeliefNetwork with
+        member this.ToBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
+            let layers = this.Machines |> List.map (fun rbm -> { Weights = WeightsAndBiases.FromRbm rbm; Activation = sigmoidActivation }) 
+            { Parameters = backPropagationParameters; Layers = layers }
 
     let toRbmParameters (deepBeliefParameters : DeepBeliefParameters) =
         {
