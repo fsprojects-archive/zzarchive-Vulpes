@@ -38,8 +38,12 @@ module Analytics =
     type [<ReflectedDefinition>] Vector = Vector of float32[] with
         static member (-) (Vector lhs, Vector rhs) =
             Array.map2 (-) lhs rhs |> Vector
+        member vector.Prepend value =
+            match vector with Vector array -> value :: List.ofArray array |> Array.ofList |> Vector
         member vector.PrependForBias =
-            match vector with Vector array -> 1.0f :: List.ofArray array |> Array.ofList |> Vector
+            vector.Prepend 1.0f
+        member vector.Length =
+            match vector with Vector array -> Array.length array
 
     type [<ReflectedDefinition>] Matrix = Matrix of float32[,] with
         static member (+) (Matrix lhs, Matrix rhs) =
@@ -98,6 +102,13 @@ module Analytics =
                     | (m, 0) -> column.[m]
                     | (m, n) -> this.Value m (n - 1))
             |> Matrix
+        member this.PrependRow (Vector row) =
+            Array2D.init (this.Height + 1) this.Width
+                (fun i j ->
+                    match i, j with
+                    | (0, n) -> row.[n]
+                    | (m, n) -> this.Value (m - 1) n)
+
 
     type Error = Error of float32
     
@@ -161,8 +172,3 @@ module Analytics =
         member this.GenerateSignals(Vector vector) =
             let signal (Range y) = Signal y
             vector |> Array.map (fun x -> Domain x |> this.Evaluate |> signal)
-
-    let prepend value (Vector vector) = value :: List.ofArray vector |> Array.ofList |> Vector
-
-    let activate (Vector value, Vector derivative) (activation : DifferentiableFunction) =
-        value |> Array.map (fun x -> activation.Evaluate (Domain x))

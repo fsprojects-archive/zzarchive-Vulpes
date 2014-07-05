@@ -135,19 +135,6 @@ module Utils =
         let w = width M
         [|0..w - 1|] |> Array.map (fun j -> Array.init h (fun i -> M.[i, j])) 
 
-    let prependRow (Vector row) (Matrix M) =
-        Array2D.init (height M + 1) (width M)
-            (fun i j ->
-                match i, j with
-                | (0, n) -> row.[n]
-                | (m, n) -> M.[m - 1, n])
-
-    let prependRowOfOnes (Matrix M) =
-        Matrix M |> prependRow (Vector (Array.init (width M) (fun _ -> 1.0f)))
-
-    let prependRowOfZeroes (Matrix M) =
-        Matrix M |> prependRow (Vector (Array.init (width M) (fun _ -> 0.0f)))
-
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.
     let gaussianDistribution = new Normal(0.0, 0.01)

@@ -28,7 +28,7 @@ module CudaTemplates =
     open Alea.CUDA.Utilities
     open Kernels
     open DeepBeliefNet
-    open NeuralNet
+    open Common.Analytics
     open Utils
 
     let coerceLp blockSize =
@@ -98,9 +98,9 @@ module CudaTemplates =
             let worker = program.Worker
             let kernel = program.Apply(kernel)
 
-            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
-                let finalHeight = Utils.height A
-                let finalWidth = Utils.width B
+            fun (A : Matrix) (B : Matrix) ->
+                let finalHeight = A.Height
+                let finalWidth = B.Width
 
                 let A = Utils.padToMultiplesOf blockSize A
                 let B = Utils.padToMultiplesOf blockSize B

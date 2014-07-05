@@ -723,23 +723,39 @@
        },
        Find:function(value)
        {
-        var node;
+        var node,notFound;
         node=this.n;
-        while(!Unchecked.Equals(node,null)?node.v!=value:false)
+        notFound=true;
+        while(notFound?!Unchecked.Equals(node,null):false)
          {
-          node=node.n;
+          if(node.v==value)
+           {
+            notFound=false;
+           }
+          else
+           {
+            node=node.n;
+           }
          }
-        return node==value?node:null;
+        return notFound?null:node;
        },
        FindLast:function(value)
        {
-        var node;
+        var node,notFound;
         node=this.p;
-        while(!Unchecked.Equals(node,null)?node.v!=value:false)
+        notFound=true;
+        while(notFound?!Unchecked.Equals(node,null):false)
          {
-          node=node.p;
+          if(node.v==value)
+           {
+            notFound=false;
+           }
+          else
+           {
+            node=node.p;
+           }
          }
-        return node==value?node:null;
+        return notFound?null:node;
        },
        GetEnumerator:function()
        {

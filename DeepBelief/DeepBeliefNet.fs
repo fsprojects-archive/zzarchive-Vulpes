@@ -55,15 +55,30 @@ module DeepBeliefNet =
             Epochs = deepBeliefParameters.Epochs
         }
 
-    let toWeightsAndBiases rbm =
-        let prependedVisibleBiases = rbm.VisibleBiases |> prepend 0.0f
-        rbm.Weights |> prependColumn rbm.HiddenBiases |> prependRow prependedVisibleBiases
-     
-    let toDWeightsAndBiases rbm =
-        let prependedDVisibleBiases = rbm.DVisibleBiases |> prepend 0.0f
-        rbm.DWeights |> prependColumn rbm.DHiddenBiases |> prependRow prependedDVisibleBiases
+    type RestrictedBoltzmannMachine with
+        member this.ToWeightsAndBiases = 
+            (this.Weights.PrependColumn this.HiddenBiases).PrependRow (this.VisibleBiases.Prepend 0.0f)
+            |> Matrix |> WeightsAndBiases
+        member this.ToWeightsAndBiasesGradients =
+            (this.DWeights.PrependColumn this.DHiddenBiases).PrependRow (this.DVisibleBiases.Prepend 0.0f)
+            |> Matrix |> WeightGradients
+        member this.NumberOfHiddenUnits =
+            this.HiddenBiases.Length
+        member this.NumberOfVisibleUnits =
+            this.VisibleBiases.Length
+        static member ToBeNamed(parameters : RestrictedBoltzmannParameters) (WeightsAndBiases weightsAndBiases) (WeightGradients dWeightsAndBiases) =
+            {
+                Parameters = parameters;
+                Weights = weightsAndBiases.[1..nHidden, 1..nVisible];
+                DWeights = dWeightsAndBiases.[1..nHidden, 1..nVisible];
+                HiddenBiases = weightsAndBiases.[1..nHidden, 0..0] |> column 0;
+                DHiddenBiases = dWeightsAndBiases.[1..nHidden, 0..0] |> column 0;
+                VisibleBiases = weightsAndBiases.[0..0, 1..nVisible] |> row 0;
+                DVisibleBiases = dWeightsAndBiases.[0..0, 1..nVisible] |> row 0;
+            }
+    
 
-    let toRbm (parameters : RestrictedBoltzmannParameters) (weightsAndBiases : Matrix) (dWeightsAndBiases : Matrix) =
+    let toRbm (parameters : RestrictedBoltzmannParameters)
         let nVisible = (width weightsAndBiases) - 1
         let nHidden = (height weightsAndBiases) - 1
         {
