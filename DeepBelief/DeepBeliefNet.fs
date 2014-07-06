@@ -7,6 +7,7 @@ module DeepBeliefNet =
     open Common.Analytics
     open Common.NeuralNet
     open Backpropagation.Parameters
+    open MathNet.Numerics.Distributions
 
     type DeepBeliefParameters = {
         Layers : LayerSizes
@@ -47,13 +48,14 @@ module DeepBeliefNet =
             let layers = this.Machines |> List.map (fun rbm -> { Weights = WeightsAndBiases.FromRbm rbm; Activation = sigmoidActivation }) 
             { Parameters = backPropagationParameters; Layers = layers }
 
-    let toRbmParameters (deepBeliefParameters : DeepBeliefParameters) =
-        {
-            LearningRate = deepBeliefParameters.LearningRate
-            Momentum = deepBeliefParameters.Momentum
-            BatchSize = deepBeliefParameters.BatchSize
-            Epochs = deepBeliefParameters.Epochs
-        }
+    type DeepBeliefParameters with
+        member this.ToRbmParameters =
+            {
+                RestrictedBoltzmannParameters.LearningRate = this.LearningRate;
+                Momentum = this.Momentum;
+                BatchSize = this.BatchSize;
+                Epochs = this.Epochs
+            }
 
     type RestrictedBoltzmannMachine with
         member this.ToWeightsAndBiases = 
@@ -66,59 +68,45 @@ module DeepBeliefNet =
             this.HiddenBiases.Length
         member this.NumberOfVisibleUnits =
             this.VisibleBiases.Length
-        static member ToBeNamed(parameters : RestrictedBoltzmannParameters) (WeightsAndBiases weightsAndBiases) (WeightGradients dWeightsAndBiases) =
+        static member FromWeightsAndBiases (parameters : RestrictedBoltzmannParameters) (WeightsAndBiases weightsAndBiases) (WeightGradients dWeightsAndBiases) =
             {
                 Parameters = parameters;
-                Weights = weightsAndBiases.[1..nHidden, 1..nVisible];
-                DWeights = dWeightsAndBiases.[1..nHidden, 1..nVisible];
-                HiddenBiases = weightsAndBiases.[1..nHidden, 0..0] |> column 0;
-                DHiddenBiases = dWeightsAndBiases.[1..nHidden, 0..0] |> column 0;
-                VisibleBiases = weightsAndBiases.[0..0, 1..nVisible] |> row 0;
-                DVisibleBiases = dWeightsAndBiases.[0..0, 1..nVisible] |> row 0;
+                Weights = weightsAndBiases.Submatrix 1 1;
+                DWeights = dWeightsAndBiases.Submatrix 1 1;
+                HiddenBiases = (weightsAndBiases.Column 0).Subvector 1;
+                DHiddenBiases = (dWeightsAndBiases.Column 0).Subvector 1;
+                VisibleBiases = (weightsAndBiases.Row 0).Subvector 1;
+                DVisibleBiases = (dWeightsAndBiases.Row 0).Subvector 1;
             }
+        static member Initialise (parameters : RestrictedBoltzmannParameters) nVisible nHidden =
+            let gaussianDistribution = new Normal(0.0, 0.01)
+            let initGaussianWeights nRows nColumns =
+                Array2D.init nRows nColumns (fun _ _ -> gaussianDistribution.Sample() |> float32) |> Matrix
+            { 
+                Parameters = parameters;
+                Weights = initGaussianWeights nHidden nVisible;
+                DWeights = Array2D.zeroCreate nHidden nVisible |> Matrix;
+                VisibleBiases = Array.zeroCreate nVisible |> Vector;
+                DVisibleBiases = Array.zeroCreate nVisible |> Vector;
+                HiddenBiases = Array.zeroCreate nHidden |> Vector;
+                DHiddenBiases = Array.zeroCreate nHidden |> Vector
+            }            
     
-
-    let toRbm (parameters : RestrictedBoltzmannParameters)
-        let nVisible = (width weightsAndBiases) - 1
-        let nHidden = (height weightsAndBiases) - 1
-        {
-            Parameters = parameters;
-            Weights = weightsAndBiases.[1..nHidden, 1..nVisible];
-            DWeights = dWeightsAndBiases.[1..nHidden, 1..nVisible];
-            HiddenBiases = weightsAndBiases.[1..nHidden, 0..0] |> column 0;
-            DHiddenBiases = dWeightsAndBiases.[1..nHidden, 0..0] |> column 0;
-            VisibleBiases = weightsAndBiases.[0..0, 1..nVisible] |> row 0;
-            DVisibleBiases = dWeightsAndBiases.[0..0, 1..nVisible] |> row 0;
-        }
-
-    let numberOfHiddenUnits rbm = Array.length rbm.HiddenBiases
-    let numberOfVisibleUnits rbm = Array.length rbm.VisibleBiases
-
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The visible bias b_i should be log (p_i/(1 - p_i)) where p_i is the propotion
     // of training vectors in which the unit i is on.
     let initVisibleBias v = 0.0f
 //        let p = proportionOfVisibleUnits v
 //        Math.Max(-1.0f, Math.Log(float p) |> float32) - Math.Max(-1.0f, Math.Log(1.0 - float p) |> float32)
-
-    let initRbm (parameters : RestrictedBoltzmannParameters) nVisible nHidden =
-        { 
-            Parameters = parameters;
-            Weights = initGaussianWeights nHidden nVisible;
-            DWeights = Array2D.zeroCreate nHidden nVisible;
-            VisibleBiases = Array.zeroCreate nVisible;
-            DVisibleBiases = Array.zeroCreate nVisible;
-            HiddenBiases = Array.zeroCreate nHidden;
-            DHiddenBiases = Array.zeroCreate nHidden
-        }
+       
 
     let initDbn (deepBeliefParameters : DeepBeliefParameters) xInputs =
         let toMachines (LayerSizes layers) =
             layers |> List.fold(fun acc element -> 
                 let nVisible = fst acc
                 let nHidden = element
-                let rbmParams = toRbmParameters deepBeliefParameters
-                (element, (initRbm rbmParams nVisible nHidden) :: snd acc))
+                let rbmParams = deepBeliefParameters.ToRbmParameters
+                (element, (RestrictedBoltzmannMachine.Initialise rbmParams nVisible nHidden) :: snd acc))
                 (width xInputs, []) |> snd |> List.rev 
         { 
             Parameters = deepBeliefParameters;

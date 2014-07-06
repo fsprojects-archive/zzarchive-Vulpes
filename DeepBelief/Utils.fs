@@ -137,10 +137,6 @@ module Utils =
 
     // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
     // The initial weights should have zero mean and 0.01 standard deviation.
-    let gaussianDistribution = new Normal(0.0, 0.01)
-
-    let initGaussianWeights nRows nColumns =
-        Array2D.init nRows nColumns (fun _ _ -> gaussianDistribution.Sample() |> float32)
 
     let multiplyVectorByScalar (lambda : float32) v =
         let n = Array.length v

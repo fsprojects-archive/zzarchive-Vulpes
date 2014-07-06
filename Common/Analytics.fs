@@ -44,6 +44,8 @@ module Analytics =
             vector.Prepend 1.0f
         member vector.Length =
             match vector with Vector array -> Array.length array
+        member vector.Subvector i =
+            match vector with Vector array -> array.[i..] |> Vector
 
     type [<ReflectedDefinition>] Matrix = Matrix of float32[,] with
         static member (+) (Matrix lhs, Matrix rhs) =
@@ -54,6 +56,12 @@ module Analytics =
         member this.Height = match this with Matrix matrix -> height matrix
         member this.Width = match this with Matrix matrix -> width matrix
         member this.Value i j = match this with Matrix matrix -> matrix.[i, j]
+        member this.Submatrix i j =
+            match this with Matrix matrix -> Matrix matrix.[i.., j..]
+        member this.Row i =
+            match this with Matrix matrix -> Array.init (width matrix) (fun j -> matrix.[i, j]) |> Vector
+        member this.Column j =
+            match this with Matrix matrix -> Array.init (height matrix) (fun i -> matrix.[i, j]) |> Vector
         static member (-) (Matrix lhs, Matrix rhs) =
             let h = height lhs
             let w = width rhs
@@ -108,7 +116,10 @@ module Analytics =
                     match i, j with
                     | (0, n) -> row.[n]
                     | (m, n) -> this.Value (m - 1) n)
-
+        member this.PrependColumnOfOnes =
+            Array.init this.Height (fun i -> 1.0f) |> Vector |> this.PrependColumn 
+        member this.PrependRowOfOnes =
+            Array.init this.Width (fun j -> 1.0f) |> Vector |> this.PrependRow
 
     type Error = Error of float32
     
