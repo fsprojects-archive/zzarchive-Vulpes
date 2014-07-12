@@ -11,7 +11,7 @@ module Parameters =
     }
 
     type BackPropagationParameters = {
-        LearningRate : LearningRate
+        LearningRate : ScaledLearningRate
         Momentum : Momentum
         Epochs : Epochs
     }

@@ -2,6 +2,7 @@
 
 module Analytics =
     open NeuralNet
+    open System.Threading.Tasks
 
     type Domain = Domain of float32
 
@@ -46,6 +47,17 @@ module Analytics =
             match vector with Vector array -> Array.length array
         member vector.Subvector i =
             match vector with Vector array -> array.[i..] |> Vector
+        member vector.SumOfSquares =
+            match vector with Vector array -> array|> Array.map (fun element -> element * element) |> Array.sum
+        static member Error (Vector target) (Vector output) =
+            // When applying this measure to a classification problem, 
+            // where the output vectors must n - 1 zeroes and a single
+            // one, it has the nice property that it evaluates to one
+            // for the wrong guess, and zero for an incorrect guess.  So
+            // dividing it by the set size gives the pecentage error of 
+            // the test run.
+            (Array.zip target output |> Array.map (fun (t, o) -> t - o) |> Vector |> fun vector -> vector.SumOfSquares) / 2.0f
+
 
     type [<ReflectedDefinition>] Matrix = Matrix of float32[,] with
         static member (+) (Matrix lhs, Matrix rhs) =
@@ -53,11 +65,18 @@ module Analytics =
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] + rhs.[i, j])
             |> Matrix
+        member this.Map f = 
+            match this with Matrix matrix -> Array2D.init (height matrix) (width matrix) (fun i j -> f matrix.[i, j])
         member this.Height = match this with Matrix matrix -> height matrix
         member this.Width = match this with Matrix matrix -> width matrix
         member this.Value i j = match this with Matrix matrix -> matrix.[i, j]
         member this.Submatrix i j =
             match this with Matrix matrix -> Matrix matrix.[i.., j..]
+        member this.SumOfSquares =
+            match this with 
+                Matrix matrix -> 
+                    [|0..(height matrix)|] |> Array.map (fun i -> Array.init (width matrix) (fun j -> matrix.[i, j])) 
+                    |> Array.fold (fun acc element -> acc + (Vector element).SumOfSquares) 0.0f
         member this.Row i =
             match this with Matrix matrix -> Array.init (width matrix) (fun j -> matrix.[i, j]) |> Vector
         member this.Column j =
@@ -66,6 +85,7 @@ module Analytics =
             let h = height lhs
             let w = width rhs
             Array2D.init h w (fun i j -> lhs.[i, j] - rhs.[i, j])
+            |> Matrix
         static member (.*) (Vector v1, Vector v2) = 
             Array.init (Array.length v1) (fun i -> v1.[i] * v2.[i])
         static member (*) (Matrix A, Vector v) =
@@ -81,14 +101,15 @@ module Analytics =
             Array2D.init h w (fun i j -> lambda * M.[i, j]) 
             |> Matrix
         static member (*) (Matrix A, Matrix B) =
-            let row i (M : float32[,]) = Array.init (width M) (fun j -> M.[i, j])
-            let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
-            let h = height A
-            let w = width B
-            let rowsOfA = [|0..h - 1|] |> Array.map (fun i -> row i A)
-            let columnsOfB = [|0..w - 1|] |> Array.map (fun j -> column j A)
-            Array2D.init h w (fun i j -> Array.map2 (*) rowsOfA.[i] columnsOfB.[j] |> Array.sum)
-            |> Matrix
+            let rowsA, colsA = height A, width A
+            let rowsB, colsB = height B, width B
+            let result = Array2D.create rowsA colsB 0.0f
+            Parallel.For(0, rowsA, (fun i->
+                for j = 0 to colsB - 1 do
+                   for k = 0 to colsA - 1 do
+                      result.[i,j] <- result.[i,j] + A.[i,k] * B.[k,j]))  
+            |> ignore
+            result |> Matrix
         static member (^*) (Matrix A, Vector v) =
             let column j (M : float32[,]) = Array.init (height M) (fun i -> M.[i, j])
             let h = height A
@@ -96,6 +117,30 @@ module Analytics =
             let columnsOfA = [|0..w - 1|] |> Array.map (fun j -> column j A)
             Array.init w (fun j -> Array.map2 (*) columnsOfA.[j] v |> Array.sum) 
             |> Vector
+        member this.MultiplyByTranspose (Matrix B) =
+            match this with 
+                Matrix A ->
+                    let rowsA, colsA = height A, width A
+                    let rowsB, colsB = width B, height B
+                    let result = Array2D.create rowsA colsB 0.0f
+                    Parallel.For(0, rowsA, (fun i->
+                        for j = 0 to colsB - 1 do
+                           for k = 0 to colsA - 1 do
+                              result.[i,j] <- result.[i,j] + A.[i,k] * B.[j,k]))  
+                    |> ignore
+                    result |> Matrix
+        member this.TransposeAndMultiply (Matrix B) =
+            match this with 
+                Matrix A ->
+                    let rowsA, colsA = width A, height A
+                    let rowsB, colsB = height B, width B
+                    let result = Array2D.create rowsA colsB 0.0f
+                    Parallel.For(0, rowsA, (fun i->
+                        for j = 0 to colsB - 1 do
+                           for k = 0 to colsA - 1 do
+                              result.[i,j] <- result.[i,j] + A.[k,i] * B.[k,j]))  
+                    |> ignore
+                    result |> Matrix
 
     type Vector with
         static member (*) (Vector v1, Vector v2) =
@@ -116,6 +161,7 @@ module Analytics =
                     match i, j with
                     | (0, n) -> row.[n]
                     | (m, n) -> this.Value (m - 1) n)
+            |> Matrix
         member this.PrependColumnOfOnes =
             Array.init this.Height (fun i -> 1.0f) |> Vector |> this.PrependColumn 
         member this.PrependRowOfOnes =
@@ -153,8 +199,14 @@ module Analytics =
     type WeightGradients = WeightGradients of Matrix
 
     type WeightChanges = WeightChanges of Matrix with
-        member changes.NextChanges (LearningRate learningRate) (Momentum momentum) (WeightGradients weightGradients) (WeightChanges currentChanges) =
-            momentum * currentChanges + learningRate * weightGradients |> WeightChanges
+        member changes.NextChanges (ScaledLearningRate learningRate) (Momentum momentum) (WeightGradients weightGradients) =
+            match changes with WeightChanges weightChanges -> momentum * weightChanges + learningRate * weightGradients |> WeightChanges
+
+    type InputBatch = InputBatch of Matrix with
+        member this.Size =
+            match this with InputBatch matrix -> matrix.Height
+
+    type BatchOutput = BatchOutput of Matrix
 
     type WeightsAndBiases = WeightsAndBiases of Matrix with
         static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =
@@ -171,6 +223,10 @@ module Analytics =
             product |> fun (Vector vector) -> vector.[1..] |> Array.map Error |> Errors
         member this.Update (WeightChanges weightChanges) =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases + weightChanges |> WeightsAndBiases
+        member this.Forward (InputBatch batch) =
+            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.MultiplyByTranspose batch |> BatchOutput
+        member this.Backward (BatchOutput output) =
+            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.TransposeAndMultiply output |> InputBatch
 
     type DifferentiableFunction with
         member this.GenerateHiddenUnits(Vector vector) =

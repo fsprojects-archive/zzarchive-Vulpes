@@ -57,7 +57,7 @@ module SupervisedLearning =
 
                 let layerOutputs = feedForward input
                 let gradients = gradients layerOutputs input target
-                let currentWeightChanges = List.zip previousWeightChanges gradients |> List.map (fun (p, g) -> p.NextChanges network.Parameters.LearningRate network.Parameters.Momentum g p)
+                let currentWeightChanges = List.zip previousWeightChanges gradients |> List.map (fun (p, g) -> p.NextChanges network.Parameters.LearningRate network.Parameters.Momentum g)
                 {
                     Parameters = network.Parameters;
                     Layers = List.zip network.Layers currentWeightChanges |> List.map (fun (layer, changes) -> { Weights = layer.Weights.Update changes; Activation = layer.Activation })

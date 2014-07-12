@@ -107,9 +107,6 @@ module Utils =
         |> ignore
         result
 
-    let mapMatrix f M =
-        Array2D.init (height M) (width M) (fun i j -> f M.[i, j])
-
     let sigmoidFunction = FloatingPointFunction (fun (Domain x)  -> 1.0f / (1.0f + exp(-x)) |> Range)
     let sigmoidDerivative = FunctionValueForm (fun (Range s) -> s * (1.0f - s) |> Gradient)
     let sigmoidActivation = DifferentiableFunction (sigmoidFunction, sigmoidDerivative)
@@ -119,11 +116,6 @@ module Utils =
         let h = height M
         let w = width M
         [0..h - 1] |> List.map (fun i -> List.init w (fun j -> M.[i, j]))
-
-    let toArray M =
-        let h = height M
-        let w = width M
-        [|0..h - 1|] |> Array.map (fun i -> Array.init w (fun j -> M.[i, j]))
 
     let transpose M =
         let h = width M
@@ -150,18 +142,6 @@ module Utils =
     let identityMatrix n =
         Array2D.init n n (fun i j -> if i = j then 1.0f else 0.0f)
 
-    let sumOfSquares v = v |> Array.map (fun element -> element * element) |> Array.sum
-    let sumOfSquaresMatrix M = M |> toArray |> Array.fold (fun acc element -> acc + (sumOfSquares element)) 0.0f
-
-    // When applying this measure to a classification problem, 
-    // where the output vectors must n - 1 zeroes and a single
-    // one, it has the nice property that it evaluates to one
-    // for the wrong guess, and zero for an incorrect guess.  So
-    // dividing it by the set size gives the pecentage error of 
-    // the test run.
-    let error (Vector target) (Vector output) =
-        (Array.zip target output |> Array.map (fun (t, o) -> t - o) |> sumOfSquares) / 2.0f
-    
     let batchesOf n =
         Seq.ofArray >> Seq.mapi (fun i v -> i / n, v) >>
         Seq.groupBy fst >> Seq.map snd >>
