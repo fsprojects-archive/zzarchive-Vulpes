@@ -70,8 +70,8 @@ module Analytics =
         member this.Height = match this with Matrix matrix -> height matrix
         member this.Width = match this with Matrix matrix -> width matrix
         member this.Value i j = match this with Matrix matrix -> matrix.[i, j]
-        member this.Submatrix i j =
-            match this with Matrix matrix -> Matrix matrix.[i.., j..]
+        member this.Submatrix startRow startColumn height width =
+            match this with Matrix matrix -> Matrix matrix.[startRow..(startRow + height - 1), startColumn..(startColumn + width - 1)]
         member this.SumOfSquares =
             match this with 
                 Matrix matrix -> 

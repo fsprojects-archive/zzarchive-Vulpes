@@ -38,7 +38,7 @@ module Utils =
     let flattenMatrix M = 
         let h = Array2D.length1 M
         let w = Array2D.length2 M
-        Array.init (h*w) (fun i -> M.[i / w,i % w])
+        Array.init (h*w) (fun i -> M.[i / w, i % w])
 
     let flattenSamples samples =
         samples |> Array.map flattenMatrix

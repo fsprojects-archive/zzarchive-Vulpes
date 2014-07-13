@@ -10,6 +10,25 @@ module CudaTemplates =
     open Common.Analytics
     open Utils
 
+    type Matrix with
+        member this.PadToMultiplesOf n =
+            match this with
+                Matrix matrix ->
+                    let h = Array2D.length1 matrix
+                    let w = Array2D.length2 matrix
+                    let paddedHeight = nextMultipleOf n h
+                    let paddedWidth = nextMultipleOf n w
+                    Array2D.init paddedHeight paddedWidth 
+                        (fun i j -> if i < h && j < w then matrix.[i, j] else 0.0f) |> Matrix
+        member this.ToRowMajorFormat =
+            match this with
+                Matrix matrix ->
+                    let h = this.Height
+                    let w = this.Width
+                    Array.init (h*w) (fun i -> matrix.[i / w, i % w])
+        static member FromRowMajorFormat width (array : float32[]) = 
+            Array2D.init (array.Length / width) width (fun i j -> array.[i * width + j]) |> Matrix
+
     let coerceLp blockSize =
         let threads = dim3(blockSize)
         let grid = dim3(1)
@@ -81,18 +100,18 @@ module CudaTemplates =
                 let finalHeight = A.Height
                 let finalWidth = B.Width
 
-                let A = Utils.padToMultiplesOf blockSize A
-                let B = Utils.padToMultiplesOf blockSize B
+                let A = A.PadToMultiplesOf blockSize
+                let B = B.PadToMultiplesOf blockSize
 
-                let hA = Utils.height A
-                let wA = Utils.width A
-                let hB = Utils.height B
-                let wB = Utils.width B
+                let hA = A.Height
+                let wA = A.Width
+                let hB = B.Height
+                let wB = B.Width
                 let wC = wB
-                let hC = Utils.height A
+                let hC = A.Height
 
-                let A = Utils.flattenMatrix A
-                let B = Utils.flattenMatrix B
+                let A = A.ToRowMajorFormat
+                let B = B.ToRowMajorFormat
 
                 use A = worker.Malloc(A)
                 use B = worker.Malloc(B)
@@ -100,8 +119,8 @@ module CudaTemplates =
 
                 let lp = createMultiplyLp blockSize hA wA hB wB
                 kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-                let result = C.Gather()
-                result |> Utils.rebuildMatrix wC finalHeight finalWidth
+                let result = C.Gather() |> Matrix.FromRowMajorFormat wC 
+                result.Submatrix 0 0 finalHeight finalWidth
             ) }
 
     let multiplyByTransposeTemplate (blockSize:int) = cuda {
@@ -111,22 +130,22 @@ module CudaTemplates =
             let worker = program.Worker
             let multiplyByTransposeKernel = program.Apply(multiplyByTransposeKernel)
 
-            fun (A : Utils.Matrix) (B : Utils.Matrix) ->
-                let finalHeight = Utils.height A
-                let finalWidth = Utils.height B
+            fun (A : Matrix) (B : Matrix) ->
+                let finalHeight = A.Height
+                let finalWidth = B.Height
 
-                let A = Utils.padToMultiplesOf blockSize A
-                let B = Utils.padToMultiplesOf blockSize B
+                let A = A.PadToMultiplesOf blockSize
+                let B = B.PadToMultiplesOf blockSize
 
-                let hA = Utils.height A
-                let wA = Utils.width A
-                let hB = Utils.height B
-                let wB = Utils.width B
+                let hA = A.Height
+                let wA = A.Width
+                let hB = B.Height
+                let wB = B.Width
                 let wC = hB
-                let hC = Utils.height A
+                let hC = A.Height
 
-                let A = Utils.flattenMatrix A
-                let B = Utils.flattenMatrix B
+                let A = A.ToRowMajorFormat
+                let B = B.ToRowMajorFormat
 
                 use A = worker.Malloc(A)
                 use B = worker.Malloc(B)
@@ -134,8 +153,8 @@ module CudaTemplates =
 
                 let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
                 multiplyByTransposeKernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
-                let result = C.Gather()
-                result |> Utils.rebuildMatrix wC finalHeight finalWidth
+                let result = C.Gather() |> Matrix.FromRowMajorFormat wC
+                result.Submatrix 0 0 finalHeight finalWidth
             ) }
 
     let trainRbmEpochTemplate (blockSize:int) = cuda {

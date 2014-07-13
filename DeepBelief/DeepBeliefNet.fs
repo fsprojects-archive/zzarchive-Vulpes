@@ -64,8 +64,8 @@ module DeepBeliefNet =
         static member FromWeightsAndBiases (parameters : RestrictedBoltzmannParameters) (WeightsAndBiases weightsAndBiases) (WeightChanges dWeightsAndBiases) =
             {
                 Parameters = parameters;
-                Weights = weightsAndBiases.Submatrix 1 1;
-                DWeights = dWeightsAndBiases.Submatrix 1 1;
+                Weights = weightsAndBiases.Submatrix 1 1 (weightsAndBiases.Height - 1) (weightsAndBiases.Width - 1);
+                DWeights = dWeightsAndBiases.Submatrix 1 1 (dWeightsAndBiases.Height - 1) (dWeightsAndBiases.Width - 1);
                 HiddenBiases = (weightsAndBiases.Column 0).Subvector 1;
                 DHiddenBiases = (dWeightsAndBiases.Column 0).Subvector 1;
                 VisibleBiases = (weightsAndBiases.Row 0).Subvector 1;
@@ -170,6 +170,7 @@ module DeepBeliefNet =
         member rbm.NextLayerUp rnd (inputs : LayerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
+                let output = output.Submatrix 1 0 (output.Height - 1) output.Width
                 [0..width - 1] |> List.map (fun j -> output.Column j |> Input.FromVector) |> LayerInputs
             let batch = (inputs.GetRandomisedInputBatches rnd (BatchSize 1)).Head
             (rbm.ToWeightsAndBiases.Forward batch.ActivateFirstColumn).Activate rnd sigmoidFunction |> toLayerInput
