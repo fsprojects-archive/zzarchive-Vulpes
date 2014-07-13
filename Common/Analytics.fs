@@ -205,8 +205,15 @@ module Analytics =
     type InputBatch = InputBatch of Matrix with
         member this.Size =
             match this with InputBatch matrix -> matrix.Height
+        member this.ActivateFirstColumn =
+            match this with (InputBatch (Matrix h)) -> h.[0..,1..] |> Matrix |> fun m -> m.PrependRowOfOnes |> InputBatch
 
-    type BatchOutput = BatchOutput of Matrix
+    type Input with
+        static member FromVector (Vector vector) = vector |> Array.map (fun value -> Signal value) |> Input
+
+    type BatchOutput = BatchOutput of Matrix with
+        member this.ActivateFirstRow =
+            match this with (BatchOutput (Matrix v)) -> v.[1..,0..] |> Matrix |> fun m -> m.PrependColumnOfOnes |> BatchOutput
 
     type WeightsAndBiases = WeightsAndBiases of Matrix with
         static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =

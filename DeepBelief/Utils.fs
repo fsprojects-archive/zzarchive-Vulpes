@@ -143,9 +143,9 @@ module Utils =
         Array2D.init n n (fun i j -> if i = j then 1.0f else 0.0f)
 
     let batchesOf n =
-        Seq.ofArray >> Seq.mapi (fun i v -> i / n, v) >>
+        Seq.ofList >> Seq.mapi (fun i v -> i / n, v) >>
         Seq.groupBy fst >> Seq.map snd >>
-        Seq.map (Seq.map snd >> Seq.toArray) >> Seq.toArray
+        Seq.map (Seq.map snd >> Seq.toList) >> Seq.toList
     
     let nextSingle (rnd : Random) = rnd.NextDouble() |> float32
 
