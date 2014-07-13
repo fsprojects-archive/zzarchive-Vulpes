@@ -74,39 +74,6 @@ module Utils =
     let column j M =
         Array.init (height M) (fun i -> M.[i, j])
 
-    let multiply A B =
-        let rowsA, colsA = height A, width A
-        let rowsB, colsB = height B, width B
-        let result = Array2D.create rowsA colsB 0.0f
-        Parallel.For(0, rowsA, (fun i->
-            for j = 0 to colsB - 1 do
-               for k = 0 to colsA - 1 do
-                  result.[i,j] <- result.[i,j] + A.[i,k] * B.[k,j]))  
-        |> ignore
-        result
-    
-    let transposeAndMultiply A B =
-        let rowsA, colsA = width A, height A
-        let rowsB, colsB = height B, width B
-        let result = Array2D.create rowsA colsB 0.0f
-        Parallel.For(0, rowsA, (fun i->
-            for j = 0 to colsB - 1 do
-               for k = 0 to colsA - 1 do
-                  result.[i,j] <- result.[i,j] + A.[k,i] * B.[k,j]))  
-        |> ignore
-        result
-
-    let multiplyByTranspose A B =
-        let rowsA, colsA = height A, width A
-        let rowsB, colsB = width B, height B
-        let result = Array2D.create rowsA colsB 0.0f
-        Parallel.For(0, rowsA, (fun i->
-            for j = 0 to colsB - 1 do
-               for k = 0 to colsA - 1 do
-                  result.[i,j] <- result.[i,j] + A.[i,k] * B.[j,k]))  
-        |> ignore
-        result
-
     let sigmoidFunction = FloatingPointFunction (fun (Domain x)  -> 1.0f / (1.0f + exp(-x)) |> Range)
     let sigmoidDerivative = FunctionValueForm (fun (Range s) -> s * (1.0f - s) |> Gradient)
     let sigmoidActivation = DifferentiableFunction (sigmoidFunction, sigmoidDerivative)
@@ -126,9 +93,6 @@ module Utils =
         let h = height M
         let w = width M
         [|0..w - 1|] |> Array.map (fun j -> Array.init h (fun i -> M.[i, j])) 
-
-    // Taken from http://www.cs.toronto.edu/~hinton/absps/guideTR.pdf, Section 8.
-    // The initial weights should have zero mean and 0.01 standard deviation.
 
     let multiplyVectorByScalar (lambda : float32) v =
         let n = Array.length v
