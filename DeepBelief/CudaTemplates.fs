@@ -41,6 +41,11 @@ module CudaTemplates =
     type InputBatch with
         member this.PadToMultiplesOf blockSize =
             match this with InputBatch inputBatch -> inputBatch.PadToMultiplesOf blockSize |> InputBatch
+        member this.WeightedLearningRate (parameters : RestrictedBoltzmannParameters) =
+            match parameters.LearningRate with LearningRate learningRate -> learningRate / (this.Size |> float32)
+
+    type Momentum with
+        member this.Value = match this with Momentum momentum -> momentum
 
     let coerceLp blockSize =
         let threads = dim3(blockSize)
@@ -204,9 +209,11 @@ module CudaTemplates =
                 let nRows = batches.Head.Size
                 let nCols = batches.Head.Dimension
                 let batches = batches |> List.map (fun inputBatch -> inputBatch.PadToMultiplesOf blockSize)
+                let learningRate = rbm.Parameters.LearningRate
+                let weightedLearningRate = batches.Head.WeightedLearningRate rbm.Parameters
                 let paddedBatchHeight = batches.Head.Size
                 let paddedBatchWidth = batches.Head.Dimension
-                let batches = batches |> List.map (fun (InputBatch inputBatch) -> inputBatch.ToRowMajorFormat)
+                let batches = batches |> List.map (fun (InputBatch inputBatch) -> inputBatch.ToRowMajorFormat) |> List.map (worker.Malloc)
                 let nHidden = rbm.NumberOfHiddenUnits
                 let nVisible = rbm.NumberOfVisibleUnits
                 
@@ -255,16 +262,12 @@ module CudaTemplates =
                 let rngGridSize = dim3(rngNumStreams / rngNumThreadsPerBlock)
                 let rngSharedMemorySize = XorShift7.Size * rngNumThreadsPerBlock
                 let rngLp = LaunchParam(rngGridSize, rngBlockSize, rngSharedMemorySize)
-
-                let learningRate = rbm.Parameters.LearningRate
-                let momentum = value rbm.Parameters.Momentum
-                let weightedLearningRate = value (learningRate / samples.Length)
                 use state0 = Utils.generateStartState 42u |> worker.Malloc
 
-                let numRuns = 3 * samples.Length
-                for i in 0..samples.Length - 1 do
+                let numRuns = 3 * batches.Length
+                for i in 0..batches.Length - 1 do
                     
-                    use v1 = samples.[i]
+                    use v1 = batches.[i]
 
                     // Perform the forward iteration to populate h1
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
@@ -274,13 +277,13 @@ module CudaTemplates =
 
                     // Perform the backward iteration to populate v2
                     transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
-                    rngKernel.Launch rngLp numRuns (i + samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimVisibleUnits / rngNumStreams) visibleRandoms.Ptr
+                    rngKernel.Launch rngLp numRuns (i + batches.Length) state0.Ptr jumpAheadMatrices.Ptr (dimVisibleUnits / rngNumStreams) visibleRandoms.Ptr
                     activateKernel.Launch activateVisibleLp v2.Ptr v2.Ptr visibleRandoms.Ptr
                     activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
 
                     // Perform the forward iteration to populate h2
                     multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
-                    rngKernel.Launch rngLp numRuns (i + 2 * samples.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
+                    rngKernel.Launch rngLp numRuns (i + 2 * batches.Length) state0.Ptr jumpAheadMatrices.Ptr (dimHiddenUnits / rngNumStreams) hiddenRandoms.Ptr
                     activateKernel.Launch activateHiddenLp h2.Ptr h2.Ptr hiddenRandoms.Ptr
                     activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr wHiddenUnitMatrix nRows
 
@@ -291,17 +294,17 @@ module CudaTemplates =
                     // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedLearningRate * (c1 - c2)
                     subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c1.Ptr c2.Ptr
                     scalarMultiplyMatrixKernel.Launch simpleWeightsLp c1.Ptr weightedLearningRate
-                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr momentum
+                    scalarMultiplyMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr rbm.Parameters.Momentum.Value
                     addMatrixKernel.Launch simpleWeightsLp dWeightsAndBiases.Ptr dWeightsAndBiases.Ptr c1.Ptr
 
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
                     addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr weightsAndBiases.Ptr dWeightsAndBiases.Ptr
 
-                let weightsAndBiases = weightsAndBiases.Gather() |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
+                let weightsAndBiases = weightsAndBiases.Gather() |> Matrix.FromRowMajorFormat wVisibleUnitMatrix
                 let wbg = dWeightsAndBiases.Gather()
                 let max = Array.maxBy (fun el -> Math.Abs(el |> float)) (Array.sub wbg 1 (wbg.Length - 1))
-                let dWeightsAndBiases = wbg |> Utils.rebuildMatrix wVisibleUnitMatrix (nHidden + 1) (nVisible + 1)
-                let result = DeepBeliefNet.toRbm rbm.Parameters weightsAndBiases dWeightsAndBiases
+                let dWeightsAndBiases = wbg |> Matrix.FromRowMajorFormat wVisibleUnitMatrix
+                let result = RestrictedBoltzmannMachine.FromWeightsAndBiases rbm.Parameters (weightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightsAndBiases) (dWeightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightChanges)
                 result
         ) }
 
