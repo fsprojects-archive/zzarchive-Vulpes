@@ -35,21 +35,8 @@ module Utils =
     let inline normpdf (mu:'T) (sigma:'T) : Expr<'T -> 'T> =
         <@ fun x -> exp(-(x - mu)*(x - mu)/(2G*sigma*sigma)) / (sigma*__sqrt2pi()) @>
 
-    let flattenMatrix M = 
-        let h = Array2D.length1 M
-        let w = Array2D.length2 M
-        Array.init (h*w) (fun i -> M.[i / w, i % w])
-
-    let flattenSamples samples =
-        samples |> Array.map flattenMatrix
-        |> Array.fold (fun acc element -> Array.concat [acc; element]) [| |]
-
     let rebuildMatrix wFull h w (Vector X) =
         Array2D.init h w (fun i j -> X.[i * wFull + j]) |> Matrix
-
-    let nextMultipleOf n i =
-        let r = i % n
-        if r = 0 then i else i + n - r
 
     let padToMultiplesOf n M =
         let h = Array2D.length1 M

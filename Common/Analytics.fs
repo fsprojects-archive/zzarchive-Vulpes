@@ -166,6 +166,8 @@ module Analytics =
             Array.init this.Height (fun i -> 1.0f) |> Vector |> this.PrependColumn 
         member this.PrependRowOfOnes =
             Array.init this.Width (fun j -> 1.0f) |> Vector |> this.PrependRow
+        member this.PrependRowOfZeroes =
+            Array.init this.Width (fun j -> 0.0f) |> Vector |> this.PrependRow
 
     type Error = Error of float32
     
@@ -236,6 +238,8 @@ module Analytics =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.MultiplyByTranspose batch |> BatchOutput
         member this.Backward (BatchOutput output) =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.TransposeAndMultiply output |> InputBatch
+        member this.PrependRowOfZeroes =
+            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.PrependRowOfZeroes
 
     type DifferentiableFunction with
         member this.GenerateHiddenUnits(Vector vector) =
