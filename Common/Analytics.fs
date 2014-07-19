@@ -205,6 +205,8 @@ module Analytics =
     type InputBatch = InputBatch of Matrix with
         member this.Size =
             match this with InputBatch matrix -> matrix.Height
+        member this.Dimension =
+            match this with InputBatch matrix -> matrix.Width
         member this.ActivateFirstColumn =
             match this with (InputBatch (Matrix h)) -> h.[0..,1..] |> Matrix |> fun m -> m.PrependRowOfOnes |> InputBatch
 

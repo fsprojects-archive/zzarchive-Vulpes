@@ -8,6 +8,7 @@ module CudaTemplates =
     open Kernels
     open DeepBeliefNet
     open Common.Analytics
+    open Common.NeuralNet
     open Utils
 
     type Matrix with
@@ -28,6 +29,18 @@ module CudaTemplates =
                     Array.init (h*w) (fun i -> matrix.[i / w, i % w])
         static member FromRowMajorFormat width (array : float32[]) = 
             Array2D.init (array.Length / width) width (fun i j -> array.[i * width + j]) |> Matrix
+
+    type WeightsAndBiases with
+        member this.PadToMultiplesOf blockSize =
+            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.PadToMultiplesOf blockSize
+
+    type WeightChanges with
+        member this.PadToMultiplesOf blockSize =
+            match this with WeightChanges weightChanges -> weightChanges.PadToMultiplesOf blockSize
+
+    type InputBatch with
+        member this.PadToMultiplesOf blockSize =
+            match this with InputBatch inputBatch -> inputBatch.PadToMultiplesOf blockSize |> InputBatch
 
     let coerceLp blockSize =
         let threads = dim3(blockSize)
@@ -186,25 +199,19 @@ module CudaTemplates =
             // calculations, to the device memory.
             let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
 
-            fun rand (rbm : RestrictedBoltzmannMachine) xInputs -> 
-                let nRows = Utils.height xInputs
-                let nCols = Utils.width xInputs
-                let xRand = Utils.permuteRows rand xInputs
-                let batchSize = value rbm.Parameters.BatchSize
-                let samples = 
-                    xRand |> Utils.batchesOf batchSize 
-                    |> Array.map (array2D >> Utils.prependColumnOfOnes >> Utils.padToMultiplesOf blockSize)
+            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) -> 
+                let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
+                let nRows = batches.Head.Size
+                let nCols = batches.Head.Dimension
+                let batches = batches |> List.map (fun inputBatch -> inputBatch.PadToMultiplesOf blockSize)
+                let paddedBatchHeight = batches.Head.Size
+                let paddedBatchWidth = batches.Head.Dimension
+                let batches = batches |> List.map (fun (InputBatch inputBatch) -> inputBatch.ToRowMajorFormat)
+                let nHidden = rbm.NumberOfHiddenUnits
+                let nVisible = rbm.NumberOfVisibleUnits
                 
-                let paddedSampleHeight = Utils.height samples.[0]
-                let paddedSampleWidth = Utils.width samples.[0]
-
-                let samples = samples |> Array.map (Utils.flattenMatrix >> worker.Malloc)
-
-                let nHidden = DeepBeliefNet.numberOfHiddenUnits rbm
-                let nVisible = DeepBeliefNet.numberOfVisibleUnits rbm
-                
-                let hVisibleUnitMatrix = paddedSampleHeight
-                let wVisibleUnitMatrix = paddedSampleWidth
+                let hVisibleUnitMatrix = paddedBatchHeight
+                let wVisibleUnitMatrix = paddedBatchWidth
 
                 let wHiddenUnitMatrix = hVisibleUnitMatrix
                 let hHiddenUnitMatrix = 1 + nHidden |> Utils.nextMultipleOf blockSize
@@ -212,12 +219,12 @@ module CudaTemplates =
                 let dimVisibleUnits = hVisibleUnitMatrix * wVisibleUnitMatrix
                 let dimHiddenUnits = hHiddenUnitMatrix * wHiddenUnitMatrix
 
-                let weightsAndBiases = DeepBeliefNet.toWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize 
-                let dWeightsAndBiases = DeepBeliefNet.toDWeightsAndBiases rbm |> Utils.padToMultiplesOf blockSize
-                let weightsAndBiasesWidth = Utils.width weightsAndBiases
-                let weightsAndBiasesHeight = Utils.height weightsAndBiases
-                let weightsAndBiases = weightsAndBiases|> Utils.flattenMatrix
-                let dWeightsAndBiases = dWeightsAndBiases |> Utils.flattenMatrix
+                let weightsAndBiases = rbm.ToWeightsAndBiases.PadToMultiplesOf blockSize 
+                let dWeightsAndBiases = rbm.ToWeightsAndBiasesChanges.PadToMultiplesOf blockSize
+                let weightsAndBiasesWidth = weightsAndBiases.Width
+                let weightsAndBiasesHeight = weightsAndBiases.Height
+                let weightsAndBiases = weightsAndBiases.ToRowMajorFormat
+                let dWeightsAndBiases = dWeightsAndBiases.ToRowMajorFormat
                 let dimWeightsAndBiases = Array.length weightsAndBiases
 
                 use weightsAndBiases = worker.Malloc weightsAndBiases
