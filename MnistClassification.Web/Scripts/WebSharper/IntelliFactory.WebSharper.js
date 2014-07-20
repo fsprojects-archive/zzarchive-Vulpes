@@ -1568,7 +1568,10 @@
      {
       return List.ofArray(Arrays.map2(function(func)
       {
-       return func;
+       return function(arg1)
+       {
+        return func(arg1);
+       };
       },Arrays.map2(f,Arrays.ofSeq(l1),Arrays.ofSeq(l2)),Arrays.ofSeq(l3)));
      },
      mapi:function(f,l)
@@ -2674,7 +2677,10 @@
      {
       return Seq.iteri(function()
       {
-       return p;
+       return function(x)
+       {
+        return p(x);
+       };
       },s);
      },
      iter2:function(p,s1,s2)

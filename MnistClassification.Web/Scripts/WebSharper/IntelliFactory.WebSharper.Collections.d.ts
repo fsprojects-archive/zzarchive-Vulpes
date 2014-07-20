@@ -15,7 +15,7 @@ declare module IntelliFactory {
                     AddFirst(value: _T1): __ABBREV.__LinkedList.NodeProxy<_T1>;
                     AddLast(value: _T1): __ABBREV.__LinkedList.NodeProxy<_T1>;
                     Clear(): void;
-                    Contains<_M1>(value: _M1): boolean;
+                    Contains(value: _T1): boolean;
                     Find(value: _T1): __ABBREV.__LinkedList.NodeProxy<_T1>;
                     FindLast(value: _T1): __ABBREV.__LinkedList.NodeProxy<_T1>;
                     GetEnumerator(): __ABBREV.__LinkedList.EnumeratorProxy<_T1>;

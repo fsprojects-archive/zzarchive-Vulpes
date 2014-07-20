@@ -719,7 +719,10 @@
       Of:function(f)
       {
        return Runtime.New(Observer1,{
-        onNext:f,
+        onNext:function(x)
+        {
+         return f(x);
+        },
         onError:function(x)
         {
          return Operators.Raise(x);

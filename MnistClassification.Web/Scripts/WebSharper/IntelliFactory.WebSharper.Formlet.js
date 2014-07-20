@@ -518,7 +518,10 @@
            Body:form.Body,
            Dispose1:form.Dispose1,
            Notify:form.Notify,
-           State:_this.Utils.Reactive.Select(form.State,f)
+           State:_this.Utils.Reactive.Select(form.State,function(x)
+           {
+            return f(x);
+           })
           });
          },
          LayoutInternal:_this.LayoutInternal,
@@ -898,7 +901,10 @@
        return Formlet2.Map(function(source)
        {
         return Seq.choose(chooser,source);
-       },Formlet2.FlipBody(Formlet2.SelectMany(Formlet2.Map(f,add))));
+       },Formlet2.FlipBody(Formlet2.SelectMany(Formlet2.Map(function(v)
+       {
+        return f(v);
+       },add))));
       },
       Padding:Runtime.Class({},{
        get_Default:function()
@@ -1499,9 +1505,13 @@
        {
         return _builder_.Bind(Formlet2.WithNotificationChannel(Formlet2.LiftResult(Formlet2.InitWithFailure(formlet))),Runtime.Tupled(function(_arg1)
         {
-         var res;
+         var res,notify;
          res=_arg1[0];
-         return _builder_.ReturnFrom((submReset(_arg1[1]))(res));
+         notify=_arg1[1];
+         return _builder_.ReturnFrom((submReset(function(arg00)
+         {
+          return notify(arg00);
+         }))(res));
         }));
        })));
       },
@@ -1588,11 +1598,21 @@
       },
       Bind:function(fl,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(fl,Data.BaseFormlet().Bind(fl,f)));
+       var arg10;
+       arg10=function(x)
+       {
+        return f(x);
+       };
+       return Data.OfIFormlet(Data.PropagateRenderFrom(fl,Data.BaseFormlet().Bind(fl,arg10)));
       },
       BindWith:function(compose,formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().BindWith(compose,formlet,f)));
+       var arg20;
+       arg20=function(x)
+       {
+        return f(x);
+       };
+       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().BindWith(compose,formlet,arg20)));
       },
       BuildForm:function(f)
       {
@@ -1756,7 +1776,12 @@
       },
       Replace:function(formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Replace(formlet,f)));
+       var arg10;
+       arg10=function(x)
+       {
+        return f(x);
+       };
+       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Replace(formlet,arg10)));
       },
       ReplaceFirstWithFailure:function(formlet)
       {
@@ -1839,19 +1864,27 @@
      FormletBuilder:Runtime.Class({
       Bind:function(formlet,f)
       {
-       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Bind(formlet,f)));
+       var arg10;
+       arg10=function(x)
+       {
+        return f(x);
+       };
+       return Data.OfIFormlet(Data.PropagateRenderFrom(formlet,Data.BaseFormlet().Bind(formlet,arg10)));
       },
       Delay:function(f)
       {
-       return Data.OfIFormlet(Data.BaseFormlet().Delay(f));
+       return Data.OfIFormlet(Data.BaseFormlet().Delay(function(x)
+       {
+        return f(x);
+       }));
       },
       Return:function(x)
       {
        return Data.OfIFormlet(Data.BaseFormlet().Return(x));
       },
-      ReturnFrom:function(formlet)
+      ReturnFrom:function(f)
       {
-       return Data.OfIFormlet(formlet);
+       return Data.OfIFormlet(f);
       }
      },{
       New:function()
