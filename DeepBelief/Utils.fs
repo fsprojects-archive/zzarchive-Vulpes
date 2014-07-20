@@ -38,20 +38,6 @@ module Utils =
     let rebuildMatrix wFull h w (Vector X) =
         Array2D.init h w (fun i j -> X.[i * wFull + j]) |> Matrix
 
-    let padToMultiplesOf n M =
-        let h = Array2D.length1 M
-        let w = Array2D.length2 M
-        let paddedHeight = nextMultipleOf n h
-        let paddedWidth = nextMultipleOf n w
-        Array2D.init paddedHeight paddedWidth 
-            (fun i j -> if i < h && j < w then M.[i, j] else 0.0f)
-
-    let padToMultipleOf n x =
-        let size = Array.length x
-        let paddedSize = nextMultipleOf n size
-        Array.init paddedSize 
-            (fun i -> if i < size then x.[i] else 0.0f)
-
     let topLeftSubmatrix h w (M : float32[,]) =
         Array2D.init h w (fun i j -> M.[i, j])
 
@@ -109,7 +95,3 @@ module Utils =
 
     let proportionOfVisibleUnits v =
         v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
-
-    let disposeAll ([<ParamArray>] arr : 'a list array when 'a :> IDisposable) =
-        for items in arr do
-            for item in items do item.Dispose()

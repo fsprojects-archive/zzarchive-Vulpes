@@ -7,9 +7,34 @@ module CudaTemplates =
     open Alea.CUDA
     open Common
     open Common.Analytics
-    open Common.Kernels
     open Common.CudaTemplates
+    open Common.Kernels
+    open Common.Utils
     open NeuralNet
+
+    let padToMultipleOf n (signals : Signal[]) =
+        let value (Signal signal) = signal
+        let size = Array.length signals
+        let paddedSize = nextMultipleOf n size
+        Array.init paddedSize 
+            (fun i -> if i < size then value signals.[i] else 0.0f)
+
+    type Input with
+        member this.PrependForBias =
+            match this with Input input -> Signal 1.0f :: List.ofArray input |> Array.ofList |> Input
+        member this.PadToMultipleOf n =
+            match this with Input input -> padToMultipleOf n input
+        member this.Dimension =
+            match this with Input input -> input.Length
+
+    type Target with
+        member this.PrependForBias =
+            match this with Target target -> Signal 1.0f :: List.ofArray target |> Array.ofList |> Target
+        member this.PadToMultipleOf n =
+            match this with Target target -> padToMultipleOf n target
+
+    type WeightsAndBiases with
+        member this.Height = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Height
 
     let runTrainNeuralNetEpochTemplate (parameters : BackPropagationParameters) (blockSize : int) = cuda {
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
@@ -36,7 +61,7 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (network : BackPropagationNetwork) (NeuralNet.TrainingSet trainingSet) (rnd : Random) -> 
+            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) (TestSet testSet) (rnd : Random) -> 
                 let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
 
                 let paddedWeights = Ws |> List.map (fun (weightsAndBiases : WeightsAndBiases) -> weightsAndBiases.PrependRowOfZeroes.PadToMultiplesOf blockSize)
@@ -65,56 +90,56 @@ module CudaTemplates =
                 let momentum = match parameters.Momentum with Momentum m -> m
                 for i in 0..(trainingSet.Length * epochs) - 1 do
                     let index = rnd.Next trainingSet.Length
-                    inputs0.Scatter(trainingSet.[index].Input |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
+                    inputs0.Scatter(trainingSet.[index].Input.PrependForBias.PadToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         coerceKernel.Launch (coerceLp 1) lastOutput.Ptr 0 0 1.0f
-                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr paddedWeights.[j].Height paddedWeights.[j].Width
                         coerceKernel.Launch (coerceLp 1) dOutputs.[j].Ptr 0 0 0.0f
 
-                        let minIndex = 1 + Utils.height Ws.[j]
-                        let maxIndex = Utils.height paddedWeights.[j]
+                        let minIndex = 1 + Ws.[j].Height
+                        let maxIndex = paddedWeights.[j].Height
 
                         coerceKernel.Launch (coerceLp maxIndex) outputs.[j].Ptr minIndex maxIndex 0.0f
                         coerceKernel.Launch (coerceLp maxIndex) dOutputs.[j].Ptr minIndex maxIndex 0.0f
 
                     coerceKernel.Launch (coerceLp 1) outputs.[N].Ptr 0 0 1.0f
 
-                    errorSignals.[N].Scatter (snd trainingSet.[index] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
+                    errorSignals.[N].Scatter (trainingSet.[index].Target.PrependForBias.PadToMultipleOf blockSize)
                     subtractVectorKernel.Launch outputLp.[N] errorSignals.[N].Ptr errorSignals.[N].Ptr outputs.[N].Ptr
 
                     for j in N..(-1)..0 do
                         if j < N then 
-                            multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignals.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr (Utils.height paddedWeights.[j + 1]) (Utils.width paddedWeights.[j + 1])
+                            multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignals.[j].Ptr weights.[j + 1].Ptr errorSignals.[j + 1].Ptr paddedWeights.[j + 1].Height paddedWeights.[j + 1].Width
 
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr errorSignals.[j].Ptr
-                        outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr (Utils.width paddedWeights.[j])
+                        outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr paddedWeights.[j].Width
 
                     for j in N..(-1)..0 do
-                        let wW = Utils.width paddedWeights.[j]
+                        let wW = paddedWeights.[j].Width
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] grads.[j].Ptr learningRate
                         scalarMultiplyMatrixKernel.Launch simpleMatrixLp.[j] prevDWeights.[j].Ptr momentum
                         addMatrixKernel.Launch offsetMatrixLp.[j] (prevDWeights.[j].Ptr + wW) (prevDWeights.[j].Ptr + wW) (grads.[j].Ptr + wW)
                         addMatrixKernel.Launch offsetMatrixLp.[j] (weights.[j].Ptr + wW) (weights.[j].Ptr + wW) (prevDWeights.[j].Ptr + wW)
 
                 let mutable testOutputs = [||]
-                for i in 0..Array.length testSet - 1 do
-                    inputs0.Scatter(fst testSet.[i] |> Utils.prependForBias |> Utils.padToMultipleOf blockSize)
+                for i in 0..testSet.Length - 1 do
+                    inputs0.Scatter(testSet.[i].PrependForBias.PadToMultipleOf blockSize)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         coerceKernel.Launch (coerceLp 1) lastOutput.Ptr 0 0 1.0f
-                        multiplyVectorByMatrixAndTransformKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (Utils.height paddedWeights.[j]) (Utils.width paddedWeights.[j])
+                        multiplyVectorByMatrixAndTransformKernel.Launch forwardLp.[j] outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr paddedWeights.[j].Height paddedWeights.[j].Width
 
-                        let minIndex = 1 + Utils.height Ws.[j]
-                        let maxIndex = Utils.height paddedWeights.[j]
+                        let minIndex = 1 + Ws.[j].Height
+                        let maxIndex = paddedWeights.[j].Height
                         coerceKernel.Launch (coerceLp maxIndex) outputs.[j].Ptr minIndex maxIndex 0.0f
 
                     let finalOutput = outputs.[N].Gather()
-                    testOutputs <- Array.append testOutputs [|(Array.sub finalOutput 1 (Array.length (snd testSet.[i])))|]
+                    testOutputs <- Array.append testOutputs [|(Array.sub finalOutput 1 testSet.[i].Dimension)|]
 
-                Utils.disposeAll [|outputs; weights; prevDWeights; grads; dOutputs; errorSignals|]
+                disposeAll [|outputs; weights; prevDWeights; grads; dOutputs; errorSignals|]
                 testOutputs
         ) }
 
