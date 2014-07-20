@@ -50,6 +50,7 @@
     <Compile Include="Parameters.fs" />
     <Compile Include="SupervisedLearning.fs" />
     <Compile Include="CudaTemplates.fs" />
+    <Compile Include="CudaSupervisedLearning.fs" />
     <None Include="Script.fsx" />
     <None Include="packages.config" />
   </ItemGroup>

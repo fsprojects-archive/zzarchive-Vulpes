@@ -159,7 +159,7 @@ module DeepBeliefNet =
                 (visibleError, hiddenError),
                 RestrictedBoltzmannMachine.FromWeightsAndBiases rbm.Parameters weightsAndBiases changes
             )
-        member rbm.RunEpoch (rnd : Random) (inputs : LayerInputs) =
+        member rbm.RunEpochCpu (rnd : Random) (inputs : LayerInputs) =
             let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
             let results = batches |> List.fold(fun acc batch ->
                 let result = acc |> snd |> fun (machine : RestrictedBoltzmannMachine) -> machine.UpdateWeights rnd batch
@@ -167,16 +167,16 @@ module DeepBeliefNet =
                 let cumulativeErrors = fst acc
                 ((fst cumulativeErrors + fst resultErrors, snd cumulativeErrors + snd resultErrors), snd result)) ((0.0f, 0.0f), rbm)
             snd results
-        member rbm.NextLayerUp rnd (inputs : LayerInputs) =
+        member rbm.NextLayerUpCpu rnd (inputs : LayerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
                 let output = output.Submatrix 1 0 (output.Height - 1) output.Width
                 [0..width - 1] |> List.map (fun j -> output.Column j |> Input.FromVector) |> LayerInputs
             let batch = (inputs.GetRandomisedInputBatches rnd (BatchSize 1)).Head
             (rbm.ToWeightsAndBiases.Forward batch.ActivateFirstColumn).Activate rnd sigmoidFunction |> toLayerInput
-        member rbm.TrainLayer rnd (inputs : LayerInputs) =
+        member rbm.TrainLayerCpu rnd (inputs : LayerInputs) =
             let runEpochs (Epochs epochs) =
-                [1..epochs] |> List.fold(fun (acc : RestrictedBoltzmannMachine) i -> acc.RunEpoch rnd inputs) rbm
+                [1..epochs] |> List.fold(fun (acc : RestrictedBoltzmannMachine) i -> acc.RunEpochCpu rnd inputs) rbm
             runEpochs rbm.Parameters.Epochs
 
     type TrainingSet with 
@@ -184,17 +184,17 @@ module DeepBeliefNet =
             match this with TrainingSet examples -> examples |> List.map (fun example -> example.Input) |> LayerInputs
 
     type DeepBeliefNetwork with
-        member dbn.Train rnd (TrainingSet trainingSet) =
+        member dbn.TrainCpu rnd (TrainingSet trainingSet) =
             let firstLayerInputs = trainingSet |> List.map (fun example -> example.Input) |> LayerInputs
-            let start = dbn.Machines.Head.TrainLayer rnd firstLayerInputs
+            let start = dbn.Machines.Head.TrainLayerCpu rnd firstLayerInputs
             {
                 Parameters = dbn.Parameters;
                 Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
                     let currentTuple = List.head acc
                     let rbm : RestrictedBoltzmannMachine = fst currentTuple
                     let layerInputs = snd currentTuple
-                    let nextLayerUp = rbm.NextLayerUp rnd layerInputs
-                    let nextRbm = element.TrainLayer rnd nextLayerUp
+                    let nextLayerUp = rbm.NextLayerUpCpu rnd layerInputs
+                    let nextRbm = element.TrainLayerCpu rnd nextLayerUp
                     (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInputs)]
                     |> List.map fst |> List.rev 
             }

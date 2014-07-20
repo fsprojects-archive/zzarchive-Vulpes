@@ -25,7 +25,7 @@ module SupervisedLearning =
             network.Layers 
             |> List.fold (fun signals layer -> readLayer signals layer) input
             |> NeuralNet.Output
-        member network.Train (NeuralNet.TrainingSet trainingSet) (rnd : Random) =
+        member network.TrainCpu (NeuralNet.TrainingSet trainingSet) (rnd : Random) =
             let gradients (LayerOutputs layerOutputs) (input : VisibleUnits) target =
                 let computeErrorSignals =
                     let topLevel = ErrorSignalsAndHiddenUnits (layerOutputs.Head .* (target - layerOutputs.Head), layerOutputs.Head)

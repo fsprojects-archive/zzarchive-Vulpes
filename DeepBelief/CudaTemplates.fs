@@ -124,10 +124,6 @@ module CudaTemplates =
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
-            // Copy pre-calculated bit-matrices, needed for jump-ahead
-            // calculations, to the device memory.
-            let jumpAheadMatrices = worker.Malloc(Data.jumpAheadMatrices)
-
             fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) -> 
                 let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
                 let nRows = batches.Head.Size

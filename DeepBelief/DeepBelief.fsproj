@@ -57,13 +57,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Script.fsx" />
-    <Compile Include="Data.fs" />
     <Compile Include="Utils.fs" />
     <Compile Include="Kernels.fs" />
     <Compile Include="DeepBeliefNet.fs" />
     <Compile Include="CudaTemplates.fs" />
     <Compile Include="CudaDeepBeliefNet.fs" />
-    <Compile Include="CudaNeuralNet.fs" />
     <Compile Include="ImageClassification.fs" />
     <None Include="Regression.fsx" />
     <None Include="DeepBeliefNet.fsx" />
