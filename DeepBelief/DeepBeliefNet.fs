@@ -86,17 +86,17 @@ module DeepBeliefNet =
             }            
 
     type DeepBeliefNetwork with
-        member this.ToBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) (deepBeliefNetwork : DeepBeliefNetwork) =
+        member this.ToBackPropagationNetwork (backPropagationParameters : BackPropagationParameters) =
             let layers = this.Machines |> List.map (fun rbm -> { Weights = WeightsAndBiases.FromRbm rbm; Activation = sigmoidActivation }) 
             { Parameters = backPropagationParameters; Layers = layers }
-        static member Initialise (deepBeliefParameters : DeepBeliefParameters) xInputs =
+        static member Initialise (deepBeliefParameters : DeepBeliefParameters) (TrainingSet trainingSet) =
             let toMachines (LayerSizes layers) =
                 layers |> List.fold(fun acc element -> 
                     let nVisible = fst acc
                     let nHidden = element
                     let rbmParams = deepBeliefParameters.ToRbmParameters
                     (element, (RestrictedBoltzmannMachine.Initialise rbmParams nVisible nHidden) :: snd acc))
-                    (width xInputs, []) |> snd |> List.rev 
+                    (trainingSet.Head.TrainingInput.Size, []) |> snd |> List.rev 
             { 
                 Parameters = deepBeliefParameters;
                 Machines = deepBeliefParameters.Layers |> toMachines
@@ -181,11 +181,11 @@ module DeepBeliefNet =
 
     type TrainingSet with 
         member this.ToFirstLayerInput = 
-            match this with TrainingSet examples -> examples |> List.map (fun example -> example.Input) |> LayerInputs
+            match this with TrainingSet examples -> examples |> List.map (fun example -> example.TrainingInput) |> LayerInputs
 
     type DeepBeliefNetwork with
         member dbn.TrainCpu rnd (TrainingSet trainingSet) =
-            let firstLayerInputs = trainingSet |> List.map (fun example -> example.Input) |> LayerInputs
+            let firstLayerInputs = trainingSet |> List.map (fun example -> example.TrainingInput) |> LayerInputs
             let start = dbn.Machines.Head.TrainLayerCpu rnd firstLayerInputs
             {
                 Parameters = dbn.Parameters;

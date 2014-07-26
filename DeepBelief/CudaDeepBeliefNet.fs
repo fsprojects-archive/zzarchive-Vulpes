@@ -34,7 +34,7 @@ module CudaDeepBeliefNet =
 
     type DeepBeliefNetwork with
         member dbn.TrainGpu rnd (TrainingSet trainingSet) =
-            let firstLayerInputs = trainingSet |> List.map (fun example -> example.Input) |> LayerInputs
+            let firstLayerInputs = trainingSet |> List.map (fun example -> example.TrainingInput) |> LayerInputs
             let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInputs
             {
                 Parameters = dbn.Parameters;

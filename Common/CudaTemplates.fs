@@ -16,12 +16,6 @@ module CudaTemplates =
                     let paddedWidth = nextMultipleOf n w
                     Array2D.init paddedHeight paddedWidth 
                         (fun i j -> if i < h && j < w then matrix.[i, j] else 0.0f) |> Matrix
-        member this.ToRowMajorFormat =
-            match this with
-                Matrix matrix ->
-                    let h = this.Height
-                    let w = this.Width
-                    Array.init (h*w) (fun i -> matrix.[i / w, i % w])
         static member FromRowMajorFormat width (array : float32[]) = 
             Array2D.init (array.Length / width) width (fun i j -> array.[i * width + j]) |> Matrix
 

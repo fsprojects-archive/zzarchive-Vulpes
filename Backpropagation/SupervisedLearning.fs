@@ -1,4 +1,4 @@
-﻿namespace Backproagation
+﻿namespace Backpropagation
 
 module SupervisedLearning =
 
@@ -19,13 +19,16 @@ module SupervisedLearning =
         member this.HiddenUnits = match this with ErrorSignalsAndHiddenUnits (errorSignals, hiddenUnits) -> hiddenUnits
 
     type BackPropagationNetwork with
-        member network.Read (NeuralNet.Input input) =
+        member network.ReadTestSetCpu (NeuralNet.TestSet testSet) =
             let readLayer (signals : NeuralNet.Signal[]) layer =
                 (layer.Weights * signals |> layer.Activation.GenerateSignals)
-            network.Layers 
-            |> List.fold (fun signals layer -> readLayer signals layer) input
-            |> NeuralNet.Output
-        member network.TrainCpu (NeuralNet.TrainingSet trainingSet) (rnd : Random) =
+            testSet |> List.map (fun (testCase : NeuralNet.TestCase) ->
+                let input = match testCase.TestInput with NeuralNet.Input testInput -> testInput
+                network.Layers 
+                |> List.fold (fun signals layer -> readLayer signals layer) input
+                |> NeuralNet.Output)
+            |> NeuralNet.TestOutput
+        member network.TrainCpu (rnd : Random) (NeuralNet.TrainingSet trainingSet) =
             let gradients (LayerOutputs layerOutputs) (input : VisibleUnits) target =
                 let computeErrorSignals =
                     let topLevel = ErrorSignalsAndHiddenUnits (layerOutputs.Head .* (target - layerOutputs.Head), layerOutputs.Head)
@@ -68,7 +71,7 @@ module SupervisedLearning =
                 match i < n with
                 | true -> 
                     let trainingExample = trainingSet.[rnd.Next n]
-                    loop previousWeightChanges (updateWeights trainingExample.VisibleUnits trainingExample.Target previousWeightChanges) (i + 1)
+                    loop previousWeightChanges (updateWeights trainingExample.VisibleUnits trainingExample.TrainingTarget previousWeightChanges) (i + 1)
                 | _ -> network
 
             loop initialWeightChanges network 0

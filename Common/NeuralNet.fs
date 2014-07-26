@@ -25,12 +25,17 @@ module NeuralNet =
 
     and LayerInputs = LayerInputs of Input list
 
-    and TrainingExample = { Input : Input; Target : Target } 
+    and TrainingExample = { TrainingInput : Input; TrainingTarget : Target } 
 
     and TrainingSet = TrainingSet of TrainingExample list
+
+    and TestCase = { TestInput : Input; TestTarget : Target }
+
+    and TestSet = TestSet of TestCase list with
+        member this.Targets = match this with TestSet testSet -> testSet |> List.map (fun testCase -> testCase.TestTarget)
 
     and Epochs = Epochs of int with
         member this.NumberOfSteps (TrainingSet trainingSet) = match this with Epochs epochs -> epochs * trainingSet.Length
 
-    and TestSet = TestSet of Input list
+    and TestOutput = TestOutput of Output list
 

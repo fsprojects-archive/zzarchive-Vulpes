@@ -141,6 +141,12 @@ module Analytics =
                               result.[i,j] <- result.[i,j] + A.[k,i] * B.[k,j]))  
                     |> ignore
                     result |> Matrix
+        member this.ToRowMajorFormat =
+            match this with
+                Matrix matrix ->
+                    let h = this.Height
+                    let w = this.Width
+                    Array.init (h*w) (fun i -> matrix.[i / w, i % w])
 
     type Vector with
         static member (*) (Vector v1, Vector v2) =
@@ -182,7 +188,7 @@ module Analytics =
     type VisibleUnits = VisibleUnits of VisibleUnit[]
 
     type TrainingExample with
-        member trainingExample.VisibleUnits = trainingExample.Input |> fun (Input input) -> input |> Array.map (fun (Signal signal) -> VisibleUnit signal) |> VisibleUnits
+        member trainingExample.VisibleUnits = trainingExample.TrainingInput |> fun (Input input) -> input |> Array.map (fun (Signal signal) -> VisibleUnit signal) |> VisibleUnits
 
     type HiddenUnit = HiddenUnit of (float32 * float32) with
         static member (-) (Signal signal, HiddenUnit hiddenUnit) = signal - fst hiddenUnit
