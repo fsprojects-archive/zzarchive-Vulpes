@@ -665,7 +665,7 @@
      ElementStore:Runtime.Class({
       Init:function()
       {
-       this.store=Dictionary.New21();
+       this.store=Dictionary.New2();
        return;
       },
       RegisterElement:function(key,f)

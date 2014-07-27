@@ -819,7 +819,7 @@
      {
       var cs1;
       cs1=Arrays.ofSeq(cs);
-      return{
+      return IntrinsicFunctionProxy.GetLength(cs1)===0?Concurrency.Return([]):{
        $:0,
        $0:function(k)
        {
@@ -1303,6 +1303,20 @@
        if($iter(k))
         break;
       }
+     },
+     GetFieldNames:function($o)
+     {
+      var $0=this,$this=this;
+      var r=[];
+      for(var k in $o)r.push(k);
+      return r;
+     },
+     GetFieldValues:function($o)
+     {
+      var $0=this,$this=this;
+      var r=[];
+      for(var k in $o)r.push($o[k]);
+      return r;
      },
      GetFields:function($o)
      {

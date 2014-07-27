@@ -131,7 +131,7 @@
       return Observable.New(function(o)
       {
        var dict,index;
-       dict=Dictionary.New21();
+       dict=Dictionary.New2();
        index={
         contents:0
        };

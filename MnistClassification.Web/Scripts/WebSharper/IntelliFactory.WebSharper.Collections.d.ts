@@ -1,6 +1,33 @@
 declare module IntelliFactory {
     module WebSharper {
         module Collections {
+            module HashSet {
+                interface HashSet<_T1> {
+                    Add(item: _T1): boolean;
+                    Clear(): void;
+                    Contains(item: _T1): boolean;
+                    CopyTo(arr: _T1[]): void;
+                    ExceptWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
+                    GetEnumerator(): __ABBREV.__WebSharper.IEnumeratorProxy<_T1>;
+                    IntersectWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
+                    IsProperSubsetOf(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    IsProperSupersetOf(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    IsSubsetOf(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    IsSupersetOf(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    Overlaps(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    Remove(item: _T1): boolean;
+                    RemoveWhere(cond: {
+                        (x: _T1): boolean;
+                    }): void;
+                    SetEquals(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
+                    SymmetricExceptWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
+                    UnionWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
+                    arrContains(item: _T1, arr: _T1[]): boolean;
+                    arrRemove(item: _T1, arr: _T1[]): boolean;
+                    add(item: _T1): boolean;
+                    get_Count(): number;
+                }
+            }
             module LinkedList {
                 interface NodeProxy<_T1> {
                 }
@@ -216,8 +243,8 @@ declare module IntelliFactory {
 }
 declare module __ABBREV {
     
-    export import __LinkedList = IntelliFactory.WebSharper.Collections.LinkedList;
     export import __WebSharper = IntelliFactory.WebSharper;
+    export import __LinkedList = IntelliFactory.WebSharper.Collections.LinkedList;
     export import __ResizeArray = IntelliFactory.WebSharper.Collections.ResizeArray;
     export import __Collections = IntelliFactory.WebSharper.Collections;
 }

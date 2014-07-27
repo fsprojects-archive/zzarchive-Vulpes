@@ -1265,6 +1265,8 @@ declare module IntelliFactory {
         }
         interface DoubleProxy {
         }
+        interface EnumProxy {
+        }
         interface ExceptionProxy {
         }
         interface MatchFailureExceptionProxy {
