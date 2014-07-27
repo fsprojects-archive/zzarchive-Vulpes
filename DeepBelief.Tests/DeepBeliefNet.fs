@@ -2,6 +2,8 @@
 
 open Xunit
 open FsUnit.Xunit
+open Common.Analytics
+open Common.NeuralNet
 open DeepBelief
 open DeepBeliefNet
 open System
@@ -22,7 +24,7 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
 
     let rand = new Random()
     let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let layeredDbn = initDbn dbnParameters xInputs
+    let layeredDbn = DeepBeliefNetwork.Initialise dbnParameters xInputs
 
     let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
     let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
@@ -97,18 +99,18 @@ type ``Given a single RBM``()=
             BatchSize = BatchSize 10
             Epochs = Epochs 50
         }
-    let rbm = initRbm rbmParameters 784 500 |> fun rbm ->
+    let rbm = RestrictedBoltzmannMachine.Initialise rbmParameters 784 500 |> fun rbm ->
         {
             Parameters = rbmParameters
             Weights = rbm.Weights
-            DWeights = Array2D.init 500 784 (fun _ _ -> rand.NextDouble() |> float32)
-            HiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32)
-            DHiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32)
-            VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
-            DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32)
+            DWeights = Array2D.init 500 784 (fun _ _ -> rand.NextDouble() |> float32) |> Matrix
+            HiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32) |> Vector
+            DHiddenBiases = Array.init 500 (fun _ -> rand.NextDouble() |> float32) |> Vector
+            VisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32) |> Vector
+            DVisibleBiases = Array.init 784 (fun _ -> rand.NextDouble() |> float32) |> Vector
         }
-    let weightsAndBiases = toWeightsAndBiases rbm
-    let dWeightsAndBiases = toDWeightsAndBiases rbm
+    let weightsAndBiases = rbm.ToWeightsAndBiases
+    let dWeightsAndBiases = rbm.ToWeightsAndBiasesChanges
     let batch = Array2D.init 10 784 (fun i j -> (i - 5) * (j - 392) |> float32)
 
     [<Fact>] member test.
