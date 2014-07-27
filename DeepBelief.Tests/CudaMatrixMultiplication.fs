@@ -248,7 +248,7 @@ type ``CUDA Matrix Multiplication``()=
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
                 kernel.Launch lp y2.Ptr y1.Ptr A.Ptr x.Ptr hA wA
 
-                (y1.Gather() |> subvector size, y2.Gather() |> subvector size)
+                (y1.Gather() |> subvector size |> Vector, y2.Gather() |> subvector size |> Vector)
             ) }
 
     let multiplyVectorByMatrixAndTransformTemplate (transformation : TransformationFunction) (blockSize:int) = cuda {
@@ -274,7 +274,7 @@ type ``CUDA Matrix Multiplication``()=
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
                 kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
 
-                y.Gather() |> subvector size
+                y.Gather() |> subvector size |> Vector
             ) }
             
     let multiplyVectorByTransposeOfMatrixTemplate (blockSize:int) = cuda {
@@ -614,7 +614,7 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByMatrixAndTransformBlock1Program = i |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
         multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
-        |> arraysMatch ((lrm * lrv) |> Array.map sigmoid)
+        |> vectorsMatch ((lrm * lrv).Map sigmoid)
         |> should equal true
 
     [<Theory>]
@@ -624,5 +624,5 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByMatrixAndTransformTwiceProgram = i |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default in
         multiplyVectorByMatrixAndTransformTwiceProgram.Run lrm lrv 
-        |> fun result -> (fst result |> arraysMatch ((lrm * lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
+        |> fun result -> (fst result |> vectorsMatch ((lrm * lrv).Map sigmoid), snd result |> vectorsMatch ((lrm * lrv).Map (fun x -> dSigmoid (sigmoid x) 0.0f)))
         |> should equal (true, true)

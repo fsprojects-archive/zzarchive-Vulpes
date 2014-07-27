@@ -39,6 +39,8 @@ module Analytics =
     type [<ReflectedDefinition>] Vector = Vector of float32[] with
         static member (-) (Vector lhs, Vector rhs) =
             Array.map2 (-) lhs rhs |> Vector
+        member this.Map f = 
+            match this with Vector vector -> Array.init vector.Length (fun i -> f vector.[i]) |> Vector
         member vector.Prepend value =
             match vector with Vector array -> value :: List.ofArray array |> Array.ofList |> Vector
         member vector.PrependForBias =
@@ -66,7 +68,7 @@ module Analytics =
             Array2D.init h w (fun i j -> lhs.[i, j] + rhs.[i, j])
             |> Matrix
         member this.Map f = 
-            match this with Matrix matrix -> Array2D.init (height matrix) (width matrix) (fun i j -> f matrix.[i, j])
+            match this with Matrix matrix -> Array2D.init (height matrix) (width matrix) (fun i j -> f matrix.[i, j]) |> Matrix
         member this.Height = match this with Matrix matrix -> height matrix
         member this.Width = match this with Matrix matrix -> width matrix
         member this.Value i j = match this with Matrix matrix -> matrix.[i, j]

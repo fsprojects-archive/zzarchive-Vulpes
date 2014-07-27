@@ -111,7 +111,7 @@ module DeepBeliefNet =
 
     type InputBatch with
         member this.Activate (rnd : Random) activation =
-            match this with InputBatch matrix -> matrix.Map (activate rnd sigmoidFunction) |> Matrix |> InputBatch
+            match this with InputBatch matrix -> matrix.Map (activate rnd sigmoidFunction) |> InputBatch
         static member FromTrainingExamples (examples : Input list) =
             let h = examples.Length
             let w = examples.Head.Size
@@ -122,7 +122,7 @@ module DeepBeliefNet =
 
     type BatchOutput with
         member this.Activate (rnd : Random) (FloatingPointFunction activation) =
-            match this with BatchOutput matrix -> matrix.Map (activate rnd sigmoidFunction) |> Matrix |> BatchOutput
+            match this with BatchOutput matrix -> matrix.Map (activate rnd sigmoidFunction) |> BatchOutput
         static member Error (BatchOutput lhs) (BatchOutput rhs) =
             (lhs - rhs).SumOfSquares / (float32 lhs.Width)
     
