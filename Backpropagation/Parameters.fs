@@ -2,8 +2,21 @@
 
 module Parameters =
 
-    type InputSignal = InputSignal of float32[]
+    open Common.NeuralNet
+    open Common.Analytics
 
-    type OutputLabel = OutputLabel of float32[]
+    type BackPropagationLayer = {
+        Weights : WeightsAndBiases
+        Activation : DifferentiableFunction
+    }
 
-    type TrainingData = TrainingData of (InputSignal * OutputLabel)[]
+    type BackPropagationParameters = {
+        LearningRate : ScaledLearningRate
+        Momentum : Momentum
+        Epochs : Epochs
+    }
+
+    type BackPropagationNetwork = {
+        Parameters : BackPropagationParameters
+        Layers : BackPropagationLayer list
+    }

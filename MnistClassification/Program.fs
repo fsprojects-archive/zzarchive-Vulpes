@@ -3,15 +3,14 @@
 module Main =
 
     open System
+    open Backpropagation.CudaSupervisedLearning
+    open Backpropagation.Parameters
+    open Common.NeuralNet
     open DeepBelief
     open DeepBeliefNet
     open CudaDeepBeliefNet
-    open CudaNeuralNet
-    open NeuralNet
-    open DbnClassification
     open ImageClassification
     open MnistDataLoad
-    open Utils
 
     // Pretraining parameters
     let dbnParameters = 
@@ -26,7 +25,7 @@ module Main =
     // Fine tuning parameters
     let backPropagationParameters =
         {
-            LearningRate = LearningRate 0.8f
+            BackPropagationParameters.LearningRate = ScaledLearningRate 0.8f
             Momentum = Momentum 0.25f
             Epochs = Epochs 10
         }
@@ -37,28 +36,42 @@ module Main =
         let mnistTrainingData = loadMnistDataSet TrainingData
         let mnistTestData = loadMnistDataSet TestData
 
-        let rand = new Random()
+        let rnd = new Random()
 
-        let trainedMnistDbn = trainMnistDbn rand dbnParameters mnistTrainingData
+        let trainingSet = mnistTrainingData.ToTrainingSet
+        let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
+        let trainedDbn = dbn.TrainGpu rnd trainingSet
 
-        let backPropagationNetwork = toBackPropagationNetwork backPropagationParameters trainedMnistDbn
-        let backPropagationResults = gpuComputeNnetResults backPropagationNetwork (toBackPropagationInput mnistTrainingData) (toBackPropagationInput mnistTestData) rand backPropagationParameters
+        let backPropagationNetwork = trainedDbn.ToBackPropagationNetwork backPropagationParameters
+        let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet
+        let backPropagationResults = trainedBackPropagationNetwork.ReadTestSetGpu mnistTestData.ToTestSet
         
-        let intResults = backPropagationResults |> Array.map (fun r -> 
-            let m = Array.max r
-            r |> Array.map (fun e -> if e = m then 1.0f else 0.0f))
+        let floatingPointOutput (TestOutput testOutput) =
+            testOutput |> List.map (fun (Output output) -> 
+                let outputValues = output |> Array.map (fun (Signal value) -> value)
+                outputValues |> Array.map Signal |> Output)
 
-        let targets = (toBackPropagationInput mnistTestData) |> Array.map (fun x -> snd x)
+        let intOutput (TestOutput testOutput) = 
+            testOutput |> List.map (fun (Output output) -> 
+                let outputValues = output |> Array.map (fun (Signal value) -> value)
+                let m = Array.max outputValues
+                outputValues |> Array.map (fun e -> (if e = m then 1.0f else 0.0f) |> Signal) |> Output)
+
+        let sumOfSquares v = v |> Array.map (fun element -> element * element) |> Array.sum
+        let error (Target target) (Output output) =
+            (Array.zip target output |> Array.map (fun (Signal t, Signal o) -> t - o) |> sumOfSquares) / 2.0f
+
+        let targets = match mnistTestData.ToTestSet with TestSet testSet -> testSet |> List.map (fun testCase -> testCase.TestTarget)
+
+        let addError E (x, t) = 
+            let En = error x t
+            E + En
         let fpTestError = 
-            Array.zip targets backPropagationResults
-            |> Array.fold (fun E (x, t) -> 
-                let En = error t x
-                E + En) 0.0f
+            List.zip targets (floatingPointOutput backPropagationResults)
+            |> List.fold addError 0.0f
         let intTestError = 
-            Array.zip targets intResults
-            |> Array.fold (fun E (x, t) -> 
-                let En = error t x
-                E + En) 0.0f
+            List.zip targets (intOutput backPropagationResults)
+            |> List.fold addError 0.0f
 
         printfn "%A" (fpTestError / float32 targets.Length)
         printfn "%A" (intTestError / float32 targets.Length)

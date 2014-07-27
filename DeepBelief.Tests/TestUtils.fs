@@ -1,40 +1,23 @@
-﻿// The MIT License (MIT)
-// 
-// Copyright (c) 2014 SpiegelSoft Ltd
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-namespace DeepBelief.Tests
+﻿namespace DeepBelief.Tests
 
 module TestUtils =
 
     open DeepBelief
     open System
     open Utils
+    open Common.Analytics
 
-    let allElementsOfVector predicate (v : Vector) =
+    let allElementsOfArray predicate (v : 'a[]) =
         v |> Array.fold (fun acc element -> acc && predicate element) true
 
-    let allElementsOfMatrix predicate (M : Matrix) =
-        M |> toArray |> Array.fold (fun acc element -> acc && allElementsOfVector predicate element) true
+    let allElementsOfVector predicate (Vector v) =
+        allElementsOfArray predicate v
 
-    let nonZeroEntries M =
-        M |> flattenMatrix |> Array.filter (fun x -> x <> 0.0f)
+    let allElementsOfMatrix predicate (M : Matrix) =
+        M.ToRowMajorFormat |> allElementsOfArray predicate
+
+    let nonZeroEntries (M : Matrix) =
+        M.ToRowMajorFormat |> Array.filter (fun x -> x <> 0.0f)
 
     let liesWithinTolerance diffs =
         let maxDiff = Array.max diffs
@@ -42,6 +25,9 @@ module TestUtils =
 
     let arraysMatch (cpu : float32[]) (gpu : float32[]) =
         Array.zip cpu gpu |> Array.map (fun el -> Math.Abs ((fst el |> float) - (snd el |> float))) |> liesWithinTolerance
+
+    let vectorsMatch (Vector cpu) (Vector gpu) =
+        arraysMatch cpu gpu
 
     let outputsMatch result =
         arraysMatch (fst (fst result)) (fst (snd result)) && arraysMatch (snd (fst result)) (snd (snd result))

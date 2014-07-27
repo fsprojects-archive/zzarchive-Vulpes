@@ -1,31 +1,13 @@
-﻿// The MIT License (MIT)
-// 
-// Copyright (c) 2014 SpiegelSoft Ltd
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-namespace DeepBelief.Tests
+﻿namespace DeepBelief.Tests
 
 open Alea.CUDA
 open Alea.CUDA.Utilities
 open Xunit
 open Xunit.Extensions
 open FsUnit.Xunit
+open Common.Analytics
+open Common.CudaTemplates
+open Common.Kernels
 open DeepBelief.CudaTemplates
 open DeepBelief.Utils
 open DeepBelief.Kernels
@@ -34,33 +16,33 @@ type ``CUDA Matrix Activation``()=
     
     let A2By2 = array2D [ [0.1f; 0.2f];
                           [0.3f; 0.4f] ]
-                          |> mapMatrix logitFunction
+                          |> Matrix |> fun m -> m.Map logitFunction
     let rnd2By2 = array2D [ [0.05f; 0.25f];
-                            [0.42f; 0.38f] ]
+                            [0.42f; 0.38f] ] |> Matrix
     let res2By2 = array2D [ [1.0f; 0.0f];
-                            [0.0f; 1.0f] ]
+                            [0.0f; 1.0f] ] |> Matrix
 
     let A2By4 = array2D [ [0.1f; 0.2f; 0.3f; 0.4f];
                           [0.5f; 0.6f; 0.7f; 0.8f] ]
-                          |> mapMatrix logitFunction
+                          |> Matrix |> fun m -> m.Map logitFunction
     let rnd2By4 = array2D [ [0.05f; 0.67f; 0.12f; 0.75f];
-                            [0.95f; 0.37f; 0.65f; 0.12f] ]
+                            [0.95f; 0.37f; 0.65f; 0.12f] ] |> Matrix
     let res2By4 = array2D [ [1.0f; 0.0f; 1.0f; 0.0f];
-                            [0.0f; 1.0f; 1.0f; 1.0f] ]
+                            [0.0f; 1.0f; 1.0f; 1.0f] ] |> Matrix
 
     let A4By2 = array2D [ [0.1f; 0.5f];
                           [0.2f; 0.6f];
                           [0.3f; 0.7f];
-                          [0.4f; 0.8f] ]
-                          |> mapMatrix logitFunction
+                          [0.4f; 0.8f] ] |> Matrix
+                          |> fun m -> m.Map logitFunction
     let rnd4By2 = array2D [ [0.05f; 0.95f];
                             [0.67f; 0.37f];
                             [0.12f; 0.65f];
-                            [0.75f; 0.12f] ]
+                            [0.75f; 0.12f] ] |> Matrix
     let res4By2 = array2D [ [1.0f; 0.0f];
                             [0.0f; 1.0f];
                             [1.0f; 1.0f];
-                            [0.0f; 1.0f] ]
+                            [0.0f; 1.0f] ] |> Matrix
 
     let rnd2By4With3FirstRowActivations = array2D [ [1.00f; 1.00f; 1.00f; 0.00f];
                                                     [0.95f; 0.37f; 0.65f; 0.12f] ]
@@ -84,18 +66,18 @@ type ``CUDA Matrix Activation``()=
             let activateFirstRowKernel = program.Apply activateFirstRowKernel
 
             fun (A : Matrix) ->
-                let hA = height A
-                let wA = width A
-                let paddedA = padToMultiplesOf blockSize A
-                let hPaddedA = height paddedA
-                let wPaddedA = width paddedA
-                let flattenedA = flattenMatrix paddedA
+                let hA = A.Height
+                let wA = A.Width
+                let paddedA = A.PadToMultiplesOf blockSize
+                let hPaddedA = paddedA.Height
+                let wPaddedA = paddedA.Width
+                let flattenedA = paddedA.ToRowMajorFormat
 
                 use flattenedA = worker.Malloc flattenedA
                 let lp = createActivateFirstRowLp blockSize hPaddedA wPaddedA
                 activateFirstRowKernel.Launch lp flattenedA.Ptr wPaddedA nActivations
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+                (flattenedA.Gather() |> Matrix.FromRowMajorFormat wPaddedA).Submatrix 0 0 hA wA
         )
     }
 
@@ -107,18 +89,18 @@ type ``CUDA Matrix Activation``()=
             let activateFirstColumnKernel = program.Apply activateFirstColumnKernel
 
             fun (A : Matrix) ->
-                let hA = height A
-                let wA = width A
-                let paddedA = padToMultiplesOf blockSize A
-                let hPaddedA = height paddedA
-                let wPaddedA = width paddedA
-                let flattenedA = flattenMatrix paddedA
+                let hA = A.Height
+                let wA = A.Width
+                let paddedA = A.PadToMultiplesOf blockSize
+                let hPaddedA = paddedA.Height
+                let wPaddedA = paddedA.Width
+                let flattenedA = paddedA.ToRowMajorFormat
 
                 use flattenedA = worker.Malloc flattenedA
                 let lp = createActivateFirstColumnLp blockSize hPaddedA wPaddedA
                 activateFirstColumnKernel.Launch lp flattenedA.Ptr hPaddedA wPaddedA nActivations
 
-                let result = flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+                let result = (flattenedA.Gather() |> Matrix.FromRowMajorFormat wPaddedA).Submatrix 0 0 hA wA
                 result
         )
     }

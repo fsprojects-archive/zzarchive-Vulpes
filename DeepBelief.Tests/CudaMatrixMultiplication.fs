@@ -1,25 +1,4 @@
-﻿// The MIT License (MIT)
-// 
-// Copyright (c) 2014 SpiegelSoft Ltd
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-namespace DeepBelief.Tests
+﻿namespace DeepBelief.Tests
 
 open System
 open Alea.CUDA
@@ -27,49 +6,53 @@ open Alea.CUDA.Utilities
 open Xunit
 open Xunit.Extensions
 open FsUnit.Xunit
-open Common
+open Common.Analytics
+open Common.CudaTemplates
+open Common.Kernels
+open DeepBelief.CudaDeepBeliefNet
 open DeepBelief.CudaTemplates
 open DeepBelief.Kernels
 open DeepBelief.Utils
+open DeepBelief.Tests.CudaCommon
 open TestUtils
 
 type ``CUDA Matrix Multiplication``()=
 
     let rand = new Random()
-    let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ]
-    let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ]
-    let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ]
-    let x = [|7.0f; 8.0f; 9.0f|]
-    let y = [|50.0f; 122.0f|]
+    let A = array2D [ [1.0f; 2.0f; 3.0f]; [4.0f; 5.0f; 6.0f] ] |> Matrix
+    let B = array2D [ [1.0f; 2.0f]; [3.0f; 4.0f]; [5.0f; 6.0f] ] |> Matrix
+    let C = array2D [ [22.0f; 28.0f]; [49.0f; 64.0f] ] |> Matrix
+    let x = [|7.0f; 8.0f; 9.0f|] |> Vector
+    let y = [|50.0f; 122.0f|] |> Vector
     
-    let a = [|1.0f; 2.0f; 3.0f|]
-    let b = [|4.0f; 5.0f; 6.0f|]
-    let c = [|4.0f; 5.0f|]
+    let a = [|1.0f; 2.0f; 3.0f|] |> Vector
+    let b = [|4.0f; 5.0f; 6.0f|] |> Vector
+    let c = [|4.0f; 5.0f|] |> Vector
 
-    let aPlusb = [|5.0f; 7.0f; 9.0f|]
-    let bMinusa = [|3.0f; 3.0f; 3.0f|]
-    let aPointwiseTimesb = [|4.0f; 10.0f; 18.0f|]
+    let aPlusb = [|5.0f; 7.0f; 9.0f|] |> Vector
+    let bMinusa = [|3.0f; 3.0f; 3.0f|] |> Vector
+    let aPointwiseTimesb = [|4.0f; 10.0f; 18.0f|] |> Vector
 
     let aOuterProductc = array2D [ [4.0f; 5.0f]
                                    [8.0f; 10.0f]
-                                   [12.0f; 15.0f] ]
+                                   [12.0f; 15.0f] ] |> Matrix
     let cOuterProducta = array2D [ [4.0f; 8.0f; 12.0f]
-                                   [5.0f; 10.0f; 15.0f] ]
+                                   [5.0f; 10.0f; 15.0f] ] |> Matrix
 
     let D = array2D [ [1.0f; 2.0f;]
                       [3.0f; 4.0f;] 
-                      [5.0f; 6.0f;] ];
+                      [5.0f; 6.0f;] ] |> Matrix
     let E = array2D [ [1.0f; 2.0f; 3.0f; 4.0f; 5.0f; 6.0f; 7.0f; 8.0f];
-                      [2.0f; 4.0f; 6.0f; 8.0f; 1.0f; 3.0f; 5.0f; 7.0f] ]
+                      [2.0f; 4.0f; 6.0f; 8.0f; 1.0f; 3.0f; 5.0f; 7.0f] ] |> Matrix
 
-    let ATimes2 = array2D [ [2.0f; 4.0f; 6.0f]; [8.0f; 10.0f; 12.0f] ]
-    let ATimes3 = array2D [ [3.0f; 6.0f; 9.0f]; [12.0f; 15.0f; 18.0f] ]
+    let ATimes2 = array2D [ [2.0f; 4.0f; 6.0f]; [8.0f; 10.0f; 12.0f] ] |> Matrix
+    let ATimes3 = array2D [ [3.0f; 6.0f; 9.0f]; [12.0f; 15.0f; 18.0f] ] |> Matrix
 
-    let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ]
-    let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ]
+    let At = array2D [ [1.0f; 4.0f]; [2.0f; 5.0f]; [3.0f; 6.0f] ] |> Matrix
+    let Bt = array2D [ [1.0f; 3.0f; 5.0f]; [2.0f; 4.0f; 6.0f] ] |> Matrix
 
     let Dt = array2D [ [1.0f; 3.0f; 5.0f];
-                       [2.0f; 4.0f; 6.0f] ];
+                       [2.0f; 4.0f; 6.0f] ] |> Matrix
     let Et = array2D [ [1.0f; 2.0f];
                        [2.0f; 4.0f];
                        [3.0f; 6.0f];
@@ -77,45 +60,45 @@ type ``CUDA Matrix Multiplication``()=
                        [5.0f; 1.0f];
                        [6.0f; 3.0f];
                        [7.0f; 5.0f];
-                       [8.0f; 7.0f] ] 
+                       [8.0f; 7.0f] ] |> Matrix
     let DE = array2D [ [5.0f;  10.0f; 15.0f; 20.0f; 7.0f;  12.0f; 17.0f; 22.0f ];
                        [11.0f; 22.0f; 33.0f; 44.0f; 19.0f; 30.0f; 41.0f; 52.0f ];
-                       [17.0f; 34.0f; 51.0f; 68.0f; 31.0f; 48.0f; 65.0f; 82.0f ] ]
+                       [17.0f; 34.0f; 51.0f; 68.0f; 31.0f; 48.0f; 65.0f; 82.0f ] ] |> Matrix
     
-    let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ]
-    let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ]
+    let M = array2D [ [2.0f; 0.0f]; [0.0f; 2.0f] ] |> Matrix
+    let MtoN n = array2D [ [pown 2.0f n; 0.0f]; [0.0f; pown 2.0f n] ] |> Matrix
 
-    let largeRandomMatrix (rand : Random) = Array2D.init 100 150 (fun _ _ -> rand.NextDouble() |> float32)
-    let largeRandomVector (rand : Random) = Array.init 150 (fun _ -> rand.NextDouble() |> float32)
+    let largeRandomMatrix (rand : Random) = Array2D.init 100 150 (fun _ _ -> rand.NextDouble() |> float32) |> Matrix
+    let largeRandomVector (rand : Random) = Array.init 150 (fun _ -> rand.NextDouble() |> float32) |> Vector
     let lrm = largeRandomMatrix rand
     let lrv = largeRandomVector rand
-    let transposeOfLargeRandomMatrix = lrm |> transpose
+    let transposeOfLargeRandomMatrix = lrm.Transpose
 
     let UpperTriangle a b =
-        array2D [ [a; b]; [0.0f; a] ]
+        array2D [ [a; b]; [0.0f; a] ] |> Matrix
 
     let UpperTriangleToN n a b =
         let aToN = pown a n
-        array2D [ [aToN; (float32 n) * pown a (n - 1) * b]; [0.0f; aToN] ]
+        array2D [ [aToN; (float32 n) * pown a (n - 1) * b]; [0.0f; aToN] ] |> Matrix
 
     let loadAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
 
-            let finalHeight = height A
-            let finalWidth = width B
+            let finalHeight = A.Height
+            let finalWidth = B.Height
 
-            let A = padToMultiplesOf blockSize A
-            let B = padToMultiplesOf blockSize B
+            let A = A.PadToMultiplesOf blockSize
+            let B = B.PadToMultiplesOf blockSize
 
-            let hA = height A
-            let wA = width A
-            let hB = height B
-            let wB = width B
+            let hA = A.Height
+            let wA = A.Width
+            let hB = B.Height
+            let wB = B.Width
             let wC = wB
-            let hC = height A
+            let hC = A.Height
 
-            let A = flattenMatrix A
-            let B = flattenMatrix B
+            let A = A.ToRowMajorFormat
+            let B = B.ToRowMajorFormat
 
             use A = worker.Malloc(A)
             use B = worker.Malloc(B)
@@ -124,26 +107,26 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createMultiplyLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            result |> rebuildMatrix wC finalHeight finalWidth
+            (result |> Matrix.FromRowMajorFormat wC).Submatrix 0 0 finalHeight finalWidth
 
     let loadAndMultiplyByTranspose (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
 
-            let finalHeight = height A
-            let finalWidth = height B
+            let finalHeight = A.Height
+            let finalWidth = B.Height
 
-            let A = padToMultiplesOf blockSize A
-            let B = padToMultiplesOf blockSize B
+            let A = A.PadToMultiplesOf blockSize
+            let B = B.PadToMultiplesOf blockSize
 
-            let hA = height A
-            let wA = width A
-            let hB = height B
-            let wB = width B
+            let hA = A.Height
+            let wA = A.Width
+            let hB = B.Height
+            let wB = B.Width
             let wC = hB
-            let hC = height A
+            let hC = A.Height
 
-            let A = flattenMatrix A
-            let B = flattenMatrix B
+            let A = A.ToRowMajorFormat
+            let B = B.ToRowMajorFormat
 
             use A = worker.Malloc(A)
             use B = worker.Malloc(B)
@@ -152,26 +135,26 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createMultiplyByTransposeLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            result |> rebuildMatrix wC finalHeight finalWidth
+            (result |> Matrix.FromRowMajorFormat wC).Submatrix 0 0 finalHeight finalWidth
 
     let loadTransposeAndMultiply (blockSize:int) (worker:Worker) (kernel:Kernel<MatrixMulKernelSignature>) =
         fun (A:Matrix) (B:Matrix) ->
 
-            let finalHeight = width A
-            let finalWidth = width B
+            let finalHeight = A.Width
+            let finalWidth = B.Width
 
-            let A = padToMultiplesOf blockSize A
-            let B = padToMultiplesOf blockSize B
+            let A = A.PadToMultiplesOf blockSize
+            let B = B.PadToMultiplesOf blockSize
 
-            let hA = height A
-            let wA = width A
-            let hB = height B
-            let wB = width B
+            let hA = A.Height
+            let wA = A.Width
+            let hB = B.Height
+            let wB = B.Width
             let wC = wB
-            let hC = width A
+            let hC = A.Width
 
-            let A = flattenMatrix A
-            let B = flattenMatrix B
+            let A = A.ToRowMajorFormat
+            let B = B.ToRowMajorFormat
 
             use A = worker.Malloc(A)
             use B = worker.Malloc(B)
@@ -180,7 +163,7 @@ type ``CUDA Matrix Multiplication``()=
             let lp = createTransposeAndMultiplyLp blockSize hA wA hB wB
             kernel.Launch lp C.Ptr A.Ptr B.Ptr hA wA hB wB
             let result = C.Gather()
-            result |> rebuildMatrix wC finalHeight finalWidth
+            (result |> Matrix.FromRowMajorFormat wC).Submatrix 0 0 finalHeight finalWidth
 
     let loadAndMultiplyTemplate (blockSize:int) = cuda {
         let! kernel = multiplyStrategy blockSize |> matrixMulKernel blockSize |> Compiler.DefineKernel
@@ -223,22 +206,22 @@ type ``CUDA Matrix Multiplication``()=
             let kernel = program.Apply(kernel)
 
             fun (A : Matrix) (x : Vector) ->
-                let size = height A
+                let size = A.Height
 
-                let A = padToMultiplesOf blockSize A
-                let x = padToMultipleOf blockSize x
+                let A = A.PadToMultiplesOf blockSize
+                let x = x.PadToMultipleOf blockSize
 
-                let hA = height A
-                let wA = width A
+                let hA = A.Height
+                let wA = A.Width
 
-                use A = A |> flattenMatrix |> worker.Malloc
+                use A = A.ToRowMajorFormat |> worker.Malloc
                 use x = x |> worker.Malloc
                 use y = worker.Malloc<float32>(hA)
 
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
                 kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
 
-                y.Gather() |> subvector size
+                y.Gather() |> subvector size |> Vector
             ) }
 
     let multiplyVectorByMatrixAndTransformTwiceTemplate (transformation1 : TransformationFunction) (transformation2 : SecondOrderTransformationFunction) (blockSize:int) = cuda {
@@ -249,15 +232,15 @@ type ``CUDA Matrix Multiplication``()=
             let kernel = program.Apply(kernel)
 
             fun (A : Matrix) (x : Vector) ->
-                let size = height A
+                let size = A.Height
 
-                let A = padToMultiplesOf blockSize A
-                let x = padToMultipleOf blockSize x
+                let A = A.PadToMultiplesOf blockSize
+                let x = x.PadToMultipleOf blockSize
 
-                let hA = height A
-                let wA = width A
+                let hA = A.Height
+                let wA = A.Width
 
-                use A = A |> flattenMatrix |> worker.Malloc
+                use A = A.ToRowMajorFormat |> worker.Malloc
                 use x = x |> worker.Malloc
                 use y1 = worker.Malloc<float32>(hA)
                 use y2 = worker.Malloc<float32>(hA)
@@ -265,7 +248,7 @@ type ``CUDA Matrix Multiplication``()=
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
                 kernel.Launch lp y2.Ptr y1.Ptr A.Ptr x.Ptr hA wA
 
-                (y1.Gather() |> subvector size, y2.Gather() |> subvector size)
+                (y1.Gather() |> subvector size |> Vector, y2.Gather() |> subvector size |> Vector)
             ) }
 
     let multiplyVectorByMatrixAndTransformTemplate (transformation : TransformationFunction) (blockSize:int) = cuda {
@@ -276,22 +259,22 @@ type ``CUDA Matrix Multiplication``()=
             let kernel = program.Apply(kernel)
 
             fun (A : Matrix) (x : Vector) ->
-                let size = height A
+                let size = A.Height
 
-                let A = padToMultiplesOf blockSize A
-                let x = padToMultipleOf blockSize x
+                let A = A.PadToMultiplesOf blockSize
+                let x = x.PadToMultipleOf blockSize
 
-                let hA = height A
-                let wA = width A
+                let hA = A.Height
+                let wA = A.Width
 
-                use A = A |> flattenMatrix |> worker.Malloc
+                use A = A.ToRowMajorFormat |> worker.Malloc
                 use x = x |> worker.Malloc
                 use y = worker.Malloc<float32>(hA)
 
                 let lp = createMultiplyVectorByMatrixLp blockSize hA wA
                 kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
 
-                y.Gather() |> subvector size
+                y.Gather() |> subvector size |> Vector
             ) }
             
     let multiplyVectorByTransposeOfMatrixTemplate (blockSize:int) = cuda {
@@ -302,22 +285,22 @@ type ``CUDA Matrix Multiplication``()=
             let kernel = program.Apply(kernel)
 
             fun (A : Matrix) (x : Vector) ->
-                let size = width A
+                let size = A.Width
 
-                let A = padToMultiplesOf blockSize A
-                let x = padToMultipleOf blockSize x
+                let A = A.PadToMultiplesOf blockSize
+                let x = x.PadToMultipleOf blockSize
 
-                let hA = height A
-                let wA = width A
+                let hA = A.Height
+                let wA = A.Width
 
-                use A = A |> flattenMatrix |> worker.Malloc
+                use A = A.ToRowMajorFormat |> worker.Malloc
                 use x = x |> worker.Malloc
                 use y = worker.Malloc<float32>(hA)
 
                 let lp = createMultiplyVectorByTransposeOfMatrixLp blockSize hA wA
                 kernel.Launch lp y.Ptr A.Ptr x.Ptr hA wA
 
-                y.Gather() |> subvector size
+                y.Gather() |> subvector size |> Vector
             ) }
 
     // This template, which finds the n-th power of a square matrix,
@@ -334,11 +317,11 @@ type ``CUDA Matrix Multiplication``()=
             let kernel = program.Apply(kernel)
 
             fun (A : Matrix) n ->
-                let originalSize = width A
-                let A = padToMultiplesOf blockSize A
-                let paddedSize = width A
-                let A = flattenMatrix A
-                let Ai = identityMatrix paddedSize |> flattenMatrix
+                let originalSize = A.Width
+                let A = A.PadToMultiplesOf blockSize
+                let paddedSize = A.Width
+                let A = A.ToRowMajorFormat
+                let Ai = ((identityMatrix paddedSize) |> Matrix).ToRowMajorFormat
 
                 use A = worker.Malloc(A)
                 use Ai = worker.Malloc(Ai)
@@ -349,7 +332,7 @@ type ``CUDA Matrix Multiplication``()=
 
                 for i = 1 to n do
                     kernel.Launch lp Ai.Ptr A.Ptr Ai.Ptr paddedSize paddedSize paddedSize paddedSize
-                Ai.Gather() |> rebuildMatrix paddedSize originalSize originalSize
+                (Ai.Gather() |> Matrix.FromRowMajorFormat paddedSize).Submatrix 0 0 originalSize originalSize
             ) }
 
     let addVectorTemplate (blockSize : int) = cuda {
@@ -396,10 +379,10 @@ type ``CUDA Matrix Multiplication``()=
             let outerProductKernel = program.Apply outerProductKernel
 
             fun (v : Vector) (w : Vector) ->
-                let sizeV = Array.length v
-                let sizeW = Array.length w
-                let paddedV = padToMultipleOf blockSize v
-                let paddedW = padToMultipleOf blockSize w
+                let sizeV = v.Length
+                let sizeW = w.Length
+                let paddedV = v.PadToMultipleOf blockSize
+                let paddedW = w.PadToMultipleOf blockSize
                 let sizePaddedV = Array.length paddedV
                 let sizePaddedW = Array.length paddedW
 
@@ -409,7 +392,7 @@ type ``CUDA Matrix Multiplication``()=
 
                 let lp = createOuterProductLp blockSize sizePaddedV sizePaddedW
                 outerProductKernel.Launch lp result.Ptr paddedV.Ptr paddedW.Ptr sizePaddedW
-                result.Gather() |> rebuildMatrix sizePaddedW sizeV sizeW
+                (result.Gather() |> Matrix.FromRowMajorFormat sizePaddedW).Submatrix 0 0 sizeV sizeW
         )
     }
 
@@ -445,19 +428,18 @@ type ``CUDA Matrix Multiplication``()=
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
             fun (A : Matrix) (lambda : float32) ->
-                let hA = height A
-                let wA = width A
-                let paddedA = padToMultiplesOf blockSize A
-                let hPaddedA = height paddedA
-                let wPaddedA = width paddedA
-                let flattenedA = flattenMatrix paddedA
-
+                let hA = A.Height
+                let wA = A.Width
+                let paddedA = A.PadToMultiplesOf blockSize
+                let hPaddedA = paddedA.Height
+                let wPaddedA = paddedA.Width
+                let flattenedA = paddedA.ToRowMajorFormat
                 use flattenedA = worker.Malloc flattenedA
 
                 let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
                 scalarMultiplyMatrixKernel.Launch lp flattenedA.Ptr lambda
 
-                flattenedA.Gather() |> rebuildMatrix wPaddedA hA wA
+                (flattenedA.Gather() |> Matrix.FromRowMajorFormat wPaddedA).Submatrix 0 0 hA wA
         )
     }
 
@@ -612,7 +594,7 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the large random matrix by the large random vector gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByMatrixProgram = i |> multiplyVectorByMatrixTemplate |> Compiler.load Worker.Default in
         multiplyVectorByMatrixProgram.Run lrm lrv
-        |> arraysMatch (multiplyVectorByMatrix lrm lrv)
+        |> vectorsMatch (lrm * lrv)
         |> should equal true
 
     [<Theory>]
@@ -622,7 +604,7 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the transpose of the transposed large random matrix by the large random vector gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByTransposeOfMatrixProgram = i |> multiplyVectorByTransposeOfMatrixTemplate |> Compiler.load Worker.Default in
         multiplyVectorByTransposeOfMatrixProgram.Run transposeOfLargeRandomMatrix lrv
-        |> arraysMatch (multiplyVectorByMatrix lrm lrv)
+        |> vectorsMatch (lrm * lrv)
         |> should equal true
 
     [<Theory>]
@@ -632,7 +614,7 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the large random matrix by the large random vector and transforming gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByMatrixAndTransformBlock1Program = i |> multiplyVectorByMatrixAndTransformTemplate <@ sigmoid @> |> Compiler.load Worker.Default in
         multiplyVectorByMatrixAndTransformBlock1Program.Run lrm lrv
-        |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid)
+        |> vectorsMatch ((lrm * lrv).Map sigmoid)
         |> should equal true
 
     [<Theory>]
@@ -642,5 +624,5 @@ type ``CUDA Matrix Multiplication``()=
     member test.``Multiplying the large random matrix by the large random vector and transforming twice gives matching results for the CPU and the GPU.``(i)=
         use multiplyVectorByMatrixAndTransformTwiceProgram = i |> multiplyVectorByMatrixAndTransformTwiceTemplate <@ sigmoid @> <@ dSigmoid @> |> Compiler.load Worker.Default in
         multiplyVectorByMatrixAndTransformTwiceProgram.Run lrm lrv 
-        |> fun result -> (fst result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map sigmoid), snd result |> arraysMatch ((multiplyVectorByMatrix lrm lrv) |> Array.map (fun x -> dSigmoid (sigmoid x) 0.0f)))
+        |> fun result -> (fst result |> vectorsMatch ((lrm * lrv).Map sigmoid), snd result |> vectorsMatch ((lrm * lrv).Map (fun x -> dSigmoid (sigmoid x) 0.0f)))
         |> should equal (true, true)

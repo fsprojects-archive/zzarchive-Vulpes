@@ -1,25 +1,4 @@
-﻿// The MIT License (MIT)
-// 
-// Copyright (c) 2014 SpiegelSoft Ltd
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-namespace DeepBelief.Tests
+﻿namespace DeepBelief.Tests
 
 module CudaCommon =
 
@@ -27,25 +6,30 @@ module CudaCommon =
     open Alea.CUDA.Utilities
     open Xunit
     open FsUnit.Xunit
-    open DeepBelief.CudaNeuralNet
+    open Backpropagation.CudaTemplates
+    open Backpropagation.Parameters
+    open Common.Analytics
+    open Common.CudaTemplates
+    open Common.Kernels
+    open Common.NeuralNet
+    open Common.Utils
     open DeepBelief.CudaTemplates
     open DeepBelief.DeepBeliefNet
     open DeepBelief.Utils
     open DeepBelief.Kernels
-    open DeepBelief.NeuralNet
     open TestUtils
     open System
 
     type BinaryMatrixOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
-    let binaryMatrixOperation blockSize A B (kernel : Kernel<BinaryMatrixOperationKernelSignature>) (worker : Worker) =
-        let hA = height A
-        let wA = width A
-        let paddedA = padToMultiplesOf blockSize A
-        let paddedB = padToMultiplesOf blockSize B
-        let hPaddedA = height paddedA
-        let wPaddedA = width paddedA
-        let flattenedA = flattenMatrix paddedA
-        let flattenedB = flattenMatrix paddedB
+    let binaryMatrixOperation blockSize (A : Matrix) (B : Matrix) (kernel : Kernel<BinaryMatrixOperationKernelSignature>) (worker : Worker) =
+        let hA = A.Height
+        let wA = A.Width
+        let paddedA = A.PadToMultiplesOf blockSize
+        let paddedB = B.PadToMultiplesOf blockSize
+        let hPaddedA = paddedA.Height
+        let wPaddedA = paddedA.Width
+        let flattenedA = paddedA.ToRowMajorFormat
+        let flattenedB = paddedB.ToRowMajorFormat
 
         use flattenedA = worker.Malloc flattenedA
         use flattenedB = worker.Malloc flattenedB
@@ -54,13 +38,20 @@ module CudaCommon =
         let lp = createSimpleMatrixOperationLp blockSize hPaddedA wPaddedA
         kernel.Launch lp result.Ptr flattenedA.Ptr flattenedB.Ptr
 
-        result.Gather() |> rebuildMatrix wPaddedA hA wA
+        let result = result.Gather() |> Matrix.FromRowMajorFormat wPaddedA 
+        result.Submatrix 0 0 hA wA
+
+    type Vector with
+        member this.PadToMultipleOf n =
+            let paddedSize = nextMultipleOf n this.Length
+            let value i (Vector v) = v.[i]
+            Array.init paddedSize (fun i -> if i < this.Length then value i this else 0.0f)
 
     type BinaryVectorOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
-    let binaryVectorOperation blockSize x y (kernel : Kernel<BinaryVectorOperationKernelSignature>) (worker : Worker) =
-        let size = Array.length x
-        let paddedX = padToMultipleOf blockSize x
-        let paddedY = padToMultipleOf blockSize y
+    let binaryVectorOperation blockSize (x : Vector) (y : Vector) (kernel : Kernel<BinaryVectorOperationKernelSignature>) (worker : Worker) =
+        let size = x.Length
+        let paddedX = x.PadToMultipleOf blockSize
+        let paddedY = y.PadToMultipleOf blockSize
 
         use paddedX = worker.Malloc paddedX
         use paddedY = worker.Malloc paddedY
@@ -70,7 +61,7 @@ module CudaCommon =
         kernel.Launch lp result.Ptr paddedX.Ptr paddedY.Ptr
 
         let result = result.Gather() 
-        Array.sub result 0 size
+        Array.sub result 0 size |> Vector
 
     let sigmoidTemplate (blockSize:int) = cuda {
         let! sigmoidKernel = <@ sigmoid @> |> transformKernel blockSize |> Compiler.DefineKernel
@@ -82,7 +73,7 @@ module CudaCommon =
             fun (vector : Vector) start length -> 
 
                 let size = vector.Length
-                let vector = vector |> padToMultipleOf blockSize
+                let vector = vector.PadToMultipleOf blockSize
                 let simpleVectorLp = createSimpleVectorOperationLp blockSize vector.Length
 
                 let vector = worker.Malloc vector
@@ -101,32 +92,32 @@ module CudaCommon =
             let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let coerceKernel = program.Apply coerceKernel
 
-            fun (network : BackPropagationNetwork) data -> 
-                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
-                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
+            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) -> 
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
+                let paddedWeights = Ws |> List.map (fun weightsAndBiases -> weightsAndBiases.PrependRowOfZeroes.PadToMultiplesOf blockSize)
                 
-                let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize (height w) (width w))
-                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
+                let forwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByMatrixLp blockSize w.Height w.Width)
+                let outputLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize w.Height)
 
-                let inputs0 = worker.Malloc<float32>(width paddedWeights.[0])
-                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+                let inputs0 = worker.Malloc<float32>(paddedWeights.[0].Width)
+                let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
 
                 // The contents of these lists will need to be disposed at the end of the run.
-                let weights = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
-                let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
+                let weights = paddedWeights |> List.map (fun matrix -> matrix.ToRowMajorFormat |> worker.Malloc)
+                let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
 
                 let mutable result = []
                 let N = weights.Length - 1
-                for i in 0..Array.length data - 1 do
-                    inputs0.Scatter(fst data.[i] |> padToMultipleOf blockSize)
+                for i in 0..List.length trainingSet - 1 do
+                    blockSize |> trainingSet.[i].TrainingInput.PadToMultipleOf |> inputs0.Scatter
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
                         coerceKernel.Launch (coerceLp 1) lastOutput.Ptr 0 0 1.0f
-                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr (height paddedWeights.[j]) (width paddedWeights.[j])
+                        multiplyVectorByMatrixAndTransformTwiceKernel.Launch forwardLp.[j] dOutputs.[j].Ptr outputs.[j].Ptr weights.[j].Ptr lastOutput.Ptr paddedWeights.[j].Height paddedWeights.[j].Width
 
                     let zippedOutputs = List.zip outputs dOutputs
-                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 (height Ws.[iw]), Array.sub (dOutput.Gather()) 1 (height Ws.[iw])))
+                    let gatheredOutputs = zippedOutputs |> List.mapi (fun iw (output, dOutput) -> (Array.sub (output.Gather()) 1 Ws.[iw].Height, Array.sub (dOutput.Gather()) 1 Ws.[iw].Height))
                     result <- gatheredOutputs :: result
 
                 disposeAll [|weights; dOutputs|]
@@ -145,21 +136,21 @@ module CudaCommon =
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
 
             fun (network : BackPropagationNetwork) (layerOutputs : (Vector * Vector) list) (target : Vector) ->
-                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
                 let N = List.length Ws - 1
-                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
-                let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
-                let paddedOutputValues = layerOutputs |> List.map (fst >> prependForBias >> padToMultipleOf blockSize)
-                let paddedOutputDerivatives = layerOutputs |> List.map (snd >> prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedWeights = Ws |> List.map (fun weightsAndBiases -> weightsAndBiases.PrependRowOfZeroes.PadToMultiplesOf blockSize)
+                let paddedTarget = (target.Prepend 0.0f).PadToMultipleOf blockSize
+                let paddedOutputValues = layerOutputs |> List.map (fst >> fun vector -> vector.PrependForBias.PadToMultipleOf blockSize)
+                let paddedOutputDerivatives = layerOutputs |> List.map (snd >> fun vector -> (vector.Prepend 0.0f).PadToMultipleOf blockSize)
 
-                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
-                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (height w) (width w))
+                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize w.Height)
+                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize w.Height w.Width)
 
                 use paddedTargetDevice = worker.Malloc(paddedTarget)
 
                 // The contents of these lists will need to be disposed at the end of the run.
-                let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
-                let weightsDevice = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
+                let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
+                let weightsDevice = paddedWeights |> List.map (fun w -> w.ToRowMajorFormat |> worker.Malloc)
                 let paddedOutputValuesDevice = paddedOutputValues |> List.map (fun o -> worker.Malloc(o)) |> List.rev
                 let paddedOutputDerivativesDevice = paddedOutputDerivatives |> List.map (fun o' -> worker.Malloc(o')) |> List.rev
 
@@ -167,10 +158,10 @@ module CudaCommon =
 
                 for j in N..(-1)..0 do
                     if j < N then
-                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
+                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr paddedWeights.[j + 1].Height paddedWeights.[j + 1].Width
                     pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
 
-                let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> Array.length)])
+                let output = errorSignalsDevice |> List.mapi (fun i e -> e.Gather().[1..(fst layerOutputs.[N - i] |> fun v -> v.Length)])
                 disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice|]
                 output                
         ) }
@@ -189,28 +180,28 @@ module CudaCommon =
             let outerProductKernel = program.Apply outerProductKernel
 
             fun (network : BackPropagationNetwork) (layerOutputs : (Vector * Vector) list) (input : Vector) (target : Vector) ->
-                let Ws = network.Layers |> List.map (fun layer -> layer.Weight)
+                let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
 
                 let N = List.length Ws - 1
-                let paddedWeights = Ws |> List.map (prependRowOfZeroes >> padToMultiplesOf blockSize)
-                let paddedTarget = target |> (prepend 0.0f >> padToMultipleOf blockSize)
-                let paddedOutputValues = layerOutputs |> List.map (fst >> prependForBias >> padToMultipleOf blockSize)
-                let paddedOutputDerivatives = layerOutputs |> List.map (snd >> prepend 0.0f >> padToMultipleOf blockSize)
+                let paddedWeights = Ws |> List.map (fun w -> w.PrependRowOfZeroes.PadToMultiplesOf blockSize)
+                let paddedTarget = (target.Prepend 0.0f).PadToMultipleOf blockSize
+                let paddedOutputValues = layerOutputs |> List.map (fst >> fun v -> v.PrependForBias.PadToMultipleOf blockSize)
+                let paddedOutputDerivatives = layerOutputs |> List.map (snd >> fun v -> (v.Prepend 0.0f).PadToMultipleOf blockSize)
 
-                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize (height w))
-                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize (height w) (width w))
-                let outerProductLp = paddedWeights |> List.map (fun w -> createOuterProductLp blockSize (height w) (width w))
+                let errorSignalsLp = paddedWeights |> List.map (fun w -> createSimpleVectorOperationLp blockSize w.Height)
+                let backwardLp = paddedWeights |> List.map (fun w -> createMultiplyVectorByTransposeOfMatrixLp blockSize w.Height w.Width)
+                let outerProductLp = paddedWeights |> List.map (fun w -> createOuterProductLp blockSize w.Height w.Width)
 
                 use paddedTargetDevice = worker.Malloc(paddedTarget)
 
-                use inputs0Device = worker.Malloc(input |> prependForBias |> padToMultipleOf blockSize)
+                use inputs0Device = worker.Malloc(input.PrependForBias.PadToMultipleOf blockSize)
 
                 // The contents of these lists will need to be disposed at the end of the run.
-                let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w))
-                let weightsDevice = paddedWeights |> List.map (flattenMatrix >> worker.Malloc)
+                let errorSignalsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
+                let weightsDevice = paddedWeights |> List.map (fun w -> w.ToRowMajorFormat |> worker.Malloc)
                 let paddedOutputValuesDevice = paddedOutputValues |> List.map (fun o -> worker.Malloc(o)) |> List.rev
                 let paddedOutputDerivativesDevice = paddedOutputDerivatives |> List.map (fun o' -> worker.Malloc(o')) |> List.rev
-                let gradsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(height w * width w))
+                let gradsDevice = paddedWeights |> List.map (fun w -> worker.Malloc<float32>(w.Height * w.Width))
 
                 let inputsDevice = inputs0Device :: paddedOutputValuesDevice
 
@@ -218,13 +209,13 @@ module CudaCommon =
 
                 for j in N..(-1)..0 do
                     if j < N then
-                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr (height paddedWeights.[j + 1]) (width paddedWeights.[j + 1])
+                        multiplyVectorByTransposeOfMatrixKernel.Launch backwardLp.[j + 1] errorSignalsDevice.[j].Ptr weightsDevice.[j + 1].Ptr errorSignalsDevice.[j + 1].Ptr paddedWeights.[j + 1].Height paddedWeights.[j + 1].Width
                     pointwiseMultiplyVectorKernel.Launch errorSignalsLp.[j] errorSignalsDevice.[j].Ptr paddedOutputDerivativesDevice.[j].Ptr errorSignalsDevice.[j].Ptr
-                    outerProductKernel.Launch outerProductLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j].Ptr (width paddedWeights.[j])
+                    outerProductKernel.Launch outerProductLp.[j] gradsDevice.[j].Ptr errorSignalsDevice.[j].Ptr inputsDevice.[j].Ptr paddedWeights.[j].Width
 
                 let output = gradsDevice |> List.mapi (fun i e -> 
                     let array = e.Gather() 
-                    array |> rebuildMatrix (width paddedWeights.[i]) (1 + height Ws.[i]) (width Ws.[i])) |> List.map (fun m -> m.[1..,0..])
+                    (array |> Matrix.FromRowMajorFormat paddedWeights.[i].Width).Submatrix 0 0 (1 + Ws.[i].Height) (Ws.[i].Width)) |> List.map (fun (Matrix m) -> m.[1..,0..] |> Matrix)
                 disposeAll [|errorSignalsDevice; weightsDevice; paddedOutputValuesDevice; paddedOutputDerivativesDevice; gradsDevice|]
                 output                
         ) }

@@ -37,7 +37,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Alea.CUDA">
-      <HintPath>..\packages\Alea.cuBase.1.2.740\lib\net40\Alea.CUDA.dll</HintPath>
+      <HintPath>..\packages\Alea.cuBase.1.3.914\lib\net40\Alea.CUDA.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="FSharp.Charting">
@@ -86,6 +86,16 @@
     <Compile Include="ImageClassificationTests.fs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Backpropagation\Backpropagation.fsproj">
+      <Name>Backpropagation</Name>
+      <Project>{2157c4bb-5753-4fea-b25c-4a4a07191af3}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.fsproj">
+      <Name>Common</Name>
+      <Project>{2c3c4ae2-a531-4fdf-8d3b-4dd746af97ff}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
       <Name>DeepBelief</Name>
       <Project>{f223ebc5-05a0-40fe-8559-3dc79bc6dd0d}</Project>
