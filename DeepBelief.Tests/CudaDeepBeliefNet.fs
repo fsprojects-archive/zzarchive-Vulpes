@@ -23,20 +23,31 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
             LearningRate = LearningRate 0.9f
             Momentum = Momentum 0.2f
             BatchSize = BatchSize 10
-            Epochs = Epochs 2
+            Epochs = Epochs 1
         }
-//    let layeredDbn = initDbn dbnParameters xInputs
-//
-//    let (rows0, Drows0) = (height layeredDbn.Machines.[0].Weights, height layeredDbn.Machines.[0].DWeights)
-//    let (columns0, Dcolumns0) = (width layeredDbn.Machines.[0].Weights, width layeredDbn.Machines.[0].DWeights)
-//    let (v0, Dv0) = (layeredDbn.Machines.[0].VisibleBiases, layeredDbn.Machines.[0].DVisibleBiases)
-//    let (h0, Dh0) = (layeredDbn.Machines.[0].HiddenBiases, layeredDbn.Machines.[0].DHiddenBiases)
-//
-//    let (rows1, Drows1) = (height layeredDbn.Machines.[1].Weights, height layeredDbn.Machines.[1].DWeights)
-//    let (columns1, Dcolumns1) = (width layeredDbn.Machines.[1].Weights, width layeredDbn.Machines.[1].DWeights)
-//    let (v1, Dv1) = (layeredDbn.Machines.[1].VisibleBiases, layeredDbn.Machines.[1].DVisibleBiases)
-//    let (h1, Dh1) = (layeredDbn.Machines.[1].HiddenBiases, layeredDbn.Machines.[1].DHiddenBiases)
-//    
-//    [<Fact>] member test.
-//        ``Training 10 epochs of the DBN gives an RBM with non-zero weights.``()=
-//        gpuDbnTrain rand layeredDbn xInputs |> fun dbn -> dbn.Machines |> List.map (fun r -> r.Weights |> nonZeroEntries |> Array.length |> float32) |> Array.ofList |> allElementsOfVector (fun e -> e > 0.0f) |> should equal true 
+
+    let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
+    let xInput (rnd : Random) = Array.init 784 (fun _ -> rnd.NextDouble() |> float32 |> Signal) |> Input
+    let xTarget = Array.init 10 (fun _ -> 0.0f |> float32 |> Signal) |> Target
+    let trainingSet = List.init 1000 (fun _ -> { TrainingInput = xInput rand; TrainingTarget = xTarget }) |> TrainingSet
+    let layeredDbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
+
+    let weightsAndBiasesMatch (WeightsAndBiases lhs) (WeightsAndBiases rhs) =
+        matricesMatch lhs rhs
+
+    let weightChangesMatch (WeightChanges lhs) (WeightChanges rhs) =
+        matricesMatch lhs rhs
+
+    let restrictedBoltzmannMachinesMatch (lhs : RestrictedBoltzmannMachine) (rhs : RestrictedBoltzmannMachine) =
+        if weightChangesMatch lhs.ToWeightsAndBiasesChanges rhs.ToWeightsAndBiasesChanges && weightsAndBiasesMatch lhs.ToWeightsAndBiases rhs.ToWeightsAndBiases
+        then 0
+        else 1
+
+    let networksMatch (lhs : DeepBeliefNetwork) (rhs : DeepBeliefNetwork) =
+        Seq.compareWith restrictedBoltzmannMachinesMatch lhs.Machines rhs.Machines
+
+    [<Fact>] member test.
+        ``The CPU and GPU outputs of a single DBN epoch match.``()=
+        let cpuTrainedDbn = layeredDbn.TrainCpu (new Random(0)) trainingSet in
+        let gpuTrainedDbn = layeredDbn.TrainGpu (new Random(0)) trainingSet in
+        networksMatch cpuTrainedDbn gpuTrainedDbn

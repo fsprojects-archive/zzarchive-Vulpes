@@ -29,6 +29,9 @@ module TestUtils =
     let vectorsMatch (Vector cpu) (Vector gpu) =
         arraysMatch cpu gpu
 
+    let matricesMatch (cpu : Matrix) (gpu : Matrix) =
+        cpu.Height = gpu.Height && cpu.Width = gpu.Width && arraysMatch cpu.ToRowMajorFormat gpu.ToRowMajorFormat
+
     let outputsMatch result =
         arraysMatch (fst (fst result)) (fst (snd result)) && arraysMatch (snd (fst result)) (snd (snd result))
 
