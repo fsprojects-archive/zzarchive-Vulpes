@@ -50,4 +50,4 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
         ``The CPU and GPU outputs of a single DBN epoch match.``()=
         let cpuTrainedDbn = layeredDbn.TrainCpu (new Random(0)) trainingSet in
         let gpuTrainedDbn = layeredDbn.TrainGpu (new Random(0)) trainingSet in
-        networksMatch cpuTrainedDbn gpuTrainedDbn
+        networksMatch cpuTrainedDbn gpuTrainedDbn |> should equal 0
