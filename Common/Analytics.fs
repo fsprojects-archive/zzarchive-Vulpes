@@ -77,7 +77,7 @@ module Analytics =
         member this.SumOfSquares =
             match this with 
                 Matrix matrix -> 
-                    [|0..(height matrix)|] |> Array.map (fun i -> Array.init (width matrix) (fun j -> matrix.[i, j])) 
+                    [|0..(height matrix - 1)|] |> Array.map (fun i -> Array.init (width matrix) (fun j -> matrix.[i, j])) 
                     |> Array.fold (fun acc element -> acc + (Vector element).SumOfSquares) 0.0f
         member this.Row i =
             match this with Matrix matrix -> Array.init (width matrix) (fun j -> matrix.[i, j]) |> Vector
@@ -218,14 +218,14 @@ module Analytics =
         member this.Dimension =
             match this with InputBatch matrix -> matrix.Width
         member this.ActivateFirstColumn =
-            match this with (InputBatch (Matrix h)) -> h.[0..,1..] |> Matrix |> fun m -> m.PrependRowOfOnes |> InputBatch
+            match this with (InputBatch (Matrix h)) -> h.[0..,1..] |> Matrix |> fun m -> m.PrependColumnOfOnes |> InputBatch
 
     type Input with
         static member FromVector (Vector vector) = vector |> Array.map (fun value -> Signal value) |> Input
 
     type BatchOutput = BatchOutput of Matrix with
         member this.ActivateFirstRow =
-            match this with (BatchOutput (Matrix v)) -> v.[1..,0..] |> Matrix |> fun m -> m.PrependColumnOfOnes |> BatchOutput
+            match this with (BatchOutput (Matrix v)) -> v.[1..,0..] |> Matrix |> fun m -> m.PrependRowOfOnes |> BatchOutput
 
     type WeightsAndBiases = WeightsAndBiases of Matrix with
         static member (*) (WeightsAndBiases weightsAndBiases, HiddenUnits hiddenUnitsArray) =
@@ -245,7 +245,7 @@ module Analytics =
         member this.Forward (InputBatch batch) =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.MultiplyByTranspose batch |> BatchOutput
         member this.Backward (BatchOutput output) =
-            match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.TransposeAndMultiply output |> InputBatch
+            match this with WeightsAndBiases weightsAndBiases -> output.TransposeAndMultiply weightsAndBiases |> InputBatch
         member this.PrependRowOfZeroes =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.PrependRowOfZeroes
 

@@ -4,6 +4,7 @@ module AnalyticsTests =
 
     open Xunit
     open Xunit.Extensions
+    open Microsoft.FSharp.Collections
     open FsUnit.Xunit
     open Common.Analytics
     open Common.NeuralNet
@@ -96,3 +97,23 @@ module AnalyticsTests =
             let x = [|4.0f; 5.0f; 6.0f|] |> Vector in
             let y = [|1.0f; 2.0f; 3.0f|] |> Vector in
             x - y |> should equal <| Vector [|3.0f; 3.0f; 3.0f|]
+
+    type ``Input Batch``()=
+
+        member test.TestData =
+            [| [| 3.0f; 2.0f; 1.0f |]; [| 6.0f; 5.0f; 4.0f|] |] |> array2D |> Matrix |> InputBatch
+
+        member test.ExpectedData =
+            [| [| 1.0f; 2.0f; 1.0f |]; [| 1.0f; 5.0f; 4.0f|] |] |> array2D |> Matrix |> InputBatch
+
+        [<Fact>]
+        member test.``ActivateFirstColumn replaces first column with ones``()=
+            test.TestData.ActivateFirstColumn |> should equal test.ExpectedData
+
+        [<Fact>]
+        member test.``Size matches the height of the matrix``()=
+            test.TestData.Size |> should equal 2
+
+        [<Fact>]
+        member test.``Dimension matches the width of the matrix``()=
+            test.TestData.Dimension |> should equal 3
