@@ -210,7 +210,7 @@ module Analytics =
 
     type WeightChanges = WeightChanges of Matrix with
         member changes.NextChanges (ScaledLearningRate learningRate) (Momentum momentum) (WeightGradients weightGradients) =
-            match changes with WeightChanges weightChanges -> momentum * weightChanges + learningRate * weightGradients |> WeightChanges
+            match changes with WeightChanges weightChanges -> momentum * weightChanges - learningRate * weightGradients |> WeightChanges
 
     type InputBatch = InputBatch of Matrix with
         member this.Size =

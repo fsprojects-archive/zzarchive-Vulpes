@@ -23,6 +23,26 @@ module CudaTemplates =
     type Momentum with
         member this.Value = match this with Momentum momentum -> momentum
 
+    type RandomInputs = {
+        HiddenRandoms1 : DeviceMemory<float32>
+        VisibleRandoms2 : DeviceMemory<float32>
+        HiddenRandoms2 : DeviceMemory<float32>
+    } with
+        interface IDisposable
+            with member this.Dispose() = 
+                    this.HiddenRandoms1.Dispose()
+                    this.VisibleRandoms2.Dispose()
+                    this.HiddenRandoms2.Dispose()
+
+    type RandomInputsList = RandomInputsList of RandomInputs list with
+        member this.Batch i =
+            match this with RandomInputsList randomInputsList -> randomInputsList.[i]
+        interface IDisposable
+            with member this.Dispose() =
+                    match this with 
+                        RandomInputsList randomInputsList ->
+                        for randomInputs in randomInputsList do (randomInputs :> IDisposable).Dispose()
+
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
         let grid = dim3(wM / threads.x)
@@ -162,8 +182,19 @@ module CudaTemplates =
                 use c1 = worker.Malloc<float32>(dimWeightsAndBiases)
                 use c2 = worker.Malloc<float32>(dimWeightsAndBiases)
 
-                use hiddenRandoms = worker.Malloc<float32>(dimHiddenUnits)
-                use visibleRandoms = worker.Malloc<float32>(dimVisibleUnits)
+                let makeHiddenRandomRow =
+                    Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
+
+                let makeVisibleRandomRow =
+                    Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
+
+                let preloadedRandoms = [1..batches.Length] |> List.map (fun _ -> 
+                    {
+                        HiddenRandoms1 = Array.init nRows (fun _ -> makeHiddenRandomRow) |> Array.concat |> worker.Malloc;
+                        VisibleRandoms2 = Array.init nRows (fun _ -> makeVisibleRandomRow) |> Array.concat |> worker.Malloc;
+                        HiddenRandoms2 = Array.init nRows (fun _ -> makeHiddenRandomRow) |> Array.concat |> worker.Malloc
+                    }) 
+                use preloadedRandoms = preloadedRandoms |> RandomInputsList
 
                 let threads = dim3(blockSize, blockSize)
 
@@ -187,19 +218,21 @@ module CudaTemplates =
                     
                     use v1 = batches.[i]
 
+                    let randoms = preloadedRandoms.Batch i
+
                     // Perform the forward iteration to populate h1
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
-                    activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr hiddenRandoms.Ptr
+                    activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
                     activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr wHiddenUnitMatrix nRows
 
                     // Perform the backward iteration to populate v2
                     transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
-                    activateKernel.Launch activateVisibleLp v2.Ptr v2.Ptr visibleRandoms.Ptr
+                    activateKernel.Launch activateVisibleLp v2.Ptr v2.Ptr randoms.VisibleRandoms2.Ptr
                     activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
 
                     // Perform the forward iteration to populate h2
                     multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
-                    activateKernel.Launch activateHiddenLp h2.Ptr h2.Ptr hiddenRandoms.Ptr
+                    activateKernel.Launch activateHiddenLp h2.Ptr h2.Ptr randoms.HiddenRandoms2.Ptr
                     activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr wHiddenUnitMatrix nRows
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2

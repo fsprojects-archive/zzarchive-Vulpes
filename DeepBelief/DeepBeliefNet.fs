@@ -127,7 +127,7 @@ module DeepBeliefNet =
             (lhs - rhs).SumOfSquares / (float32 lhs.Width)
     
     type BatchOutputAndInput = BatchOutputAndInput of BatchOutput * InputBatch with
-        static member (*) (BatchOutputAndInput (outputBeforeTransformation, inputBeforeTransformation), BatchOutputAndInput (outputAfterTransformation, inputAfterTransformation)) = 
+        static member GetGradients (BatchOutputAndInput (outputBeforeTransformation, inputBeforeTransformation)) (BatchOutputAndInput (outputAfterTransformation, inputAfterTransformation)) = 
             let product (BatchOutput output) (InputBatch input) = output * input
             (product outputAfterTransformation inputAfterTransformation) - (product outputBeforeTransformation inputBeforeTransformation) |> WeightGradients
 
@@ -153,7 +153,7 @@ module DeepBeliefNet =
 
             let outputAndInputBeforeTransformation = BatchOutputAndInput (h1, v1)
             let outputAndInputAfterTransformation = BatchOutputAndInput (h2, v2)
-            let changes = rbm.ToWeightsAndBiasesChanges.NextChanges weightedLearningRate rbm.Parameters.Momentum (outputAndInputBeforeTransformation * outputAndInputAfterTransformation) 
+            let changes = rbm.ToWeightsAndBiasesChanges.NextChanges weightedLearningRate rbm.Parameters.Momentum (BatchOutputAndInput.GetGradients outputAndInputBeforeTransformation outputAndInputAfterTransformation) 
             let weightsAndBiases = weightsAndBiases.Update changes
             ( 
                 (visibleError, hiddenError),

@@ -41,12 +41,6 @@ module CudaCommon =
         let result = result.Gather() |> Matrix.FromRowMajorFormat wPaddedA 
         result.Submatrix 0 0 hA wA
 
-    type Vector with
-        member this.PadToMultipleOf n =
-            let paddedSize = nextMultipleOf n this.Length
-            let value i (Vector v) = v.[i]
-            Array.init paddedSize (fun i -> if i < this.Length then value i this else 0.0f)
-
     type BinaryVectorOperationKernelSignature = deviceptr<float32> -> deviceptr<float32> -> deviceptr<float32> -> unit
     let binaryVectorOperation blockSize (x : Vector) (y : Vector) (kernel : Kernel<BinaryVectorOperationKernelSignature>) (worker : Worker) =
         let size = x.Length

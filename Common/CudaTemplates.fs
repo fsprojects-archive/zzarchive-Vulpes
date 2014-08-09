@@ -19,6 +19,12 @@ module CudaTemplates =
         static member FromRowMajorFormat width (array : float32[]) = 
             Array2D.init (array.Length / width) width (fun i j -> array.[i * width + j]) |> Matrix
 
+    type Vector with
+        member this.PadToMultipleOf n =
+            let paddedSize = nextMultipleOf n this.Length
+            let value i (Vector v) = v.[i]
+            Array.init paddedSize (fun i -> if i < this.Length then value i this else 0.0f)
+
     type WeightsAndBiases with
         member this.PadToMultiplesOf blockSize =
             match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.PadToMultiplesOf blockSize

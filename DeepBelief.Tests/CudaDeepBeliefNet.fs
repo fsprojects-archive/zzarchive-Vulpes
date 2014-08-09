@@ -13,23 +13,20 @@ open Utils
 open TestUtils
 
 type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()=
-    let sin x = Math.Sin (float x) |> float32
-
-    let rand = new Random()
-    let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 250; 100; 50]
             LearningRate = LearningRate 0.9f
             Momentum = Momentum 0.2f
-            BatchSize = BatchSize 10
+            BatchSize = BatchSize 100
             Epochs = Epochs 1
         }
 
-    let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let xInput (rnd : Random) = Array.init 784 (fun _ -> rnd.NextDouble() |> float32 |> Signal) |> Input
-    let xTarget = Array.init 10 (fun _ -> 0.0f |> float32 |> Signal) |> Target
-    let trainingSet = List.init 1000 (fun _ -> { TrainingInput = xInput rand; TrainingTarget = xTarget }) |> TrainingSet
+    let xInput n = Array.init 784 (fun x -> 
+        let nx = 2.0 * Math.PI * float x * float (n % 10) / 784.0
+        Math.Sin nx |> float32 |> Signal) |> Input
+    let xTarget n = Array.init 10 (fun i -> (if i = n then 1.0f else 0.0f) |> float32 |> Signal) |> Target
+    let trainingSet = List.init 1000 (fun n -> { TrainingInput = xInput n; TrainingTarget = xTarget n }) |> TrainingSet
     let layeredDbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
 
     let weightsAndBiasesMatch (WeightsAndBiases lhs) (WeightsAndBiases rhs) =
@@ -43,11 +40,11 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
         then 0
         else 1
 
-    let networksMatch (lhs : DeepBeliefNetwork) (rhs : DeepBeliefNetwork) =
+    let compareNetworks (lhs : DeepBeliefNetwork) (rhs : DeepBeliefNetwork) =
         Seq.compareWith restrictedBoltzmannMachinesMatch lhs.Machines rhs.Machines
 
     [<Fact>] member test.
         ``The CPU and GPU outputs of a single DBN epoch match.``()=
         let cpuTrainedDbn = layeredDbn.TrainCpu (new Random(0)) trainingSet in
         let gpuTrainedDbn = layeredDbn.TrainGpu (new Random(0)) trainingSet in
-        networksMatch cpuTrainedDbn gpuTrainedDbn |> should equal 0
+        compareNetworks cpuTrainedDbn gpuTrainedDbn |> should equal 0
