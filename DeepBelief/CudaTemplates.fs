@@ -179,20 +179,22 @@ module CudaTemplates =
                 use h1 = worker.Malloc<float32>(dimHiddenUnits)
                 use v2 = worker.Malloc<float32>(dimVisibleUnits)
                 use h2 = worker.Malloc<float32>(dimHiddenUnits)
+                use v1ActivatedForBias = worker.Malloc<float32>(dimVisibleUnits)
+                use h1ActivatedForBias = worker.Malloc<float32>(dimHiddenUnits)
+                use v2ActivatedForBias = worker.Malloc<float32>(dimVisibleUnits)
                 use c1 = worker.Malloc<float32>(dimWeightsAndBiases)
                 use c2 = worker.Malloc<float32>(dimWeightsAndBiases)
 
-                let makeHiddenRandomRow =
+                let makeHiddenRandomRow() =
                     Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
-
-                let makeVisibleRandomRow =
+                let makeVisibleRandomRow() =
                     Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
 
                 let preloadedRandoms = [1..batches.Length] |> List.map (fun _ -> 
                     {
-                        HiddenRandoms1 = Array.init nRows (fun _ -> makeHiddenRandomRow) |> Array.concat |> worker.Malloc;
-                        VisibleRandoms2 = Array.init nRows (fun _ -> makeVisibleRandomRow) |> Array.concat |> worker.Malloc;
-                        HiddenRandoms2 = Array.init nRows (fun _ -> makeHiddenRandomRow) |> Array.concat |> worker.Malloc
+                        HiddenRandoms1 = Array.init nRows (fun _ -> makeHiddenRandomRow()) |> Array.concat |> worker.Malloc;
+                        VisibleRandoms2 = Array.init nRows (fun _ -> makeVisibleRandomRow()) |> Array.concat |> worker.Malloc;
+                        HiddenRandoms2 = Array.init nRows (fun _ -> makeHiddenRandomRow()) |> Array.concat |> worker.Malloc
                     }) 
                 use preloadedRandoms = preloadedRandoms |> RandomInputsList
 
@@ -207,12 +209,6 @@ module CudaTemplates =
                 let computeCValueLp = createMultiplyLp blockSize hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
                 let simpleWeightsLp = createSimpleMatrixOperationLp blockSize hHiddenUnitMatrix wVisibleUnitMatrix
 
-                let rngNumStreams = 1024
-                let rngBlockSize = dim3(32, 8)
-                let rngNumThreadsPerBlock = rngBlockSize.Size
-                let rngGridSize = dim3(rngNumStreams / rngNumThreadsPerBlock)
-                use state0 = Utils.generateStartState 42u |> worker.Malloc
-
                 let numRuns = 3 * batches.Length
                 for i in 0..batches.Length - 1 do
                     
@@ -221,19 +217,19 @@ module CudaTemplates =
                     let randoms = preloadedRandoms.Batch i
 
                     // Perform the forward iteration to populate h1
-                    multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
+                    activateFirstColumnKernel.Launch activateFirstColumnLp v1ActivatedForBias.Ptr v1.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
-                    activateFirstRowKernel.Launch activateFirstRowLp h1.Ptr wHiddenUnitMatrix nRows
 
                     // Perform the backward iteration to populate v2
-                    transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
+                    activateFirstRowKernel.Launch activateFirstRowLp h1ActivatedForBias.Ptr h1.Ptr wHiddenUnitMatrix nRows
+                    transposeAndMultiplyKernel.Launch backwardMatrixLp v2.Ptr h1ActivatedForBias.Ptr weightsAndBiases.Ptr hHiddenUnitMatrix wHiddenUnitMatrix weightsAndBiasesHeight weightsAndBiasesWidth
                     activateKernel.Launch activateVisibleLp v2.Ptr v2.Ptr randoms.VisibleRandoms2.Ptr
-                    activateFirstColumnKernel.Launch activateFirstColumnLp v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
 
                     // Perform the forward iteration to populate h2
-                    multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
+                    activateFirstColumnKernel.Launch activateFirstColumnLp v2ActivatedForBias.Ptr v2.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
+                    multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     activateKernel.Launch activateHiddenLp h2.Ptr h2.Ptr randoms.HiddenRandoms2.Ptr
-                    activateFirstRowKernel.Launch activateFirstRowLp h2.Ptr wHiddenUnitMatrix nRows
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
@@ -248,10 +244,10 @@ module CudaTemplates =
                     // weightsAndBiases -> weightsAndBiases + dWeightsAndBiases
                     addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr weightsAndBiases.Ptr dWeightsAndBiases.Ptr
 
-                let weightsAndBiases = weightsAndBiases.Gather() |> Matrix.FromRowMajorFormat wVisibleUnitMatrix
+                let weightsAndBiases = weightsAndBiases.Gather() |> Matrix.FromRowMajorFormat weightsAndBiasesWidth
                 let wbg = dWeightsAndBiases.Gather()
                 let max = Array.maxBy (fun el -> Math.Abs(el |> float)) (Array.sub wbg 1 (wbg.Length - 1))
-                let dWeightsAndBiases = wbg |> Matrix.FromRowMajorFormat wVisibleUnitMatrix
+                let dWeightsAndBiases = wbg |> Matrix.FromRowMajorFormat weightsAndBiasesWidth
                 let result = RestrictedBoltzmannMachine.FromWeightsAndBiases rbm.Parameters (weightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightsAndBiases) (dWeightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightChanges)
                 result
         ) }

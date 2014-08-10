@@ -24,7 +24,7 @@ module Kernels =
             __syncthreads() @>
 
     let activateFirstRowKernel (blockSize:int) =
-        <@ fun (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
+        <@ fun (result:deviceptr<float32>) (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
             // Block index
             let bx = blockIdx.x
             // Thread index
@@ -32,11 +32,11 @@ module Kernels =
 
             let start = blockSize * bx
             let i = start + tx
-            M.[i] <- if i < nActivations then 1.0f else 0.0f
+            result.[i] <- if i < nActivations then 1.0f else M.[i]
             @>
 
     let activateFirstColumnKernel (blockSize:int) =
-        <@ fun (M:deviceptr<float32>) (hM:int) (wM:int) (nActivations:int) -> 
+        <@ fun (result:deviceptr<float32>) (M:deviceptr<float32>) (hM:int) (wM:int) (nActivations:int) -> 
             // Block index
             let bx = blockIdx.x
             // Thread index
@@ -45,6 +45,5 @@ module Kernels =
             let start = wM * blockSize * bx
             let i = start + wM * tx
             let max = nActivations * wM
-            M.[i] <- if i < max then 1.0f else 0.0f
+            result.[i] <- if i < max then 1.0f else M.[i]
             @>
-

@@ -75,7 +75,7 @@ type ``CUDA Matrix Activation``()=
 
                 use flattenedA = worker.Malloc flattenedA
                 let lp = createActivateFirstRowLp blockSize hPaddedA wPaddedA
-                activateFirstRowKernel.Launch lp flattenedA.Ptr wPaddedA nActivations
+                activateFirstRowKernel.Launch lp flattenedA.Ptr flattenedA.Ptr wPaddedA nActivations
 
                 (flattenedA.Gather() |> Matrix.FromRowMajorFormat wPaddedA).Submatrix 0 0 hA wA
         )
@@ -98,7 +98,7 @@ type ``CUDA Matrix Activation``()=
 
                 use flattenedA = worker.Malloc flattenedA
                 let lp = createActivateFirstColumnLp blockSize hPaddedA wPaddedA
-                activateFirstColumnKernel.Launch lp flattenedA.Ptr hPaddedA wPaddedA nActivations
+                activateFirstColumnKernel.Launch lp flattenedA.Ptr flattenedA.Ptr hPaddedA wPaddedA nActivations
 
                 let result = (flattenedA.Gather() |> Matrix.FromRowMajorFormat wPaddedA).Submatrix 0 0 hA wA
                 result
