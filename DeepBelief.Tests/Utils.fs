@@ -77,10 +77,6 @@ type ``Numerical Utilities``() =
     [<Fact>] member test.
         ``The 1 to 6 array stacks up to M.``() =
             rebuildMatrix 3 2 3 X |> should equal M
-            
-    [<Fact>] member test.
-        ``Permute 10 gives an array of length 10 containing each of the digits 0 to 9.``()=
-        permute rand 10 |> Array.sort |> should equal [|0..9|] 
 
     [<Fact>] member test.
         ``The prependRow function maps M and vb to MWithVisibleBiases.``()=
@@ -126,10 +122,6 @@ type ``Numerical Utilities``() =
 //        ``The multiplyByTranspose function transposes M to Mt and multiplies it by Mt.``()=
 //            multiplyByTranspose M M |> should equal MTimesMt
 //            
-//    [<Fact>] member test.
-//        ``The permuteRows method preserves the dimensions of the batch matrix.``()=
-//        permuteRows rand Mt |> (fun x -> (x.Length, x.[0].Length)) |> should equal (3, 2)
-//
 //    [<Fact>] member test.
 //        ``The proportionOfVisible units function gives 0.2 for the vector [0,1,0,0,0,0,0,1,0,0]``()=
 //            [| 0.0f; 1.0f ;0.0f ;0.0f ;0.0f ;0.0f ;0.0f ;1.0f ;0.0f ;0.0f |] 

@@ -6,6 +6,7 @@ module DeepBeliefNet =
     open Utils
     open Common.Analytics
     open Common.NeuralNet
+    open Common.Utils
     open Backpropagation.Parameters
     open MathNet.Numerics.Distributions
 
@@ -102,15 +103,12 @@ module DeepBeliefNet =
                 Machines = deepBeliefParameters.Layers |> toMachines
             }
 
-    type Random with
-        member this.NextSingle = this.NextDouble() |> float32
-
-    let activate (rnd : Random) (FloatingPointFunction activation) x =
+    let activate (rnd : RandomSingle) (FloatingPointFunction activation) x =
         let exceedsActivationThreshold threshold (Range value) = value > threshold
         x |> Domain |> activation |> exceedsActivationThreshold rnd.NextSingle |> Convert.ToInt32 |> float32
 
     type InputBatch with
-        member this.Activate (rnd : Random) activation =
+        member this.Activate (rnd : RandomSingle) activation =
             match this with InputBatch matrix -> matrix.Map (activate rnd sigmoidFunction) |> InputBatch
         static member FromTrainingExamples (examples : Input list) =
             let h = examples.Length
@@ -121,7 +119,7 @@ module DeepBeliefNet =
             (lhs - rhs).SumOfSquares / (float32 lhs.Height)
 
     type BatchOutput with
-        member this.Activate (rnd : Random) (FloatingPointFunction activation) =
+        member this.Activate (rnd : RandomSingle) (FloatingPointFunction activation) =
             match this with BatchOutput matrix -> matrix.Map (activate rnd sigmoidFunction) |> BatchOutput
         static member Error (BatchOutput lhs) (BatchOutput rhs) =
             (lhs - rhs).SumOfSquares / (float32 lhs.Width)
@@ -132,7 +130,7 @@ module DeepBeliefNet =
             (product outputAfterTransformation inputAfterTransformation) - (product outputBeforeTransformation inputBeforeTransformation) |> WeightGradients
 
     type LayerInputs with
-        member this.GetRandomisedInputBatches (rnd : Random) (BatchSize batchSize) =
+        member this.GetRandomisedInputBatches (rnd : RandomSingle) (BatchSize batchSize) =
             match this with 
                 LayerInputs inputs ->
                     let batches = inputs |> List.sortBy (fun element -> rnd.NextSingle) |> batchesOf batchSize
@@ -159,7 +157,7 @@ module DeepBeliefNet =
                 (visibleError, hiddenError),
                 RestrictedBoltzmannMachine.FromWeightsAndBiases rbm.Parameters weightsAndBiases changes
             )
-        member rbm.RunEpochCpu (rnd : Random) (inputs : LayerInputs) =
+        member rbm.RunEpochCpu (rnd : RandomSingle) (inputs : LayerInputs) =
             let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
             let results = batches |> List.fold(fun acc batch ->
                 let result = acc |> snd |> fun (machine : RestrictedBoltzmannMachine) -> machine.UpdateWeights rnd batch
@@ -184,9 +182,9 @@ module DeepBeliefNet =
             match this with TrainingSet examples -> examples |> List.map (fun example -> example.TrainingInput) |> LayerInputs
 
     type DeepBeliefNetwork with
-        member dbn.TrainCpu rnd (TrainingSet trainingSet) =
-            let firstLayerInputs = trainingSet |> List.map (fun example -> example.TrainingInput) |> LayerInputs
-            let start = dbn.Machines.Head.TrainLayerCpu rnd firstLayerInputs
+        member dbn.TrainCpu rnd (trainingSet : TrainingSet) =
+            let firstLayerInput = trainingSet.ToFirstLayerInput
+            let start = dbn.Machines.Head.TrainLayerCpu rnd firstLayerInput
             {
                 Parameters = dbn.Parameters;
                 Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
@@ -195,6 +193,6 @@ module DeepBeliefNet =
                     let layerInputs = snd currentTuple
                     let nextLayerUp = rbm.NextLayerUpCpu rnd layerInputs
                     let nextRbm = element.TrainLayerCpu rnd nextLayerUp
-                    (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInputs)]
+                    (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInput)]
                     |> List.map fst |> List.rev 
             }

@@ -4,6 +4,7 @@ open Xunit
 open FsUnit.Xunit
 open Common.Analytics
 open Common.NeuralNet
+open Common.Utils
 open DeepBelief
 open DeepBeliefNet
 open System
@@ -22,9 +23,9 @@ type ``Deep Belief Network with four layers and 1 sample running on CPU`` ()=
             Epochs = Epochs 50
         }
 
-    let rand = new Random()
-    let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextDouble() |> float32)
-    let xInput (rnd : Random) = Array.init 784 (fun _ -> rnd.NextDouble() |> float32 |> Signal) |> Input
+    let rand = new RandomSingle(0)
+    let xInputs = Array2D.init 1000 784 (fun _ _ -> rand.NextSingle)
+    let xInput (rnd : RandomSingle) = Array.init 784 (fun _ -> rnd.NextSingle |> Signal) |> Input
     let xTarget = Array.init 10 (fun _ -> 0.0f |> float32 |> Signal) |> Target
     let trainingSet = List.init 1000 (fun _ -> { TrainingInput = xInput rand; TrainingTarget = xTarget }) |> TrainingSet
     let layeredDbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet

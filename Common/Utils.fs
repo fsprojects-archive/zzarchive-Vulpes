@@ -20,3 +20,16 @@ module Utils =
 
     let mapMatrix f M =
         Array2D.init (height M) (width M) (fun i j -> f M.[i, j])
+
+    type RandomSingle(seed) =
+        let random = new Random(seed)
+        let mutable singleIndex = 0
+        let mutable intIndex = 0
+        member this.SingleIndex with get() = singleIndex
+        member this.IntIndex with get() = intIndex
+        member this.NextSingle = 
+            singleIndex <- singleIndex + 1
+            random.NextDouble() |> float32
+        member this.Next = 
+            intIndex <- intIndex + 1
+            random.Next

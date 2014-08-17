@@ -6,6 +6,7 @@ module Main =
     open Backpropagation.CudaSupervisedLearning
     open Backpropagation.Parameters
     open Common.NeuralNet
+    open Common.Utils
     open DeepBelief
     open DeepBeliefNet
     open CudaDeepBeliefNet
@@ -36,7 +37,7 @@ module Main =
         let mnistTrainingData = loadMnistDataSet TrainingData
         let mnistTestData = loadMnistDataSet TestData
 
-        let rnd = new Random()
+        let rnd = new RandomSingle(0)
 
         let trainingSet = mnistTrainingData.ToTrainingSet
         let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet

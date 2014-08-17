@@ -2,6 +2,7 @@
 
 module Analytics =
     open NeuralNet
+    open System
     open System.Threading.Tasks
 
     type Domain = Domain of float32

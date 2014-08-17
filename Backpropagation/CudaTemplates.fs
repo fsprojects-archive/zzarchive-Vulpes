@@ -62,7 +62,7 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) (rnd : Random) -> 
+            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) (rnd : RandomSingle) -> 
                 let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
 
                 let paddedWeights = Ws |> List.map (fun (weightsAndBiases : WeightsAndBiases) -> weightsAndBiases.PrependRowOfZeroes.PadToMultiplesOf blockSize)

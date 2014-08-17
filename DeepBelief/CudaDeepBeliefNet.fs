@@ -33,9 +33,9 @@ module CudaDeepBeliefNet =
             output.Activate rnd sigmoidFunction |> toLayerInput
 
     type DeepBeliefNetwork with
-        member dbn.TrainGpu rnd (TrainingSet trainingSet) =
-            let firstLayerInputs = trainingSet |> List.map (fun example -> example.TrainingInput) |> LayerInputs
-            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInputs
+        member dbn.TrainGpu rnd (trainingSet : TrainingSet) =
+            let firstLayerInput = trainingSet.ToFirstLayerInput
+            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput
             {
                 Parameters = dbn.Parameters;
                 Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
@@ -44,6 +44,6 @@ module CudaDeepBeliefNet =
                     let layerInputs = snd currentTuple
                     let nextLayerUp = rbm.NextLayerUpGpu rnd layerInputs
                     let nextRbm = element.TrainLayerGpu rnd nextLayerUp
-                    (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInputs)]
+                    (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInput)]
                     |> List.map fst |> List.rev 
             }

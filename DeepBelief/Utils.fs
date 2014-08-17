@@ -9,6 +9,7 @@ module Utils =
     open System.Threading.Tasks
     open Alea.CUDA.Utilities
     open Common.Analytics
+    open Common.Utils
 
     let LCG_A = 1664525u
     let LCG_C = 1013904223u
@@ -83,15 +84,6 @@ module Utils =
         Seq.ofList >> Seq.mapi (fun i v -> i / n, v) >>
         Seq.groupBy fst >> Seq.map snd >>
         Seq.map (Seq.map snd >> Seq.toList) >> Seq.toList
-    
-    let nextSingle (rnd : Random) = rnd.NextDouble() |> float32
-
-    let permutation rnd arr =
-        arr |> Array.sortBy (fun element -> nextSingle rnd)
-    let permute rnd n = permutation rnd [|0..(n-1)|]
-    let permuteRows rnd M = 
-        let row i = Array.init (width M) (fun j -> M.[i, j])
-        permute rnd (height M) |> Array.map (fun i -> row i)
 
     let proportionOfVisibleUnits v =
         v |> Array.filter (fun u -> u > 0.5f) |> fun arr -> float32 arr.Length / float32 v.Length
