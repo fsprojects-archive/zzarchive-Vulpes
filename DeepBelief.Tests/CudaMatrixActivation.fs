@@ -148,7 +148,7 @@ type ``CUDA Matrix Activation``()=
     [<InlineData(32)>]
     member test.``The activateFirstRow template activates the top row of a 2 by 4 matrix correctly.``(i)=
         let activateFirstRowProgram = activateFirstRowTemplate i 3 |> Compiler.load Worker.Default in
-        activateFirstRowProgram.Run rnd2By4 |> should equal rnd2By4With3FirstRowActivations
+        activateFirstRowProgram.Run rnd2By4 |> should equal <| Matrix rnd2By4With3FirstRowActivations
 
     [<Theory>]
     [<InlineData(1)>]
@@ -157,7 +157,7 @@ type ``CUDA Matrix Activation``()=
     [<InlineData(32)>]
     member test.``The activateFirstRow template activates the top row of a 4 by 2 matrix correctly.``(i)=
         let activateFirstRowProgram = activateFirstRowTemplate i 3 |> Compiler.load Worker.Default in
-        activateFirstRowProgram.Run rnd4By2 |> should equal rnd4By2With3FirstRowActivations
+        activateFirstRowProgram.Run rnd4By2 |> should equal <| Matrix rnd4By2With3FirstRowActivations
 
     [<Theory>]
     [<InlineData(1)>]
@@ -166,7 +166,7 @@ type ``CUDA Matrix Activation``()=
     [<InlineData(32)>]
     member test.``The activateFirstColumn template activates the left column of a 2 by 4 matrix correctly.``(i)=
         let activateFirstColumnProgram = activateFirstColumnTemplate i 3 |> Compiler.load Worker.Default in
-        activateFirstColumnProgram.Run rnd2By4 |> should equal rnd2By4With3FirstColumnActivations
+        activateFirstColumnProgram.Run rnd2By4 |> should equal <| Matrix rnd2By4With3FirstColumnActivations
 
     [<Theory>]
     [<InlineData(1)>]
@@ -175,6 +175,6 @@ type ``CUDA Matrix Activation``()=
     [<InlineData(32)>]
     member test.``The activateFirstColumn template activates the left column of a 4 by 2 matrix correctly.``(i)=
         let activateFirstColumnProgram = activateFirstColumnTemplate i 3 |> Compiler.load Worker.Default in
-        activateFirstColumnProgram.Run rnd4By2 |> should equal rnd4By2With3FirstColumnActivations
+        activateFirstColumnProgram.Run rnd4By2 |> should equal <| Matrix rnd4By2With3FirstColumnActivations
 
 

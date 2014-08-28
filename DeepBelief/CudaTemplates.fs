@@ -219,6 +219,8 @@ module CudaTemplates =
                     // Perform the forward iteration to populate h1
                     activateFirstColumnKernel.Launch activateFirstColumnLp v1ActivatedForBias.Ptr v1.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
+                    let x = h1.Gather()
+                    let y = weightsAndBiases.Gather()
                     activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
 
                     // Perform the backward iteration to populate v2

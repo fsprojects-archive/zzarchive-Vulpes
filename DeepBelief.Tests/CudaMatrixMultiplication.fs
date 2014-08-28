@@ -85,7 +85,7 @@ type ``CUDA Matrix Multiplication``()=
         fun (A:Matrix) (B:Matrix) ->
 
             let finalHeight = A.Height
-            let finalWidth = B.Height
+            let finalWidth = B.Width
 
             let A = A.PadToMultiplesOf blockSize
             let B = B.PadToMultiplesOf blockSize
@@ -504,8 +504,8 @@ type ``CUDA Matrix Multiplication``()=
     [<InlineData(2)>]
     [<InlineData(32)>]
     member test.``The loadAndMultiplyTemplate multiplies A by B.``(i) =
-        use loadAndMultiplyMatricesBlock1Program = i |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
-        loadAndMultiplyMatricesBlock1Program.Run A B |> should equal C
+        use loadAndMultiplyMatricesProgram = i |> loadAndMultiplyTemplate |> Compiler.load Worker.Default in
+        loadAndMultiplyMatricesProgram.Run A B |> should equal C
 
     [<Theory>]
     [<InlineData(1)>]

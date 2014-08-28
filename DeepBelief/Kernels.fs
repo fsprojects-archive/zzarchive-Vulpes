@@ -32,7 +32,7 @@ module Kernels =
 
             let start = blockSize * bx
             let i = start + tx
-            result.[i] <- if i < nActivations then 1.0f else M.[i]
+            result.[i] <- if i < nActivations then 1.0f else 0.0f
             @>
 
     let activateFirstColumnKernel (blockSize:int) =
@@ -45,5 +45,5 @@ module Kernels =
             let start = wM * blockSize * bx
             let i = start + wM * tx
             let max = nActivations * wM
-            result.[i] <- if i < max then 1.0f else M.[i]
+            result.[i] <- if i < max then 1.0f else 0.0f
             @>
