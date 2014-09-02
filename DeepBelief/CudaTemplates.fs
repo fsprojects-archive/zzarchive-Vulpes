@@ -45,12 +45,12 @@ module CudaTemplates =
 
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
-        let grid = dim3(wM / threads.x)
+        let grid = dim3((hM * wM) / threads.x)
         LaunchParam(grid, threads)
 
     let createActivateFirstColumnLp blockSize hM wM =
         let threads = dim3(blockSize)
-        let grid = dim3(hM / threads.x)
+        let grid = dim3((hM * wM)/ threads.x)
         LaunchParam(grid, threads)
         
     let multiplyTemplate (blockSize:int) = cuda {
@@ -185,10 +185,8 @@ module CudaTemplates =
                 use c1 = worker.Malloc<float32>(dimWeightsAndBiases)
                 use c2 = worker.Malloc<float32>(dimWeightsAndBiases)
 
-                let makeHiddenRandomRow() =
-                    Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
-                let makeVisibleRandomRow() =
-                    Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
+                let makeHiddenRandomRow() = Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
+                let makeVisibleRandomRow() = Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
 
                 let preloadedRandoms = [1..batches.Length] |> List.map (fun _ -> 
                     {
@@ -219,8 +217,6 @@ module CudaTemplates =
                     // Perform the forward iteration to populate h1
                     activateFirstColumnKernel.Launch activateFirstColumnLp v1ActivatedForBias.Ptr v1.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
-                    let x = h1.Gather()
-                    let y = weightsAndBiases.Gather()
                     activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
 
                     // Perform the backward iteration to populate v2

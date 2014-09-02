@@ -89,7 +89,6 @@ module Kernels =
 
     let pointwiseBinaryOperationKernel (blockSize : int) (operation : PointwiseOperation) =
         <@ fun (result : deviceptr<float32>) (lhs : deviceptr<float32>) (rhs : deviceptr<float32>) ->
-
             let i = blockIdx.x * blockSize + threadIdx.x;
             result.[i] <- (%operation) lhs.[i] rhs.[i]
         @>

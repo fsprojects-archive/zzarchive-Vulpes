@@ -13,37 +13,22 @@ module Kernels =
         let strategy = multiplyStrategy blockSize
         <@ fun (result : deviceptr<float32>) (A : deviceptr<float32>) (rnd : deviceptr<float32>) ->
 
-            // Block index
-            let bx = blockIdx.x
-
-            // Thread index
-            let tx = threadIdx.x
-
-            let i = bx * blockSize + tx;
+            let i = blockIdx.x * blockSize + threadIdx.x
             result.[i] <- if (%activationFunction) A.[i] < rnd.[i] then 0.0f else 1.0f
-            __syncthreads() @>
+            @>
 
     let activateFirstRowKernel (blockSize:int) =
         <@ fun (result:deviceptr<float32>) (M:deviceptr<float32>) (wM:int) (nActivations:int) -> 
-            // Block index
-            let bx = blockIdx.x
-            // Thread index
-            let tx = threadIdx.x
-
-            let start = blockSize * bx
-            let i = start + tx
-            result.[i] <- if i < nActivations then 1.0f else 0.0f
+            let i = blockIdx.x * blockSize + threadIdx.x
+            let rowIndex = i / wM
+            let columnIndex = i % wM
+            result.[i] <- if rowIndex = 0 then (if columnIndex < nActivations then 1.0f else 0.0f) else M.[i]
             @>
 
     let activateFirstColumnKernel (blockSize:int) =
         <@ fun (result:deviceptr<float32>) (M:deviceptr<float32>) (hM:int) (wM:int) (nActivations:int) -> 
-            // Block index
-            let bx = blockIdx.x
-            // Thread index
-            let tx = threadIdx.x
-
-            let start = wM * blockSize * bx
-            let i = start + wM * tx
-            let max = nActivations * wM
-            result.[i] <- if i < max then 1.0f else 0.0f
+            let i = blockIdx.x * blockSize + threadIdx.x
+            let rowIndex = i / wM
+            let columnIndex = i % wM
+            result.[i] <- if columnIndex = 0 then (if rowIndex < nActivations then 1.0f else 0.0f) else M.[i]
             @>
