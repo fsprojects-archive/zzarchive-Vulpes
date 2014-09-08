@@ -171,7 +171,6 @@ module DeepBeliefNet =
                 let output = output.Submatrix 1 0 (output.Height - 1) output.Width
                 [0..width - 1] |> List.map (fun j -> output.Column j |> Input.FromVector) |> LayerInputs
             let batch = (inputs.GetRandomisedInputBatches rnd (BatchSize 1)).Head
-            let x = rbm.ToWeightsAndBiases.Forward batch.ActivateFirstColumn
             (rbm.ToWeightsAndBiases.Forward batch.ActivateFirstColumn).Activate rnd sigmoidFunction |> toLayerInput
         member rbm.TrainLayerCpu rnd (inputs : LayerInputs) =
             let runEpochs (Epochs epochs) =

@@ -20,10 +20,11 @@ module CudaTemplates =
             Array2D.init (array.Length / width) width (fun i j -> array.[i * width + j]) |> Matrix
 
     type Vector with
-        member this.PadToMultipleOf n =
+        member this.PadToMultipleOf(n: int, ?padding0: float32) =
+            let padding = defaultArg padding0 0.0f
             let paddedSize = nextMultipleOf n this.Length
             let value i (Vector v) = v.[i]
-            Array.init paddedSize (fun i -> if i < this.Length then value i this else 0.0f)
+            Array.init paddedSize (fun i -> if i < this.Length then value i this else padding)
 
     type WeightsAndBiases with
         member this.PadToMultiplesOf blockSize =

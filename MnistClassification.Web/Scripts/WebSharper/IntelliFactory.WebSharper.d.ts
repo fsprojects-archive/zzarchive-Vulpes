@@ -385,6 +385,9 @@ declare module IntelliFactory {
                     };
                 }, l1: __ABBREV.__List.T<_M1>, l2: __ABBREV.__List.T<_M2>): boolean;
             };
+            var head : {
+                <_M1>(l: __ABBREV.__List.T<_M1>): _M1;
+            };
             var init : {
                 <_M1>(s: number, f: {
                     (x: number): _M1;
@@ -516,6 +519,9 @@ declare module IntelliFactory {
                         (x: _M1): number;
                     };
                 }, l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
+            };
+            var tail : {
+                <_M1>(l: __ABBREV.__List.T<_M1>): __ABBREV.__List.T<_M1>;
             };
             var unzip : {
                 <_M1, _M2>(l: __ABBREV.__List.T<any>): any;
@@ -1164,11 +1170,29 @@ declare module IntelliFactory {
             };
         }
         module IntrinsicFunctionProxy {
+            var BoundsCheck : {
+                <_M1>(arr: _M1[], n: number): void;
+            };
+            var BoundsCheck2D : {
+                <_M1>(arr: any, n1: number, n2: number): void;
+            };
+            var SetArray : {
+                <_M1>(arr: _M1[], n: number, x: _M1): void;
+            };
+            var GetArray : {
+                <_M1>(arr: _M1[], n: number): _M1;
+            };
             var GetArraySub : {
                 <_M1>(arr: _M1[], start: number, len: number): _M1[];
             };
             var SetArraySub : {
                 <_M1>(arr: _M1[], start: number, len: number, src: _M1[]): void;
+            };
+            var GetArray2D : {
+                <_M1>(arr: any, n1: number, n2: number): _M1;
+            };
+            var SetArray2D : {
+                <_M1>(arr: any, n1: number, n2: number, x: _M1): void;
             };
             var Array2DZeroCreate : {
                 <_M1>(n: number, m: number): any;
@@ -1249,15 +1273,15 @@ declare module IntelliFactory {
         }
         interface Char {
         }
-        interface ChoiceProxy11<_T1, _T2> {
+        interface ChoiceProxy21<_T1, _T2> {
         }
-        interface ChoiceProxy3<_T1, _T2, _T3> {
+        interface ChoiceProxy11<_T1, _T2, _T3> {
         }
-        interface ChoiceProxy1<_T1, _T2, _T3, _T4> {
+        interface ChoiceProxy3<_T1, _T2, _T3, _T4> {
         }
-        interface ChoiceProxy2<_T1, _T2, _T3, _T4, _T5> {
+        interface ChoiceProxy1<_T1, _T2, _T3, _T4, _T5> {
         }
-        interface ChoiceProxy4<_T1, _T2, _T3, _T4, _T5, _T6> {
+        interface ChoiceProxy2<_T1, _T2, _T3, _T4, _T5, _T6> {
         }
         interface ChoiceProxy<_T1, _T2, _T3, _T4, _T5, _T6, _T7> {
         }
@@ -1270,6 +1294,8 @@ declare module IntelliFactory {
         interface ExceptionProxy {
         }
         interface MatchFailureExceptionProxy {
+        }
+        interface IndexOutOfRangeExceptionProxy {
         }
         interface IDisposableProxy {
             Dispose(): void;

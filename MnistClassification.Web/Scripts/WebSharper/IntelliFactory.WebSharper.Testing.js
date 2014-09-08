@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,IntrinsicFunctionProxy,Operators,Unchecked,JavaScript,ok,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,IntrinsicFunctionProxy,ok,Unchecked,JavaScript,Testing,Pervasives,TestBuilder,test,Arrays,Random,Math,NaN1,Infinity1,List,String,Seq;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -10,7 +10,7 @@
       {
        var i,i1;
        for(i=0;i<=IntrinsicFunctionProxy.GetLength(gen.Base)-1;i++){
-        attempt(gen.Base[i]);
+        attempt(IntrinsicFunctionProxy.GetArray(gen.Base,i));
        }
        for(i1=1;i1<=times;i1++){
         attempt(gen.Next.call(null,null));
@@ -23,11 +23,11 @@
        try
        {
         f(null);
-        return Operators.FailWith("No exception was thrown.");
+        return ok(false,"Assert raises exception test failed.");
        }
        catch(matchValue)
        {
-        return null;
+        return ok(true,"Pass.");
        }
       }
      },
@@ -225,7 +225,7 @@
         Base:seeds,
         Next:function()
         {
-         return seeds[index.Next.call(null,null)-1];
+         return IntrinsicFunctionProxy.GetArray(seeds,index.Next.call(null,null)-1);
         }
        };
       },
@@ -331,10 +331,9 @@
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
   IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
-  Operators=Runtime.Safe(WebSharper.Operators);
+  ok=Runtime.Safe(Global.ok);
   Unchecked=Runtime.Safe(WebSharper.Unchecked);
   JavaScript=Runtime.Safe(WebSharper.JavaScript);
-  ok=Runtime.Safe(Global.ok);
   Testing=Runtime.Safe(WebSharper.Testing);
   Pervasives=Runtime.Safe(Testing.Pervasives);
   TestBuilder=Runtime.Safe(Pervasives.TestBuilder);

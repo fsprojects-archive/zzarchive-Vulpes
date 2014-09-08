@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Collections,BalancedTree,Operators,Seq,List,T,Arrays,IntrinsicFunctionProxy,Enumerator,JavaScript,DictionaryUtil,Dictionary,Unchecked,FSharpMap,Pair,Option,MapUtil,FSharpSet,SetModule,SetUtil,HashSet,HashSetUtil,HashSet1,ResizeArray,LinkedList,EnumeratorProxy,ListProxy,ResizeArrayProxy;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Collections,BalancedTree,Operators,IntrinsicFunctionProxy,Seq,List,T,Arrays,Enumerator,JavaScript,DictionaryUtil,Dictionary,Unchecked,FSharpMap,Pair,Option,MapUtil,FSharpSet,SetModule,SetUtil,Array,HashSet,HashSetUtil,HashSet1,LinkedList,EnumeratorProxy,ListProxy,ResizeArray,ResizeArrayProxy;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -28,7 +28,7 @@
       },
       Build:function(data,min,max)
       {
-       var center;
+       var center,left,right;
        if(max-min+1<=0)
         {
          return null;
@@ -36,7 +36,9 @@
        else
         {
          center=(min+max)/2>>0;
-         return BalancedTree.Branch(data[center],BalancedTree.Build(data,min,center-1),BalancedTree.Build(data,center+1,max));
+         left=BalancedTree.Build(data,min,center-1);
+         right=BalancedTree.Build(data,center+1,max);
+         return BalancedTree.Branch(IntrinsicFunctionProxy.GetArray(data,center),left,right);
         }
       },
       Contains:function(v,t)
@@ -129,7 +131,7 @@
        };
        t1=t;
        for(i=0;i<=IntrinsicFunctionProxy.GetLength(spine)-1;i++){
-        matchValue=spine[i];
+        matchValue=IntrinsicFunctionProxy.GetArray(spine,i);
         if(matchValue[0])
          {
           x1=matchValue[1];
@@ -594,7 +596,7 @@
        },
        Clear:function()
        {
-        this.data=[];
+        this.data=Array.prototype.constructor.apply(undefined,[].concat([]));
         this.count=0;
         return;
        },
@@ -606,13 +608,11 @@
        },
        CopyTo:function(arr)
        {
-        var i,arr1,idx,item;
+        var i,all,i1;
         i=0;
-        arr1=HashSetUtil.concat(this.data);
-        for(idx=0;idx<=arr1.length-1;idx++){
-         item=arr1[idx];
-         arr[i]=item;
-         i=i+1;
+        all=HashSetUtil.concat(this.data);
+        for(i1=0;i1<=all.length-1;i1++){
+         IntrinsicFunctionProxy.SetArray(arr,i1,all[i1]);
         }
         return;
        },
@@ -632,11 +632,11 @@
        },
        IntersectWith:function(xs)
        {
-        var other,arr,idx,item;
+        var other,all,i,item;
         other=HashSet1.New3(xs,this.equals,this.hash);
-        arr=HashSetUtil.concat(this.data);
-        for(idx=0;idx<=arr.length-1;idx++){
-         item=arr[idx];
+        all=HashSetUtil.concat(this.data);
+        for(i=0;i<=all.length-1;i++){
+         item=all[i];
          if(!other.Contains(item))
           {
            this.Remove(item);
@@ -704,10 +704,10 @@
        },
        RemoveWhere:function(cond)
        {
-        var arr,idx,item;
-        arr=HashSetUtil.concat(this.data);
-        for(idx=0;idx<=arr.length-1;idx++){
-         item=arr[idx];
+        var all,i,item;
+        all=HashSetUtil.concat(this.data);
+        for(i=0;i<=all.length-1;i++){
+         item=all[i];
          if(cond(item))
           {
            this.Remove(item);
@@ -751,7 +751,7 @@
        },
        add:function(item)
        {
-        var h,arr;
+        var h,arr,ps;
         h=this.hash.call(null,item);
         arr=this.data[h];
         if(arr==null)
@@ -768,7 +768,8 @@
            }
           else
            {
-            arr.push(item);
+            ps=[item];
+            arr.push.apply(arr,[].concat(ps));
             this.count=this.count+1;
             return true;
            }
@@ -779,7 +780,7 @@
         var c,i,l;
         c=true;
         i=0;
-        l=IntrinsicFunctionProxy.GetLength(arr);
+        l=arr.length;
         while(c?i<l:false)
          {
           if((this.equals.call(null,arr[i]))(item))
@@ -795,15 +796,17 @@
        },
        arrRemove:function(item,arr)
        {
-        var c,i,l;
+        var c,i,l,start,ps;
         c=true;
         i=0;
-        l=IntrinsicFunctionProxy.GetLength(arr);
+        l=arr.length;
         while(c?i<l:false)
          {
           if((this.equals.call(null,arr[i]))(item))
            {
-            ResizeArray.splice(arr,i,1,[]);
+            start=i;
+            ps=[];
+            arr.splice.apply(arr,[start,1].concat(ps));
             c=false;
            }
           else
@@ -876,7 +879,7 @@
         r=Runtime.New(this,{});
         r.equals=equals;
         r.hash=hash;
-        r.data=[];
+        r.data=Array.prototype.constructor.apply(undefined,[].concat([]));
         r.count=0;
         enumerator=Enumerator.Get(init);
         while(enumerator.MoveNext())
@@ -1406,11 +1409,11 @@
        },
        get_Item:function(x)
        {
-        return this.arr[x];
+        return IntrinsicFunctionProxy.GetArray(this.arr,x);
        },
        set_Item:function(x,v)
        {
-        this.arr[x]=v;
+        return IntrinsicFunctionProxy.SetArray(this.arr,x,v);
        }
       },{
        New:function(arr)
@@ -1483,11 +1486,11 @@
   Collections=Runtime.Safe(WebSharper.Collections);
   BalancedTree=Runtime.Safe(Collections.BalancedTree);
   Operators=Runtime.Safe(WebSharper.Operators);
+  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   Seq=Runtime.Safe(WebSharper.Seq);
   List=Runtime.Safe(WebSharper.List);
   T=Runtime.Safe(List.T);
   Arrays=Runtime.Safe(WebSharper.Arrays);
-  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   Enumerator=Runtime.Safe(WebSharper.Enumerator);
   JavaScript=Runtime.Safe(WebSharper.JavaScript);
   DictionaryUtil=Runtime.Safe(Collections.DictionaryUtil);
@@ -1500,13 +1503,14 @@
   FSharpSet=Runtime.Safe(Collections.FSharpSet);
   SetModule=Runtime.Safe(Collections.SetModule);
   SetUtil=Runtime.Safe(Collections.SetUtil);
+  Array=Runtime.Safe(Global.Array);
   HashSet=Runtime.Safe(Collections.HashSet);
   HashSetUtil=Runtime.Safe(HashSet.HashSetUtil);
   HashSet1=Runtime.Safe(HashSet.HashSet);
-  ResizeArray=Runtime.Safe(Collections.ResizeArray);
   LinkedList=Runtime.Safe(Collections.LinkedList);
   EnumeratorProxy=Runtime.Safe(LinkedList.EnumeratorProxy);
   ListProxy=Runtime.Safe(LinkedList.ListProxy);
+  ResizeArray=Runtime.Safe(Collections.ResizeArray);
   return ResizeArrayProxy=Runtime.Safe(ResizeArray.ResizeArrayProxy);
  });
  Runtime.OnLoad(function()

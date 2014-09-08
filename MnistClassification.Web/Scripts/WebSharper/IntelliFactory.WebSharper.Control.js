@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,List,Arrays,Unchecked,Control,Disposable,IntrinsicFunctionProxy,FSharpEvent,Util,Event,Event1,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,T,ObservableModule,Observer1;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Option,Seq,Unchecked,Control,Disposable,IntrinsicFunctionProxy,FSharpEvent,Util,Event,Event1,Collections,ResizeArray,ResizeArrayProxy,EventModule,HotStream,HotStream1,Observable,Observer,Operators,Observable1,List,T,Observer1;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -17,27 +17,19 @@
       Event:Runtime.Class({
        AddHandler:function(h)
        {
-        return this.Handlers.push(h);
+        return this.Handlers.Add(h);
        },
        RemoveHandler:function(h)
        {
-        var x;
-        x=List.ofArray(Arrays.choose(function(x1)
+        var objectArg;
+        objectArg=this.Handlers;
+        return Option.iter(function(arg00)
         {
-         return x1;
-        },Arrays.mapi(function(i)
+         return objectArg.RemoveAt(arg00);
+        },Seq.tryFindIndex(function(y)
         {
-         return function(x1)
-         {
-          return Unchecked.Equals(x1,h)?{
-           $:1,
-           $0:i
-          }:{
-           $:0
-          };
-         };
-        },this.Handlers)));
-        return x.$==1?this.Handlers.splice(x.$0,1):null;
+         return Unchecked.Equals(h,y);
+        },this.Handlers));
        },
        Subscribe:function(observer)
        {
@@ -54,9 +46,10 @@
        },
        Trigger:function(x)
        {
-        var i;
-        for(i=0;i<=IntrinsicFunctionProxy.GetLength(this.Handlers)-1;i++){
-         this.Handlers[i].call(null,x);
+        var arr,idx;
+        arr=this.Handlers.ToArray();
+        for(idx=0;idx<=arr.length-1;idx++){
+         (IntrinsicFunctionProxy.GetArray(arr,idx))(x);
         }
         return;
        }
@@ -79,7 +72,7 @@
       {
        var r;
        r=Runtime.New(Event1,{
-        Handlers:[]
+        Handlers:ResizeArrayProxy.New1()
        });
        Util.addListener(e,function(x)
        {
@@ -91,7 +84,7 @@
       {
        var r;
        r=Runtime.New(Event1,{
-        Handlers:[]
+        Handlers:ResizeArrayProxy.New1()
        });
        Util.addListener(e,function(x)
        {
@@ -103,7 +96,7 @@
       {
        var r;
        r=Runtime.New(Event1,{
-        Handlers:[]
+        Handlers:ResizeArrayProxy.New1()
        });
        Util.addListener(e1,function(arg00)
        {
@@ -124,7 +117,7 @@
         }
        };
        ev=Runtime.New(Event1,{
-        Handlers:[]
+        Handlers:ResizeArrayProxy.New1()
        });
        Util.addListener(e,function(x)
        {
@@ -200,7 +193,7 @@
        var r;
        r=Runtime.New(this,{});
        r.event=Runtime.New(Event1,{
-        Handlers:[]
+        Handlers:ResizeArrayProxy.New1()
        });
        return r;
       }
@@ -241,19 +234,34 @@
       })
      },
      Observable:{
-      Aggregate:function(io,seed,acc)
+      Aggregate:function(io,seed,fold)
       {
-       return Observable.New(function(o)
+       return Observable.New(function(o1)
        {
         var state;
         state={
          contents:seed
         };
-        return Util.subscribeTo(io,function(value)
+        return io.Subscribe(Observer.New(function(v)
         {
-         state.contents=(acc(state.contents))(value);
-         return o.OnNext(state.contents);
-        });
+         return Observable.Protect(function()
+         {
+          return(fold(state.contents))(v);
+         },function(s)
+         {
+          state.contents=s;
+          return o1.OnNext(s);
+         },function(arg00)
+         {
+          return o1.OnError(arg00);
+         });
+        },function(arg00)
+        {
+         return o1.OnError(arg00);
+        },function()
+        {
+         return o1.OnCompleted();
+        }));
        });
       },
       Choose:function(f,io)
@@ -262,9 +270,21 @@
        {
         return io.Subscribe(Observer.New(function(v)
         {
-         var matchValue;
-         matchValue=f(v);
-         return matchValue.$==0?null:o1.OnNext(matchValue.$0);
+         var action;
+         action=function(arg00)
+         {
+          return o1.OnNext(arg00);
+         };
+         return Observable.Protect(function()
+         {
+          return f(v);
+         },function(option)
+         {
+          return Option.iter(action,option);
+         },function(arg00)
+         {
+          return o1.OnError(arg00);
+         });
         },function(arg00)
         {
          return o1.OnError(arg00);
@@ -291,14 +311,24 @@
         };
         update=function()
         {
-         var matchValue,v2;
+         var matchValue,v1,v2;
          matchValue=[lv1.contents,lv2.contents];
          if(matchValue[0].$==1)
           {
            if(matchValue[1].$==1)
             {
+             v1=matchValue[0].$0;
              v2=matchValue[1].$0;
-             return o.OnNext((f(matchValue[0].$0))(v2));
+             return Observable.Protect(function()
+             {
+              return(f(v1))(v2);
+             },function(arg00)
+             {
+              return o.OnNext(arg00);
+             },function(arg00)
+             {
+              return o.OnError(arg00);
+             });
             }
            else
             {
@@ -402,7 +432,26 @@
        {
         return io.Subscribe(Observer.New(function(v)
         {
-         return f(v)?o1.OnNext(v):null;
+         var action;
+         action=function(arg00)
+         {
+          return o1.OnNext(arg00);
+         };
+         return Observable.Protect(function()
+         {
+          return f(v)?{
+           $:1,
+           $0:v
+          }:{
+           $:0
+          };
+         },function(option)
+         {
+          return Option.iter(action,option);
+         },function(arg00)
+         {
+          return o1.OnError(arg00);
+         });
         },function(arg00)
         {
          return o1.OnError(arg00);
@@ -418,7 +467,16 @@
        {
         return io.Subscribe(Observer.New(function(v)
         {
-         return o1.OnNext(f(v));
+         return Observable.Protect(function()
+         {
+          return f(v);
+         },function(arg00)
+         {
+          return o1.OnNext(arg00);
+         },function(arg00)
+         {
+          return o1.OnError(arg00);
+         });
         },function(arg00)
         {
          return o1.OnError(arg00);
@@ -496,6 +554,25 @@
          return o.OnNext(x);
         }));
        });
+      },
+      Protect:function(f,succeed,fail)
+      {
+       var matchValue,e;
+       try
+       {
+        matchValue={
+         $:0,
+         $0:f(null)
+        };
+       }
+       catch(e)
+       {
+        matchValue={
+         $:1,
+         $0:e
+        };
+       }
+       return matchValue.$==1?fail(matchValue.$0):succeed(matchValue.$0);
       },
       Range:function(start,count)
       {
@@ -610,42 +687,35 @@
      ObservableModule:{
       Pairwise:function(e)
       {
-       var x,collector,source;
-       x=[{
-        $:0
-       },{
-        $:0
-       }];
-       collector=Runtime.Tupled(function(tupledArg)
+       return Observable.New(function(o1)
        {
-        var o;
-        o=tupledArg[1];
-        return function(n)
+        var last;
+        last={
+         contents:{
+          $:0
+         }
+        };
+        return e.Subscribe(Observer.New(function(v)
         {
-         return[o,{
+         var matchValue;
+         matchValue=last.contents;
+         if(matchValue.$==1)
+          {
+           o1.OnNext([matchValue.$0,v]);
+          }
+         last.contents={
           $:1,
-          $0:n
-         }];
-        };
-       });
-       source=((Runtime.Tupled(function(state)
-       {
-        return function(source1)
+          $0:v
+         };
+         return;
+        },function(arg00)
         {
-         return ObservableModule.Scan(collector,state,source1);
-        };
-       }))(x))(e);
-       return Observable.Choose(Runtime.Tupled(function(_arg1)
-       {
-        return _arg1[0].$==1?_arg1[1].$==1?{
-         $:1,
-         $0:[_arg1[0].$0,_arg1[1].$0]
-        }:{
-         $:0
-        }:{
-         $:0
-        };
-       }),source);
+         return o1.OnError(arg00);
+        },function()
+        {
+         return o1.OnCompleted();
+        }));
+       });
       },
       Partition:function(f,e)
       {
@@ -656,15 +726,33 @@
       },
       Scan:function(fold,seed,e)
       {
-       var state;
-       state={
-        contents:seed
-       };
-       return Observable.Map(function(value)
+       return Observable.New(function(o1)
        {
-        state.contents=(fold(state.contents))(value);
-        return state.contents;
-       },e);
+        var state;
+        state={
+         contents:seed
+        };
+        return e.Subscribe(Observer.New(function(v)
+        {
+         return Observable.Protect(function()
+         {
+          return(fold(state.contents))(v);
+         },function(s)
+         {
+          state.contents=s;
+          return o1.OnNext(s);
+         },function(arg00)
+         {
+          return o1.OnError(arg00);
+         });
+        },function(arg00)
+        {
+         return o1.OnError(arg00);
+        },function()
+        {
+         return o1.OnCompleted();
+        }));
+       });
       },
       Split:function(f,e)
       {
@@ -741,8 +829,8 @@
  Runtime.OnInit(function()
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
-  List=Runtime.Safe(WebSharper.List);
-  Arrays=Runtime.Safe(WebSharper.Arrays);
+  Option=Runtime.Safe(WebSharper.Option);
+  Seq=Runtime.Safe(WebSharper.Seq);
   Unchecked=Runtime.Safe(WebSharper.Unchecked);
   Control=Runtime.Safe(WebSharper.Control);
   Disposable=Runtime.Safe(Control.Disposable);
@@ -751,6 +839,9 @@
   Util=Runtime.Safe(WebSharper.Util);
   Event=Runtime.Safe(Control.Event);
   Event1=Runtime.Safe(Event.Event);
+  Collections=Runtime.Safe(WebSharper.Collections);
+  ResizeArray=Runtime.Safe(Collections.ResizeArray);
+  ResizeArrayProxy=Runtime.Safe(ResizeArray.ResizeArrayProxy);
   EventModule=Runtime.Safe(Control.EventModule);
   HotStream=Runtime.Safe(Control.HotStream);
   HotStream1=Runtime.Safe(HotStream.HotStream);
@@ -758,8 +849,8 @@
   Observer=Runtime.Safe(Control.Observer);
   Operators=Runtime.Safe(WebSharper.Operators);
   Observable1=Runtime.Safe(Observable.Observable);
+  List=Runtime.Safe(WebSharper.List);
   T=Runtime.Safe(List.T);
-  ObservableModule=Runtime.Safe(Control.ObservableModule);
   return Observer1=Runtime.Safe(Observer.Observer);
  });
  Runtime.OnLoad(function()

@@ -3,7 +3,7 @@ declare module IntelliFactory {
         module Testing {
             module Assert {
                 var Raises : {
-                    <_M1>(f: {
+                    (f: {
                         (): void;
                     }): void;
                 };

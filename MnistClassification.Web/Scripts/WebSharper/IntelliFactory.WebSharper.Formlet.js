@@ -1,6 +1,6 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Formlet,Body,Controls,Html,Default,List,Data,Reactive,HotStream,Formlet1,Base,Result,T,Operators,jQuery,EventsPervasives,Formlet2,Operators1,CssConstants,Math,Seq,Utils,Tree,Edit,Form,Arrays,FormletProvider,Formlet3,Util,LayoutProvider,LayoutUtils,Reactive1,Validator,ValidatorProvidor,RegExp,Collections,Dictionary,ElementStore,Enhance,FormButtonConfiguration,FormContainerConfiguration,Padding,ManyConfiguration,ValidationFrameConfiguration,ValidationIconConfiguration,JSON,FormletBuilder,Layout,FormRowConfiguration,LabelConfiguration,Padding1,Enumerator;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Formlet,Body,Controls,Html,Default,List,Data,Reactive,HotStream,Formlet1,Base,Result,T,Operators,jQuery,EventsPervasives,Formlet2,Operators1,CssConstants,Math,Seq,Utils,Tree,Edit,Form,Arrays,IntrinsicFunctionProxy,FormletProvider,Formlet3,Util,LayoutProvider,LayoutUtils,Reactive1,Validator,ValidatorProvidor,RegExp,Collections,Dictionary,ElementStore,Enhance,FormButtonConfiguration,FormContainerConfiguration,Padding,ManyConfiguration,ValidationFrameConfiguration,ValidationIconConfiguration,JSON,FormletBuilder,Layout,FormRowConfiguration,LabelConfiguration,Padding1,Enumerator;
  Runtime.Define(Global,{
   IntelliFactory:{
    WebSharper:{
@@ -438,7 +438,7 @@
         body=readOnly?Operators.add(select,List.ofArray([Default.Attr().NewAttr("disabled","disabled")])):select;
         sValue=Runtime.New(Result,{
          $:0,
-         $0:aVls[sIx]
+         $0:IntrinsicFunctionProxy.GetArray(aVls,sIx)
         });
         state=HotStream.New(sValue);
         reset=function()
@@ -451,7 +451,7 @@
         {
          return!readOnly?state.Trigger(Runtime.New(Result,{
           $:0,
-          $0:aVls[body.get_Value()<<0]
+          $0:IntrinsicFunctionProxy.GetArray(aVls,body.get_Value()<<0)
          })):null;
         };
         EventsPervasives.Events().OnChange(arg00,body);
@@ -2456,6 +2456,7 @@
   Edit=Runtime.Safe(Tree.Edit);
   Form=Runtime.Safe(Base.Form);
   Arrays=Runtime.Safe(WebSharper.Arrays);
+  IntrinsicFunctionProxy=Runtime.Safe(WebSharper.IntrinsicFunctionProxy);
   FormletProvider=Runtime.Safe(Base.FormletProvider);
   Formlet3=Runtime.Safe(Data.Formlet);
   Util=Runtime.Safe(WebSharper.Util);

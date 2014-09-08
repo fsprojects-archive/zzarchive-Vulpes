@@ -11,10 +11,6 @@ module CudaDeepBeliefNet =
     open Common.Utils
     open Utils
 
-    type Matrix with
-        member this.Transpose =
-            match this with Matrix matrix -> Array2D.init (width matrix) (height matrix) (fun j i -> matrix.[i, j]) |> Matrix
-
     type RestrictedBoltzmannMachine with
         member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) =
             use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default

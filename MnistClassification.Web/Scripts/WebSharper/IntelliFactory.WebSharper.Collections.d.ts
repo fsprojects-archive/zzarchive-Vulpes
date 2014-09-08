@@ -22,8 +22,8 @@ declare module IntelliFactory {
                     SetEquals(xs: __ABBREV.__WebSharper.seq<_T1>): boolean;
                     SymmetricExceptWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
                     UnionWith(xs: __ABBREV.__WebSharper.seq<_T1>): void;
-                    arrContains(item: _T1, arr: _T1[]): boolean;
-                    arrRemove(item: _T1, arr: _T1[]): boolean;
+                    arrContains(item: _T1, arr: __ABBREV.__EcmaScript.Array<_T1>): boolean;
+                    arrRemove(item: _T1, arr: __ABBREV.__EcmaScript.Array<_T1>): boolean;
                     add(item: _T1): boolean;
                     get_Count(): number;
                 }
@@ -244,6 +244,7 @@ declare module IntelliFactory {
 declare module __ABBREV {
     
     export import __WebSharper = IntelliFactory.WebSharper;
+    export import __EcmaScript = IntelliFactory.WebSharper.EcmaScript;
     export import __LinkedList = IntelliFactory.WebSharper.Collections.LinkedList;
     export import __ResizeArray = IntelliFactory.WebSharper.Collections.ResizeArray;
     export import __Collections = IntelliFactory.WebSharper.Collections;

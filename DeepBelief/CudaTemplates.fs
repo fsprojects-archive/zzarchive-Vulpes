@@ -14,6 +14,10 @@ module CudaTemplates =
     open Common.Utils
     open Utils
 
+    type Matrix with
+        member this.Transpose =
+            match this with Matrix matrix -> Array2D.init (width matrix) (height matrix) (fun j i -> matrix.[i, j]) |> Matrix
+
     type InputBatch with
         member this.PadToMultiplesOf blockSize =
             match this with InputBatch inputBatch -> inputBatch.PadToMultiplesOf blockSize |> InputBatch
@@ -185,15 +189,19 @@ module CudaTemplates =
                 use c1 = worker.Malloc<float32>(dimWeightsAndBiases)
                 use c2 = worker.Malloc<float32>(dimWeightsAndBiases)
 
-                let makeHiddenRandomRow() = Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
-                let makeVisibleRandomRow() = Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf blockSize
+                let makeHiddenRandomRow() = Array.init (nHidden + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
+                let makeVisibleRandomRow() = Array.init (nVisible + 1) (fun _ -> rnd.NextSingle) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
+                let makeEmptyHiddenRow() = Array.init (nHidden + 1) (fun _ -> 1.0f) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
+                let makeEmptyVisibleRow() = Array.init (nVisible + 1) (fun _ -> 1.0f) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
 
+                let paddedColumns = nHidden + 1 |> nextMultipleOf blockSize
+                let paddedRows = nRows |> nextMultipleOf blockSize
                 let preloadedRandoms = [1..batches.Length] |> List.map (fun _ -> 
                     {
-                        HiddenRandoms1 = Array.init nRows (fun _ -> makeHiddenRandomRow()) |> Array.concat |> worker.Malloc;
-                        VisibleRandoms2 = Array.init nRows (fun _ -> makeVisibleRandomRow()) |> Array.concat |> worker.Malloc;
-                        HiddenRandoms2 = Array.init nRows (fun _ -> makeHiddenRandomRow()) |> Array.concat |> worker.Malloc
-                    }) 
+                        HiddenRandoms1 = Array.init paddedRows (fun r -> if r < nRows then makeHiddenRandomRow() else makeEmptyHiddenRow()) |> array2D |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc;
+                        VisibleRandoms2 = Array.init paddedRows (fun r -> if r < nRows then makeVisibleRandomRow() else makeEmptyVisibleRow()) |> Array.concat |> worker.Malloc;
+                        HiddenRandoms2 = Array.init paddedRows (fun r -> if r < nRows then makeHiddenRandomRow() else makeEmptyHiddenRow()) |> array2D |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc
+                    })
                 use preloadedRandoms = preloadedRandoms |> RandomInputsList
 
                 let threads = dim3(blockSize, blockSize)
@@ -218,6 +226,8 @@ module CudaTemplates =
                     activateFirstColumnKernel.Launch activateFirstColumnLp v1ActivatedForBias.Ptr v1.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
+                    let r = randoms.HiddenRandoms1.Gather() |> Matrix.FromRowMajorFormat wHiddenUnitMatrix
+                    let h = h1.Gather() |> Matrix.FromRowMajorFormat wHiddenUnitMatrix
 
                     // Perform the backward iteration to populate v2
                     activateFirstRowKernel.Launch activateFirstRowLp h1ActivatedForBias.Ptr h1.Ptr wHiddenUnitMatrix nRows
