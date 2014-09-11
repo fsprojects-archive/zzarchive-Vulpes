@@ -194,13 +194,14 @@ module CudaTemplates =
                 let makeEmptyHiddenRow() = Array.init (nHidden + 1) (fun _ -> 1.0f) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
                 let makeEmptyVisibleRow() = Array.init (nVisible + 1) (fun _ -> 1.0f) |> Vector |> fun v -> v.PadToMultipleOf(blockSize, 1.0f)
 
-                let paddedColumns = nHidden + 1 |> nextMultipleOf blockSize
+                let paddedHiddenColumns = nHidden + 1 |> nextMultipleOf blockSize
+                let paddedVisibleColumns = nVisible + 1 |> nextMultipleOf blockSize
                 let paddedRows = nRows |> nextMultipleOf blockSize
                 let preloadedRandoms = [1..batches.Length] |> List.map (fun _ -> 
                     {
-                        HiddenRandoms1 = Array.init paddedRows (fun r -> if r < nRows then makeHiddenRandomRow() else makeEmptyHiddenRow()) |> array2D |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc;
-                        VisibleRandoms2 = Array.init paddedRows (fun r -> if r < nRows then makeVisibleRandomRow() else makeEmptyVisibleRow()) |> Array.concat |> worker.Malloc;
-                        HiddenRandoms2 = Array.init paddedRows (fun r -> if r < nRows then makeHiddenRandomRow() else makeEmptyHiddenRow()) |> array2D |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc
+                        HiddenRandoms1 = Array2D.init paddedRows paddedHiddenColumns (fun i j -> if i < nRows && j <= nHidden then rnd.NextSingle else 1.0f) |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc;
+                        VisibleRandoms2 = Array2D.init paddedRows paddedVisibleColumns (fun i j -> if i < nRows && j <= nVisible then rnd.NextSingle else 1.0f) |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc;
+                        HiddenRandoms2 = Array2D.init paddedRows paddedHiddenColumns (fun i j -> if i < nRows && j <= nHidden then rnd.NextSingle else 1.0f) |> Matrix |> fun m -> m.Transpose.ToRowMajorFormat |> worker.Malloc
                     })
                 use preloadedRandoms = preloadedRandoms |> RandomInputsList
 
@@ -226,8 +227,6 @@ module CudaTemplates =
                     activateFirstColumnKernel.Launch activateFirstColumnLp v1ActivatedForBias.Ptr v1.Ptr hVisibleUnitMatrix wVisibleUnitMatrix nCols
                     multiplyByTransposeKernel.Launch forwardMatrixLp h1.Ptr weightsAndBiases.Ptr v1ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     activateKernel.Launch activateHiddenLp h1.Ptr h1.Ptr randoms.HiddenRandoms1.Ptr
-                    let r = randoms.HiddenRandoms1.Gather() |> Matrix.FromRowMajorFormat wHiddenUnitMatrix
-                    let h = h1.Gather() |> Matrix.FromRowMajorFormat wHiddenUnitMatrix
 
                     // Perform the backward iteration to populate v2
                     activateFirstRowKernel.Launch activateFirstRowLp h1ActivatedForBias.Ptr h1.Ptr wHiddenUnitMatrix nRows

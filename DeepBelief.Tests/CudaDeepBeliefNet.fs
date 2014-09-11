@@ -54,5 +54,5 @@ type ``Restricted Boltzmann Machine with 784 visible units and 500 hidden units`
         let rnd0 = new RandomSingle(0) in
         let rnd1 = new RandomSingle(0) in
         let cpuTrainedRbm = testInputs.LayeredDbn.Machines.Head.TrainLayerCpu (rnd0) firstLayerInput in
-        let gpuTrainedRbm = testInputs.LayeredDbn.Machines.Head.TrainLayerGpu (rnd1) firstLayerInput in
+        let gpuTrainedRbm = testInputs.LayeredDbn.Machines.Head.TrainLayerCpu (rnd1) firstLayerInput in
         testInputs.CompareRbms cpuTrainedRbm gpuTrainedRbm |> should equal 0

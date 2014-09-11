@@ -20,7 +20,7 @@ module Main =
             LearningRate = LearningRate 0.9f
             Momentum = Momentum 0.2f
             BatchSize = BatchSize 200
-            Epochs = Epochs 10
+            Epochs = Epochs 1//0
         }
 
     // Fine tuning parameters
@@ -28,7 +28,7 @@ module Main =
         {
             BackPropagationParameters.LearningRate = ScaledLearningRate 0.8f
             Momentum = Momentum 0.25f
-            Epochs = Epochs 10
+            Epochs = Epochs 1//0
         }
 
     [<EntryPoint>]
