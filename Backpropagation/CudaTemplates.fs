@@ -32,6 +32,8 @@ module CudaTemplates =
             match this with Target target -> Signal 1.0f :: List.ofArray target |> Array.ofList |> Target
         member this.PadToMultipleOf n =
             match this with Target target -> padToMultipleOf n target
+        member this.Dimension =
+            match this with Target target -> target.Length
 
     type WeightsAndBiases with
         member this.Height = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Height
@@ -170,7 +172,7 @@ module CudaTemplates =
                         coerceKernel.Launch (coerceLp maxIndex) outputs.[j].Ptr minIndex maxIndex 0.0f
 
                     let finalOutput = outputs.[N].Gather()
-                    testOutputs <- Array.append testOutputs [|(Array.sub finalOutput 1 testSet.[i].TestInput.Dimension)|]
+                    testOutputs <- Array.append testOutputs [|(Array.sub finalOutput 1 testSet.[i].TestTarget.Dimension)|]
 
                 testOutputs 
                 |> Array.map (fun output -> output |> Array.map (fun value -> Signal value) |> Output)
