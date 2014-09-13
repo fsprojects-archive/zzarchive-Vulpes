@@ -125,6 +125,16 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
+    <ProjectReference Include="..\Common\Common.fsproj">
+      <Name>Common</Name>
+      <Project>{2c3c4ae2-a531-4fdf-8d3b-4dd746af97ff}</Project>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\DeepBelief\DeepBelief.fsproj">
+      <Name>DeepBelief</Name>
+      <Project>{f223ebc5-05a0-40fe-8559-3dc79bc6dd0d}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\MnistClassification\MnistClassification.fsproj">
       <Name>MnistClassification</Name>
       <Project>{f4f50893-a044-490f-bd48-b06fa62c323b}</Project>
