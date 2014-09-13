@@ -8,7 +8,7 @@ open IntelliFactory.WebSharper.Sitelets.Http
 type Action =
     | Home
     | About
-    | TrainingSet
+    | Mnist
     | TrainingData
 
 module Controls =
@@ -19,7 +19,7 @@ module Controls =
 
         [<JavaScript>]
         override __.Body =
-            Client.Main() :> _
+            Client.MnistControls() :> _
 
 module Skin =
     open System.Web
@@ -51,14 +51,17 @@ module Site =
         UL [
             LI ["Home" => ctx.Link Home]
             LI ["About" => ctx.Link About]
-            LI ["Training Set" => ctx.Link TrainingSet]
+            LI ["MNIST" => ctx.Link Mnist]
+        ]
+
+    let TrainingSet (ctx: Context<Action>) =
+        Div [
         ]
 
     let HomePage =
         Skin.WithTemplate "HomePage" <| fun ctx ->
             [
                 Div [Text "HOME"]
-                Div [new Controls.EntryPoint()]
                 Links ctx
             ]
 
@@ -69,10 +72,11 @@ module Site =
                 Links ctx
             ]
 
-    let TrainingSetPage =
-        Skin.WithTemplate "TrainingSetPage" <| fun ctx ->
+    let MnistPage =
+        Skin.WithTemplate "MnistPage" <| fun ctx ->
             [
-                Div [Text "TRAINING SET"]
+                Div [Text "MNIST DATASET"]
+                Div [new Controls.EntryPoint()]
                 Links ctx
             ]
 
@@ -90,14 +94,14 @@ module Site =
         Sitelet.Sum [
             Sitelet.Content "/" Home HomePage
             Sitelet.Content "/About" About AboutPage
-            Sitelet.Content "/TrainingSet" TrainingSet TrainingSetPage
+            Sitelet.Content "/TrainingSet" Mnist MnistPage
         ]
 
 [<Sealed>]
 type Website() =
     interface IWebsite<Action> with
         member this.Sitelet = Site.Main
-        member this.Actions = [Home; About; TrainingSet]
+        member this.Actions = [Home; About; Mnist]
 
 type Global() =
     inherit System.Web.HttpApplication()

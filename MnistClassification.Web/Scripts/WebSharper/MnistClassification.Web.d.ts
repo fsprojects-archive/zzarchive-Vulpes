@@ -19,11 +19,11 @@ declare module MnistClassification {
                 Left: number;
             }
             var Start : {
-                (input: string, k: {
+                (k: {
                     (x: string): void;
                 }): void;
             };
-            var Main : {
+            var MnistControls : {
                 (): __ABBREV.__Html.Element;
             };
             var TrainingSet : {

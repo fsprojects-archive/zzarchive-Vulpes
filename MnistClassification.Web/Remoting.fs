@@ -14,9 +14,9 @@ module Remoting =
 
     let pageKey page = "td" + page
     let readers = dict [ ("mnist-classification", fun () -> loadMnistDataSet TrainingData) ]
-    let (|?) lhs rhs = (if lhs = null then rhs else lhs)
+    let imageSets = new ConcurrentDictionary<string, Lazy<ImageSet>>()
 
-    let readImageSet (imageSets : ConcurrentDictionary<string, Lazy<ImageSet>>) key =
+    let readImageSet key =
         let lazyImageSet = imageSets.GetOrAdd(key, (fun k -> new Lazy<ImageSet>(readers.[k])))
         lazyImageSet.Value
 
@@ -26,9 +26,8 @@ module Remoting =
         imageSets
 
     [<Remote>]
-    let TrainingData page =
+    let LoadMnistDataSet() =
         async {
-            let imageSets = HttpContext.Current.Cache.Get <| "imagesets" :?> ConcurrentDictionary<string, Lazy<ImageSet>> |? getCachedImageSets()
-            let mnist = readImageSet imageSets "mnist-classification"
-            return "You said: " + page
+            let mnist = readImageSet "mnist-classification"
+            return "MNIST dataset loaded."
         }

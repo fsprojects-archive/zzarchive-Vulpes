@@ -12,24 +12,21 @@ module Client =
     [<Inline "G_vmlCanvasManager.initElement($elem)">]
     let Initialize (elem: CanvasElement) : unit = ()
 
-    let Start input k =
+    let Start k =
         async {
-            let! data = Remoting.TrainingData input
+            let! data = Remoting.LoadMnistDataSet()
             return k data
         }
         |> Async.Start
 
-    let Main () =
-
-        let input = Input [Text ""]
+    let MnistControls () =
         let label = Div [Text ""]
         Div [
-            input
+            Button [Text "Train MNIST Dataset"]
+            |>! OnClick (fun x y ->
+                label.Text <- "Fetching training set."
+                Start (fun out -> label.Text <- out))
             label
-            Button [Text "Click"]
-            |>! OnClick (fun _ _ ->
-                Start input.Value (fun out ->
-                    label.Text <- out))
         ]
 
     type Margin =

@@ -5,30 +5,30 @@
   MnistClassification:{
    Web:{
     Client:{
-     Main:function()
+     MnistControls:function()
      {
-      var input,label,x,arg00;
-      input=Default.Input(List.ofArray([Default.Text("")]));
+      var label,x,arg00;
       label=Default.Div(List.ofArray([Default.Text("")]));
-      x=Default.Button(List.ofArray([Default.Text("Click")]));
+      x=Default.Button(List.ofArray([Default.Text("Train MNIST Dataset")]));
       arg00=function()
       {
        return function()
        {
-        return Client.Start(input.get_Value(),function(out)
+        label.set_Text("Fetching training set.");
+        return Client.Start(function(out)
         {
          return label.set_Text(out);
         });
        };
       };
       EventsPervasives.Events().OnClick(arg00,x);
-      return Default.Div(List.ofArray([input,label,x]));
+      return Default.Div(List.ofArray([x,label]));
      },
-     Start:function(input,k)
+     Start:function(k)
      {
       return Concurrency.Start(Concurrency.Delay(function()
       {
-       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[input]),function(arg101)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[]),function(arg101)
        {
         return Concurrency.Return(k(arg101));
        });
@@ -81,7 +81,7 @@
      EntryPoint:Runtime.Class({
       get_Body:function()
       {
-       return Client.Main();
+       return Client.MnistControls();
       }
      })
     }
