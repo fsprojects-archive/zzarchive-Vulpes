@@ -18,7 +18,12 @@ declare module MnistClassification {
                 Bottom: number;
                 Left: number;
             }
-            var Start : {
+            var LoadMnist : {
+                (k: {
+                    (x: string): void;
+                }): void;
+            };
+            var TrainMnistUnsupervised : {
                 (k: {
                     (x: string): void;
                 }): void;

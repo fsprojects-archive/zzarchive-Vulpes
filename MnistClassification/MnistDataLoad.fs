@@ -88,13 +88,13 @@ module MnistDataLoad =
 
         let imageFile = 
             match dataSet with
-            | TrainingData -> @"train-images.idx3-ubyte"
-            | TestData -> @"t10k-images.idx3-ubyte"
+            | TrainingData -> @"C:\Data\train-images.idx3-ubyte"
+            | TestData -> @"C:\Data\t10k-images.idx3-ubyte"
 
         let labelFile = 
             match dataSet with
-            | TrainingData -> @"train-labels.idx1-ubyte"
-            | TestData -> @"t10k-labels.idx1-ubyte"
+            | TrainingData -> @"C:\Data\train-labels.idx1-ubyte"
+            | TestData -> @"C:\Data\t10k-labels.idx1-ubyte"
 
         let images = loadMnistImages imageFile
         let labels = loadMnistLabels labelFile

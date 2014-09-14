@@ -1,34 +1,53 @@
 (function()
 {
- var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,Concurrency,Remoting,HTML5,T,Unchecked,G_vmlCanvasManager,Operators;
+ var Global=this,Runtime=this.IntelliFactory.Runtime,WebSharper,Concurrency,Remoting,Html,Default,List,MnistClassification,Web,Client,EventsPervasives,HTML5,T,Unchecked,G_vmlCanvasManager,Operators;
  Runtime.Define(Global,{
   MnistClassification:{
    Web:{
     Client:{
+     LoadMnist:function(k)
+     {
+      return Concurrency.Start(Concurrency.Delay(function()
+      {
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[]),function(arg101)
+       {
+        return Concurrency.Return(k(arg101));
+       });
+      }));
+     },
      MnistControls:function()
      {
-      var label,x,arg00;
+      var label,progress,learningRateInput,momentumInput,batchSizeInput,epochsInput,x,arg00;
       label=Default.Div(List.ofArray([Default.Text("")]));
+      progress=Default.Div(List.ofArray([Default.Text("")]));
+      learningRateInput=Default.Input(List.ofArray([Default.Attr().NewAttr("type","number"),Default.Attr().NewAttr("value","0.9"),Default.Attr().NewAttr("min","0.0"),Default.Attr().NewAttr("max","1.0"),Default.Attr().NewAttr("step","0.01")]));
+      momentumInput=Default.Input(List.ofArray([Default.Attr().NewAttr("type","number"),Default.Attr().NewAttr("value","0.1"),Default.Attr().NewAttr("min","0.0"),Default.Attr().NewAttr("max","1.0"),Default.Attr().NewAttr("step","0.01")]));
+      batchSizeInput=Default.Input(List.ofArray([Default.Attr().NewAttr("type","number"),Default.Attr().NewAttr("value","100")]));
+      epochsInput=Default.Input(List.ofArray([Default.Attr().NewAttr("type","number"),Default.Attr().NewAttr("value","10"),Default.Attr().NewAttr("min","1"),Default.Attr().NewAttr("max","50")]));
       x=Default.Button(List.ofArray([Default.Text("Train MNIST Dataset")]));
       arg00=function()
       {
        return function()
        {
         label.set_Text("Fetching training set.");
-        return Client.Start(function(out)
+        return Client.LoadMnist(function(out)
         {
-         return label.set_Text(out);
+         label.set_Text(out+" Starting unsupervised training.");
+         return Client.TrainMnistUnsupervised(function(msg)
+         {
+          return label.set_Text(msg);
+         });
         });
        };
       };
       EventsPervasives.Events().OnClick(arg00,x);
-      return Default.Div(List.ofArray([x,label]));
+      return Default.Div(List.ofArray([Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Learning Rate")])),Default.Span(List.ofArray([learningRateInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Momentum")])),Default.Span(List.ofArray([momentumInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Batch Size")])),Default.Span(List.ofArray([batchSizeInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Number of Epochs")])),Default.Span(List.ofArray([epochsInput]))])),x,label,progress]));
      },
-     Start:function(k)
+     TrainMnistUnsupervised:function(k)
      {
       return Concurrency.Start(Concurrency.Delay(function()
       {
-       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[]),function(arg101)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:1",[List.ofArray([500,300,150,60,10]),0.899999976158142,0.200000002980232,100,10]),function(arg101)
        {
         return Concurrency.Return(k(arg101));
        });
@@ -91,6 +110,8 @@
  Runtime.OnInit(function()
  {
   WebSharper=Runtime.Safe(Global.IntelliFactory.WebSharper);
+  Concurrency=Runtime.Safe(WebSharper.Concurrency);
+  Remoting=Runtime.Safe(WebSharper.Remoting);
   Html=Runtime.Safe(WebSharper.Html);
   Default=Runtime.Safe(Html.Default);
   List=Runtime.Safe(WebSharper.List);
@@ -98,8 +119,6 @@
   Web=Runtime.Safe(MnistClassification.Web);
   Client=Runtime.Safe(Web.Client);
   EventsPervasives=Runtime.Safe(Html.EventsPervasives);
-  Concurrency=Runtime.Safe(WebSharper.Concurrency);
-  Remoting=Runtime.Safe(WebSharper.Remoting);
   HTML5=Runtime.Safe(Default.HTML5);
   T=Runtime.Safe(List.T);
   Unchecked=Runtime.Safe(WebSharper.Unchecked);

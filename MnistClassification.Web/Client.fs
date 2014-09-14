@@ -12,21 +12,54 @@ module Client =
     [<Inline "G_vmlCanvasManager.initElement($elem)">]
     let Initialize (elem: CanvasElement) : unit = ()
 
-    let Start k =
+    let LoadMnist k =
         async {
             let! data = Remoting.LoadMnistDataSet()
             return k data
         }
         |> Async.Start
 
+    let TrainMnistUnsupervised learningRate momentum batchSize epochs k =
+        let learningRate = System.Single.Parse learningRate
+        let momentum = System.Single.Parse momentum
+        async {
+            let! data = Remoting.TrainMnistUnsupervised [500; 300; 150; 60; 10] learningRate momentum batchSize epochs
+            return k data
+        }
+        |> Async.Start
+
     let MnistControls () =
         let label = Div [Text ""]
+        let progress = Div [Text ""]
+        let learningRateInput = Input [Attr.Type "number"; Attr.Value "0.9"; Attr.NewAttr "min" "0.0"; Attr.NewAttr "max" "1.0"; Attr.NewAttr "step" "0.01"]
+        let momentumInput = Input [Attr.Type "number"; Attr.Value "0.1"; Attr.NewAttr "min" "0.0"; Attr.NewAttr "max" "1.0"; Attr.NewAttr "step" "0.01" ]
+        let batchSizeInput = Input [Attr.Type "number"; Attr.Value "100"]
+        let epochsInput = Input [Attr.Type "number"; Attr.Value "10"; Attr.NewAttr "min" "1"; Attr.NewAttr "max" "50"]
         Div [
+            Div [
+                Span [Text "Learning Rate"]
+                Span [learningRateInput]
+            ]
+            Div [
+                Span [Text "Momentum"]
+                Span [momentumInput]
+            ]
+            Div [
+                Span [Text "Batch Size"]
+                Span [batchSizeInput]
+            ]
+            Div [
+                Span [Text "Number of Epochs"]
+                Span [epochsInput]
+            ]
             Button [Text "Train MNIST Dataset"]
             |>! OnClick (fun x y ->
                 label.Text <- "Fetching training set."
-                Start (fun out -> label.Text <- out))
+                LoadMnist (fun out -> 
+                    label.Text <- out + " Starting unsupervised training."
+                    TrainMnistUnsupervised learningRateInput.Value momentumInput.Value batchSizeInput.Value epochsInput.Value (fun msg -> label.Text <- msg)))
             label
+            progress
         ]
 
     type Margin =
