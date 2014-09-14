@@ -125,6 +125,11 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Web" />
+    <ProjectReference Include="..\Backpropagation\Backpropagation.fsproj">
+      <Name>Backpropagation</Name>
+      <Project>{2157c4bb-5753-4fea-b25c-4a4a07191af3}</Project>
+      <Private>True</Private>
+    </ProjectReference>
     <ProjectReference Include="..\Common\Common.fsproj">
       <Name>Common</Name>
       <Project>{2c3c4ae2-a531-4fdf-8d3b-4dd746af97ff}</Project>

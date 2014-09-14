@@ -41,7 +41,7 @@ module Main =
 
         let trainingSet = mnistTrainingData.ToTrainingSet
         let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
-        let trainedDbn = dbn.TrainGpu rnd trainingSet
+        let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore)
 
         let backPropagationNetwork = trainedDbn.ToBackPropagationNetwork backPropagationParameters
         let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet

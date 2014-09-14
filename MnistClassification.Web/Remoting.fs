@@ -11,6 +11,7 @@ module Remoting =
     open Common.NeuralNet
     open Common.Utils
     open DeepBelief.DeepBeliefNet
+    open DeepBelief.CudaDeepBeliefNet
     open DeepBelief.ImageClassification
     open MnistClassification.MnistDataLoad
     open System.Net.Sockets
@@ -68,7 +69,7 @@ module Remoting =
             let mnist = readImageSet "mnist-classification"
             let rnd = new RandomSingle(0)
             let trainingSet = mnist.ToTrainingSet
-            let ws = WebSocket("ws://localhost:9998/updateweights")
-            // ws.Send "Hello"
+            let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
+            let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore)
             return "Unsupervised training started."
         }

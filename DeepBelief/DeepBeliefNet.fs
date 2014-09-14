@@ -107,6 +107,8 @@ module DeepBeliefNet =
         let exceedsActivationThreshold threshold (Range value) = value > threshold
         x |> Domain |> activation |> exceedsActivationThreshold rnd.NextSingle |> Convert.ToInt32 |> float32
 
+    type SampleFrequency = SampleFrequency of int
+
     type InputBatch with
         member this.Activate (rnd : RandomSingle) activation =
             match this with InputBatch matrix -> matrix.Map (activate rnd sigmoidFunction) |> InputBatch

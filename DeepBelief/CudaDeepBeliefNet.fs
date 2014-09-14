@@ -12,10 +12,10 @@ module CudaDeepBeliefNet =
     open Utils
 
     type RestrictedBoltzmannMachine with
-        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) =
+        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (sampleFrequency : SampleFrequency) callback =
             use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
             let epochs = match rbm.Parameters.Epochs with Epochs e -> e
-            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs) rbm
+            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency callback) rbm
         member rbm.NextLayerUpGpu rnd (layerInputs : LayerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
@@ -29,9 +29,9 @@ module CudaDeepBeliefNet =
             output.Activate rnd sigmoidFunction |> toLayerInput
 
     type DeepBeliefNetwork with
-        member dbn.TrainGpu rnd (trainingSet : TrainingSet) =
+        member dbn.TrainGpu rnd (trainingSet : TrainingSet) sampleFrequency callback =
             let firstLayerInput = trainingSet.ToFirstLayerInput
-            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput
+            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput sampleFrequency callback
             {
                 Parameters = dbn.Parameters;
                 Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
@@ -39,7 +39,7 @@ module CudaDeepBeliefNet =
                     let rbm : RestrictedBoltzmannMachine = fst currentTuple
                     let layerInputs = snd currentTuple
                     let nextLayerUp = rbm.NextLayerUpGpu rnd layerInputs
-                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp
+                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp sampleFrequency callback
                     (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInput)]
                     |> List.map fst |> List.rev 
             }
