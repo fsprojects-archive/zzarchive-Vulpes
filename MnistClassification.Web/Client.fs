@@ -22,6 +22,8 @@ module Client =
     let TrainMnistUnsupervised learningRate momentum batchSize epochs k =
         let learningRate = System.Single.Parse learningRate
         let momentum = System.Single.Parse momentum
+        let batchSize = System.Int32.Parse batchSize
+        let epochs = System.Int32.Parse epochs
         async {
             let! data = Remoting.TrainMnistUnsupervised [500; 300; 150; 60; 10] learningRate momentum batchSize epochs
             return k data
