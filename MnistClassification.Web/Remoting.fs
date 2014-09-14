@@ -52,6 +52,10 @@ module Remoting =
 
     [<Remote>]
     let TrainMnistUnsupervised layerSizes learningRate momentum batchSize epochs =
+        let learningRate = System.Single.Parse learningRate
+        let momentum = System.Single.Parse momentum
+        let batchSize = System.Int32.Parse batchSize
+        let epochs = System.Int32.Parse epochs
         let dbnParameters = 
             {
                 Layers = LayerSizes layerSizes

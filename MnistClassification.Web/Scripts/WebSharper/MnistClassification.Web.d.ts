@@ -24,7 +24,7 @@ declare module MnistClassification {
                 }): void;
             };
             var TrainMnistUnsupervised : {
-                (k: {
+                (learningRate: string, momentum: string, batchSize: string, epochs: string, k: {
                     (x: string): void;
                 }): void;
             };
