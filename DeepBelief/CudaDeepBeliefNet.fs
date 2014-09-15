@@ -15,14 +15,14 @@ module CudaDeepBeliefNet =
         member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (sampleFrequency : SampleFrequency) callback =
             use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
             let epochs = match rbm.Parameters.Epochs with Epochs e -> e
-            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency callback) rbm
-        member rbm.NextLayerUpGpu rnd (layerInputs : LayerInputs) =
+            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency i callback) rbm
+        member rbm.NextLayerUpGpu rnd (LayerInputs layerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
                 let output = output.Submatrix 1 0 (output.Height - 1) output.Width
                 [0..width - 1] |> List.map (fun j -> output.Column j |> Input.FromVector) |> LayerInputs
             use multiplyProgram = 32 |> multiplyTemplate |> Compiler.load Worker.Default
-            let batch = (layerInputs.GetRandomisedInputBatches rnd (BatchSize 1)).Head.ActivateFirstColumn
+            let batch = (InputBatch.FromTrainingExamples layerInputs).ActivateFirstColumn
             let xInputs = match batch with InputBatch inputBatch -> inputBatch
             let weightsAndBiases = match rbm.ToWeightsAndBiases with WeightsAndBiases wb -> wb
             let output = multiplyProgram.Run xInputs weightsAndBiases.Transpose |> BatchOutput

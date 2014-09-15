@@ -50,7 +50,7 @@ module Remoting =
             let rnd = new RandomSingle(0)
             let trainingSet = mnist.ToTrainingSet
             let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
-            dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore) |> ignore
+            dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun errorReport -> errorReport |> ignore) |> ignore
         }
 
     [<Remote>]

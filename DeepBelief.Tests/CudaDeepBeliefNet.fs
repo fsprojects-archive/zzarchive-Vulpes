@@ -42,7 +42,7 @@ type ``Deep Belief Network with four layers and 1000 samples running on GPU`` ()
     [<Fact>] member test.
         ``The CPU and GPU outputs of a single DBN epoch match.``()=
         let cpuTrainedDbn = testInputs.LayeredDbn.TrainCpu (new RandomSingle(0)) testInputs.TrainingSet in
-        let gpuTrainedDbn = testInputs.LayeredDbn.TrainGpu (new RandomSingle(0)) testInputs.TrainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore) in
+        let gpuTrainedDbn = testInputs.LayeredDbn.TrainGpu (new RandomSingle(0)) testInputs.TrainingSet (SampleFrequency 50) (fun errorReport -> errorReport |> ignore) in
         testInputs.CompareDbns cpuTrainedDbn gpuTrainedDbn |> should equal 0
 
 type ``Restricted Boltzmann Machine with 784 visible units and 500 hidden units``()=

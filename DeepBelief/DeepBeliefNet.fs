@@ -39,6 +39,13 @@ module DeepBeliefNet =
         Parameters : DeepBeliefParameters
         Machines : RestrictedBoltzmannMachine list
     }
+    
+    type ErrorReport = {
+        EpochIndex : int
+        BatchIndex : int
+        H1 : Matrix
+        H2 : Matrix
+    }
 
     type WeightsAndBiases with
         static member FromRbm (rbm : RestrictedBoltzmannMachine) =
@@ -115,8 +122,10 @@ module DeepBeliefNet =
         static member FromTrainingExamples (examples : Input list) =
             let h = examples.Length
             let w = examples.Head.Size
-            let inputValue j (Input input) = match input.[j] with Signal signal -> signal
-            Array2D.init h w (fun i j -> examples.[i] |> inputValue j) |> Matrix |> fun matrix -> matrix.PrependColumnOfOnes |> InputBatch
+            let value (Signal signal) = signal
+            let inputValue j (Input input) = value input.[j]
+            let array = examples |> List.map (fun (Input example) -> example |> Array.map (fun (Signal signal) -> signal)) |> Array.ofList |> array2D
+            array |> Matrix |> fun matrix -> matrix.PrependColumnOfOnes |> InputBatch
         static member Error (InputBatch lhs) (InputBatch rhs) =
             (lhs - rhs).SumOfSquares / (float32 lhs.Height)
 

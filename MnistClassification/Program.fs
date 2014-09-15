@@ -5,6 +5,7 @@ module Main =
     open System
     open Backpropagation.CudaSupervisedLearning
     open Backpropagation.Parameters
+    open Common.Analytics
     open Common.NeuralNet
     open Common.Utils
     open DeepBelief
@@ -18,9 +19,9 @@ module Main =
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
             LearningRate = LearningRate 0.9f
-            Momentum = Momentum 0.2f
+            Momentum = Momentum 0.1f
             BatchSize = BatchSize 200
-            Epochs = Epochs 10
+            Epochs = Epochs 2
         }
 
     // Fine tuning parameters
@@ -28,7 +29,7 @@ module Main =
         {
             BackPropagationParameters.LearningRate = ScaledLearningRate 0.8f
             Momentum = Momentum 0.25f
-            Epochs = Epochs 1//0
+            Epochs = Epochs 10
         }
 
     [<EntryPoint>]
@@ -39,9 +40,13 @@ module Main =
 
         let rnd = new RandomSingle(0)
 
+        let writeErrorReport (errorReport : ErrorReport) =
+            let diff = errorReport.H1 - errorReport.H2
+            Console.WriteLine("Epoch {0}, Batch {1}, Error {2}", errorReport.EpochIndex, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
+
         let trainingSet = mnistTrainingData.ToTrainingSet
         let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
-        let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore)
+        let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 10) (fun errorReport -> writeErrorReport errorReport)
 
         let backPropagationNetwork = trainedDbn.ToBackPropagationNetwork backPropagationParameters
         let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet

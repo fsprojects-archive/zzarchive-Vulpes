@@ -148,7 +148,7 @@ module CudaTemplates =
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
-            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (SampleFrequency sampleFrequency) callback -> 
+            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (SampleFrequency sampleFrequency) epochIndex callback -> 
                 let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
                 let nRows = batches.Head.Size
                 let nCols = batches.Head.Dimension
@@ -220,7 +220,6 @@ module CudaTemplates =
                 for i in 0..batches.Length - 1 do
 
                     use v1 = batches.[i]
-
                     let randoms = preloadedRandoms.Batch i
 
                     // Perform the forward iteration to populate h1
@@ -241,7 +240,14 @@ module CudaTemplates =
                     if i % sampleFrequency = 0 then
                         let h1Sample = (h1.Gather() |> (Matrix.FromRowMajorFormat paddedHiddenColumns)).Submatrix 0 0 nRows (nHidden + 1)
                         let h2Sample = (h2.Gather() |> (Matrix.FromRowMajorFormat paddedHiddenColumns)).Submatrix 0 0 nRows (nHidden + 1)
-                        callback h1Sample h2Sample
+                        let errorReport = 
+                            {
+                                EpochIndex = epochIndex
+                                BatchIndex = i
+                                H1 = h1Sample
+                                H2 = h2Sample
+                            }
+                        callback errorReport
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix

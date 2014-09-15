@@ -23,7 +23,8 @@ module NeuralNet =
     and Input = Input of Signal[] with
         member this.Size = match this with Input signals -> signals.Length
 
-    and LayerInputs = LayerInputs of Input list
+    and LayerInputs = LayerInputs of Input list with
+        member this.Count = match this with LayerInputs inputs -> inputs.Length
 
     and TrainingExample = { TrainingInput : Input; TrainingTarget : Target } 
 
