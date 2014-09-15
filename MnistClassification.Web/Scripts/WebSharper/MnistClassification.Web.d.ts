@@ -19,11 +19,6 @@ declare module MnistClassification {
                 Left: number;
             }
             var LoadMnist : {
-                (k: {
-                    (x: string): void;
-                }): void;
-            };
-            var TrainMnistUnsupervised : {
                 (learningRate: string, momentum: string, batchSize: string, epochs: string, k: {
                     (x: string): void;
                 }): void;
@@ -34,6 +29,14 @@ declare module MnistClassification {
             var TrainingSet : {
                 (): __ABBREV.__Html.Element;
             };
+        }
+        module Remoting {
+            interface SampleError {
+                EpochIndex: number;
+                BatchIndex: number;
+                Time: number;
+                Value: number;
+            }
         }
         interface Action {
         }

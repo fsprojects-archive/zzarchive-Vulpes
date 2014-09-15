@@ -27,49 +27,46 @@ module Remoting =
         let lazyImageSet = imageSets.GetOrAdd(key, (fun k -> new Lazy<ImageSet>(readers.[k])))
         lazyImageSet.Value
 
-    [<Remote>]
-    let LoadMnistDataSet() =
-        async {
-            let mnist = readImageSet "mnist-classification"
-            return "MNIST dataset loaded."
-        }
+    type SampleError = {
+        EpochIndex : int
+        BatchIndex : int
+        Time : int
+        Value : float32
+    }
 
-//    [<Rpc>]
-//    let Poll (time: int) =
-//        let s = State.Get()
-//        s.Cleanup ()
-//        lock State.Lock (
-//            fun () ->
-//                s.Users.[auth.Name] <- DateTime.Now
-//        )
-//        let m =
-//            [|
-//                for m in s.Messages do
-//                    if m.Time > time then
-//                        yield m
-//            |]
-//        let u = [| for u in s.Users -> u.Key |]
-//        async { return (!s.Time, m, u) }
+    let sampleErrors = new ConcurrentQueue<SampleError>()
 
-    [<Remote>]
-    let TrainMnistUnsupervised layerSizes learningRate momentum batchSize epochs =
-        let learningRate = System.Single.Parse learningRate
-        let momentum = System.Single.Parse momentum
-        let batchSize = System.Int32.Parse batchSize
-        let epochs = System.Int32.Parse epochs
-        let dbnParameters = 
-            {
-                Layers = LayerSizes layerSizes
-                LearningRate = LearningRate learningRate
-                Momentum = Momentum momentum
-                BatchSize = BatchSize batchSize
-                Epochs = Epochs epochs
-            }
+    let TrainDbn layerSizes learningRate momentum batchSize epochs =
         async {
+            let dbnParameters = 
+                {
+                    Layers = LayerSizes layerSizes
+                    LearningRate = LearningRate learningRate
+                    Momentum = Momentum momentum
+                    BatchSize = BatchSize batchSize
+                    Epochs = Epochs epochs
+                }
             let mnist = readImageSet "mnist-classification"
             let rnd = new RandomSingle(0)
             let trainingSet = mnist.ToTrainingSet
             let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
-            let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore)
+            dbn.TrainGpu rnd trainingSet (SampleFrequency 50) (fun h1 h2 -> h1 |> ignore) |> ignore
+        }
+
+    [<Remote>]
+    let TrainMnist(learningRate, momentum, batchSize, epochs) =
+        async {
+            let layerSizes = [500; 300; 150; 60; 10]
+            let learningRate = System.Single.Parse learningRate
+            let momentum = System.Single.Parse momentum
+            let batchSize = System.Int32.Parse batchSize
+            let epochs = System.Int32.Parse epochs
+            TrainDbn layerSizes learningRate momentum batchSize epochs |> Async.Start 
             return "Unsupervised training started."
+        }
+
+    [<Rpc>]
+    let Poll (time: int) =
+        async {
+            return [| for se in sampleErrors do if se.Time > time then yield se |]
         }

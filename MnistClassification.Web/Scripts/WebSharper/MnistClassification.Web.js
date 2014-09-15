@@ -5,11 +5,11 @@
   MnistClassification:{
    Web:{
     Client:{
-     LoadMnist:function(k)
+     LoadMnist:function(learningRate,momentum,batchSize,epochs,k)
      {
       return Concurrency.Start(Concurrency.Delay(function()
       {
-       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[]),function(arg101)
+       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:0",[learningRate,momentum,batchSize,epochs]),function(arg101)
        {
         return Concurrency.Return(k(arg101));
        });
@@ -30,28 +30,14 @@
        return function()
        {
         label.set_Text("Fetching training set.");
-        return Client.LoadMnist(function(out)
+        return Client.LoadMnist(learningRateInput.get_Value(),momentumInput.get_Value(),batchSizeInput.get_Value(),epochsInput.get_Value(),function(out)
         {
-         label.set_Text(out+" Starting unsupervised training.");
-         return Client.TrainMnistUnsupervised(learningRateInput.get_Value(),momentumInput.get_Value(),batchSizeInput.get_Value(),epochsInput.get_Value(),function(msg)
-         {
-          return label.set_Text(msg);
-         });
+         return label.set_Text(out+" Started unsupervised training.");
         });
        };
       };
       EventsPervasives.Events().OnClick(arg00,x);
       return Default.Div(List.ofArray([Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Learning Rate")])),Default.Span(List.ofArray([learningRateInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Momentum")])),Default.Span(List.ofArray([momentumInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Batch Size")])),Default.Span(List.ofArray([batchSizeInput]))])),Default.Div(List.ofArray([Default.Span(List.ofArray([Default.Text("Number of Epochs")])),Default.Span(List.ofArray([epochsInput]))])),x,label,progress]));
-     },
-     TrainMnistUnsupervised:function(learningRate,momentum,batchSize,epochs,k)
-     {
-      return Concurrency.Start(Concurrency.Delay(function()
-      {
-       return Concurrency.Bind(Remoting.Async("MnistClassification.Web:1",[List.ofArray([500,300,150,60,10]),learningRate,momentum,batchSize,epochs]),function(arg101)
-       {
-        return Concurrency.Return(k(arg101));
-       });
-      }));
      },
      TrainingSet:function()
      {

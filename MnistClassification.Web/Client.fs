@@ -12,16 +12,9 @@ module Client =
     [<Inline "G_vmlCanvasManager.initElement($elem)">]
     let Initialize (elem: CanvasElement) : unit = ()
 
-    let LoadMnist k =
+    let LoadMnist learningRate momentum batchSize epochs k =
         async {
-            let! data = Remoting.LoadMnistDataSet()
-            return k data
-        }
-        |> Async.Start
-
-    let TrainMnistUnsupervised learningRate momentum batchSize epochs k =
-        async {
-            let! data = Remoting.TrainMnistUnsupervised [500; 300; 150; 60; 10] learningRate momentum batchSize epochs
+            let! data = Remoting.TrainMnist(learningRate, momentum, batchSize, epochs)
             return k data
         }
         |> Async.Start
@@ -53,9 +46,8 @@ module Client =
             Button [Text "Train MNIST Dataset"]
             |>! OnClick (fun x y ->
                 label.Text <- "Fetching training set."
-                LoadMnist (fun out -> 
-                    label.Text <- out + " Starting unsupervised training."
-                    TrainMnistUnsupervised learningRateInput.Value momentumInput.Value batchSizeInput.Value epochsInput.Value (fun msg -> label.Text <- msg)))
+                LoadMnist learningRateInput.Value momentumInput.Value batchSizeInput.Value epochsInput.Value (fun out -> 
+                    label.Text <- out + " Started unsupervised training."))
             label
             progress
         ]
