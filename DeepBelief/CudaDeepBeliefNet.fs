@@ -12,15 +12,15 @@ module CudaDeepBeliefNet =
     open Utils
 
     type RestrictedBoltzmannMachine with
-        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (sampleFrequency : SampleFrequency) callback =
+        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (sampleFrequency : SampleFrequency) layerIndex =
             use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
             let epochs = match rbm.Parameters.Epochs with Epochs e -> e
-            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency i callback) rbm
+            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency layerIndex i) rbm// callback) rbm
         member rbm.NextLayerUpGpu rnd (LayerInputs layerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
-                let output = output.Submatrix 1 0 (output.Height - 1) output.Width
-                [0..width - 1] |> List.map (fun j -> output.Column j |> Input.FromVector) |> LayerInputs
+                let output = output.Submatrix 0 1 output.Height (output.Width - 1)
+                [0..output.Height - 1] |> List.map (fun i -> output.Row i |> Input.FromVector) |> LayerInputs
             use multiplyProgram = 32 |> multiplyTemplate |> Compiler.load Worker.Default
             let batch = (InputBatch.FromTrainingExamples layerInputs).ActivateFirstColumn
             let xInputs = match batch with InputBatch inputBatch -> inputBatch
@@ -29,17 +29,19 @@ module CudaDeepBeliefNet =
             output.Activate rnd sigmoidFunction |> toLayerInput
 
     type DeepBeliefNetwork with
-        member dbn.TrainGpu rnd (trainingSet : TrainingSet) sampleFrequency callback =
+        member dbn.TrainGpu rnd (trainingSet : TrainingSet) sampleFrequency =
             let firstLayerInput = trainingSet.ToFirstLayerInput
-            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput sampleFrequency callback
+            let layerIndex = ref 1
+            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput sampleFrequency layerIndex.Value
             {
                 Parameters = dbn.Parameters;
-                Machines = dbn.Machines.Tail |> List.fold(fun acc element -> 
+                Machines = dbn.Machines.Tail |> List.fold (fun acc element -> 
+                    incr layerIndex
                     let currentTuple = List.head acc
                     let rbm : RestrictedBoltzmannMachine = fst currentTuple
                     let layerInputs = snd currentTuple
                     let nextLayerUp = rbm.NextLayerUpGpu rnd layerInputs
-                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp sampleFrequency callback
+                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp sampleFrequency layerIndex.Value
                     (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInput)]
                     |> List.map fst |> List.rev 
             }

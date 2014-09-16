@@ -41,6 +41,7 @@ module DeepBeliefNet =
     }
     
     type ErrorReport = {
+        LayerIndex : int
         EpochIndex : int
         BatchIndex : int
         H1 : Matrix

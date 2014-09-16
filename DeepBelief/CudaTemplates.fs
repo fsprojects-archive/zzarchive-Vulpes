@@ -47,6 +47,10 @@ module CudaTemplates =
                         RandomInputsList randomInputsList ->
                         for randomInputs in randomInputsList do (randomInputs :> IDisposable).Dispose()
 
+    let writeErrorReport (errorReport : ErrorReport) =
+        let diff = errorReport.H1 - errorReport.H2
+        Console.WriteLine("Layer {0}, Epoch {1}, Batch {2}, Error {3}", errorReport.LayerIndex, errorReport.EpochIndex, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
+
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
         let grid = dim3((hM * wM) / threads.x)
@@ -148,7 +152,7 @@ module CudaTemplates =
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
-            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (SampleFrequency sampleFrequency) epochIndex callback -> 
+            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (SampleFrequency sampleFrequency) layerIndex epochIndex ->
                 let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
                 let nRows = batches.Head.Size
                 let nCols = batches.Head.Dimension
@@ -242,12 +246,13 @@ module CudaTemplates =
                         let h2Sample = (h2.Gather() |> (Matrix.FromRowMajorFormat paddedHiddenColumns)).Submatrix 0 0 nRows (nHidden + 1)
                         let errorReport = 
                             {
+                                LayerIndex = layerIndex
                                 EpochIndex = epochIndex
                                 BatchIndex = i
                                 H1 = h1Sample
                                 H2 = h2Sample
                             }
-                        callback errorReport
+                        writeErrorReport errorReport
 
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix

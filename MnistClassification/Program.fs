@@ -18,10 +18,10 @@ module Main =
     let dbnParameters = 
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
-            LearningRate = LearningRate 0.9f
-            Momentum = Momentum 0.1f
-            BatchSize = BatchSize 200
-            Epochs = Epochs 2
+            LearningRate = LearningRate 0.8f
+            Momentum = Momentum 0.2f
+            BatchSize = BatchSize 100
+            Epochs = Epochs 6
         }
 
     // Fine tuning parameters
@@ -40,13 +40,9 @@ module Main =
 
         let rnd = new RandomSingle(0)
 
-        let writeErrorReport (errorReport : ErrorReport) =
-            let diff = errorReport.H1 - errorReport.H2
-            Console.WriteLine("Epoch {0}, Batch {1}, Error {2}", errorReport.EpochIndex, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
-
         let trainingSet = mnistTrainingData.ToTrainingSet
         let dbn = DeepBeliefNetwork.Initialise dbnParameters trainingSet
-        let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 10) (fun errorReport -> writeErrorReport errorReport)
+        let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 10)
 
         let backPropagationNetwork = trainedDbn.ToBackPropagationNetwork backPropagationParameters
         let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet
