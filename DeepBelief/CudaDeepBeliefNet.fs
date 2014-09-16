@@ -12,10 +12,10 @@ module CudaDeepBeliefNet =
     open Utils
 
     type RestrictedBoltzmannMachine with
-        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (sampleFrequency : SampleFrequency) layerIndex =
+        member rbm.TrainLayerGpu rnd (layerInputs : LayerInputs) (SampleFrequency sampleFrequency) (LayerIndex layerIndex) =
             use cudaRbmEpochProgram = 32 |> trainRbmEpochTemplate |> Compiler.load Worker.Default
             let epochs = match rbm.Parameters.Epochs with Epochs e -> e
-            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs sampleFrequency layerIndex i) rbm// callback) rbm
+            [1..epochs] |> List.fold(fun acc i -> cudaRbmEpochProgram.Run rnd acc layerInputs { SampleEvery = sampleFrequency; Layer = layerIndex; Epoch = i }) rbm
         member rbm.NextLayerUpGpu rnd (LayerInputs layerInputs) =
             let toLayerInput (BatchOutput output) =
                 let width = output.Width
@@ -32,7 +32,7 @@ module CudaDeepBeliefNet =
         member dbn.TrainGpu rnd (trainingSet : TrainingSet) sampleFrequency =
             let firstLayerInput = trainingSet.ToFirstLayerInput
             let layerIndex = ref 1
-            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput sampleFrequency layerIndex.Value
+            let start = dbn.Machines.Head.TrainLayerGpu rnd firstLayerInput sampleFrequency (LayerIndex layerIndex.Value)
             {
                 Parameters = dbn.Parameters;
                 Machines = dbn.Machines.Tail |> List.fold (fun acc element -> 
@@ -41,7 +41,7 @@ module CudaDeepBeliefNet =
                     let rbm : RestrictedBoltzmannMachine = fst currentTuple
                     let layerInputs = snd currentTuple
                     let nextLayerUp = rbm.NextLayerUpGpu rnd layerInputs
-                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp sampleFrequency layerIndex.Value
+                    let nextRbm = element.TrainLayerGpu rnd nextLayerUp sampleFrequency (LayerIndex layerIndex.Value)
                     (nextRbm, nextLayerUp) :: acc) [(start, firstLayerInput)]
                     |> List.map fst |> List.rev 
             }

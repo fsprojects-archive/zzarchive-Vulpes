@@ -39,13 +39,18 @@ module DeepBeliefNet =
         Parameters : DeepBeliefParameters
         Machines : RestrictedBoltzmannMachine list
     }
+
+    type EpochParameters = {
+        SampleEvery : int;
+        Layer : int;
+        Epoch : int
+    }
     
     type ErrorReport = {
-        LayerIndex : int
-        EpochIndex : int
+        Epoch : EpochParameters
         BatchIndex : int
-        H1 : Matrix
-        H2 : Matrix
+        C1 : Matrix
+        C2 : Matrix
     }
 
     type WeightsAndBiases with
@@ -116,6 +121,8 @@ module DeepBeliefNet =
         x |> Domain |> activation |> exceedsActivationThreshold rnd.NextSingle |> Convert.ToInt32 |> float32
 
     type SampleFrequency = SampleFrequency of int
+
+    type LayerIndex = LayerIndex of int
 
     type InputBatch with
         member this.Activate (rnd : RandomSingle) activation =

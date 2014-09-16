@@ -19,9 +19,9 @@ module Main =
         {
             Layers = LayerSizes [500; 300; 150; 60; 10]
             LearningRate = LearningRate 0.8f
-            Momentum = Momentum 0.2f
+            Momentum = Momentum 0.1f
             BatchSize = BatchSize 100
-            Epochs = Epochs 6
+            Epochs = Epochs 10
         }
 
     // Fine tuning parameters

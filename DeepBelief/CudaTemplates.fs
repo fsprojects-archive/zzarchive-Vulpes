@@ -48,8 +48,8 @@ module CudaTemplates =
                         for randomInputs in randomInputsList do (randomInputs :> IDisposable).Dispose()
 
     let writeErrorReport (errorReport : ErrorReport) =
-        let diff = errorReport.H1 - errorReport.H2
-        Console.WriteLine("Layer {0}, Epoch {1}, Batch {2}, Error {3}", errorReport.LayerIndex, errorReport.EpochIndex, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
+        let diff = errorReport.C1 - errorReport.C2
+        Console.WriteLine("Layer {0}, Epoch {1}, Batch {2}, Error {3}", errorReport.Epoch.Layer, errorReport.Epoch.Epoch, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
 
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
@@ -152,7 +152,7 @@ module CudaTemplates =
             let subtractMatrixKernel = program.Apply subtractMatrixKernel
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
 
-            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (SampleFrequency sampleFrequency) layerIndex epochIndex ->
+            fun rnd (rbm : RestrictedBoltzmannMachine) (inputs : LayerInputs) (epochParameters : EpochParameters) ->
                 let batches = inputs.GetRandomisedInputBatches rnd rbm.Parameters.BatchSize
                 let nRows = batches.Head.Size
                 let nCols = batches.Head.Dimension
@@ -241,22 +241,21 @@ module CudaTemplates =
                     multiplyByTransposeKernel.Launch forwardMatrixLp h2.Ptr weightsAndBiases.Ptr v2ActivatedForBias.Ptr weightsAndBiasesHeight weightsAndBiasesWidth hVisibleUnitMatrix wVisibleUnitMatrix
                     activateKernel.Launch activateHiddenLp h2.Ptr h2.Ptr randoms.HiddenRandoms2.Ptr
 
-                    if i % sampleFrequency = 0 then
-                        let h1Sample = (h1.Gather() |> (Matrix.FromRowMajorFormat paddedHiddenColumns)).Submatrix 0 0 nRows (nHidden + 1)
-                        let h2Sample = (h2.Gather() |> (Matrix.FromRowMajorFormat paddedHiddenColumns)).Submatrix 0 0 nRows (nHidden + 1)
-                        let errorReport = 
-                            {
-                                LayerIndex = layerIndex
-                                EpochIndex = epochIndex
-                                BatchIndex = i
-                                H1 = h1Sample
-                                H2 = h2Sample
-                            }
-                        writeErrorReport errorReport
-
                     // Compute c1 = h1 * v1 and c2 = h2 * v2
                     multiplyKernel.Launch computeCValueLp c1.Ptr h1.Ptr v1.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
                     multiplyKernel.Launch computeCValueLp c2.Ptr h2.Ptr v2.Ptr hHiddenUnitMatrix wHiddenUnitMatrix hVisibleUnitMatrix wVisibleUnitMatrix
+
+                    if i % epochParameters.SampleEvery = 0 then
+                        let c1Sample = (c1.Gather() |> (Matrix.FromRowMajorFormat weightsAndBiasesWidth))
+                        let c2Sample = (c2.Gather() |> (Matrix.FromRowMajorFormat weightsAndBiasesWidth))
+                        let errorReport = 
+                            {
+                                Epoch = epochParameters
+                                BatchIndex = i
+                                C1 = c1Sample
+                                C2 = c2Sample
+                            }
+                        writeErrorReport errorReport
 
                     // dWeightsAndBiases -> momentum * dWeightsAndBiases + weightedLearningRate * (c1 - c2)
                     subtractMatrixKernel.Launch simpleWeightsLp c1.Ptr c1.Ptr c2.Ptr
@@ -268,9 +267,7 @@ module CudaTemplates =
                     addMatrixKernel.Launch simpleWeightsLp weightsAndBiases.Ptr weightsAndBiases.Ptr dWeightsAndBiases.Ptr
 
                 let weightsAndBiases = weightsAndBiases.Gather() |> Matrix.FromRowMajorFormat weightsAndBiasesWidth
-                let wbg = dWeightsAndBiases.Gather()
-                let max = Array.maxBy (fun el -> Math.Abs(el |> float)) (Array.sub wbg 1 (wbg.Length - 1))
-                let dWeightsAndBiases = wbg |> Matrix.FromRowMajorFormat weightsAndBiasesWidth
+                let dWeightsAndBiases = dWeightsAndBiases.Gather() |> Matrix.FromRowMajorFormat weightsAndBiasesWidth
                 let result = RestrictedBoltzmannMachine.FromWeightsAndBiases rbm.Parameters (weightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightsAndBiases) (dWeightsAndBiases.Submatrix 0 0 (nHidden + 1) (nVisible + 1) |> WeightChanges)
                 result
         ) }
