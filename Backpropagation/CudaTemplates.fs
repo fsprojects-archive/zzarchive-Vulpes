@@ -39,11 +39,15 @@ module CudaTemplates =
         member this.Height = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Height
         member this.Width = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Width
 
+    let writeErrorReport i j (errorSignalsSample : Vector) =
+        Console.WriteLine("Iteration {0}, Layer {1}, Batch {2}, Error {3}", i, j + 1, errorSignalsSample.SumOfSquares)
+
     let runTrainNeuralNetEpochTemplate (blockSize : int) = cuda {
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByMatrixAndTransformTwiceKernel = multiplyVectorByMatrixAndTransformTwiceKernel blockSize <@ sigmoid @> <@ dSigmoid @> |> Compiler.DefineKernel
         let! multiplyVectorByTransposeOfMatrixKernel = multiplyVectorByTransposeOfMatrixKernel blockSize |> Compiler.DefineKernel
         let! coerceKernel = coerceKernel blockSize |> Compiler.DefineKernel
+        let! copyKernel = copyKernel blockSize |> Compiler.DefineKernel
         let! addVectorKernel = <@ pointwiseAdd @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
         let! subtractVectorKernel = <@ pointwiseSubtract @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
         let! pointwiseMultiplyVectorKernel = <@ pointwiseMultiply @> |> pointwiseBinaryOperationKernel blockSize |> Compiler.DefineKernel
@@ -57,6 +61,7 @@ module CudaTemplates =
             let multiplyVectorByMatrixAndTransformTwiceKernel = program.Apply multiplyVectorByMatrixAndTransformTwiceKernel
             let multiplyVectorByTransposeOfMatrixKernel = program.Apply multiplyVectorByTransposeOfMatrixKernel
             let coerceKernel = program.Apply coerceKernel
+            let copyKernel = program.Apply copyKernel
             let addVectorKernel = program.Apply addVectorKernel
             let subtractVectorKernel = program.Apply subtractVectorKernel
             let pointwiseMultiplyVectorKernel = program.Apply pointwiseMultiplyVectorKernel
@@ -64,7 +69,7 @@ module CudaTemplates =
             let scalarMultiplyMatrixKernel = program.Apply scalarMultiplyMatrixKernel
             let addMatrixKernel = program.Apply addMatrixKernel
 
-            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) (rnd : RandomSingle) -> 
+            fun (network : BackPropagationNetwork) (TrainingSet trainingSet) (rnd : RandomSingle) (SampleFrequency sampleFrequency) -> 
                 let Ws = network.Layers |> List.map (fun layer -> layer.Weights)
 
                 let paddedWeights = Ws |> List.map (fun (weightsAndBiases : WeightsAndBiases) -> weightsAndBiases.PrependRowOfZeroes.PadToMultiplesOf blockSize)
@@ -77,6 +82,8 @@ module CudaTemplates =
                 let outerProductLp = paddedWeights |> List.map (fun w -> createOuterProductLp blockSize w.Height w.Width)
 
                 use inputs0 = worker.Malloc<float32>(paddedWeights.[0].Width)
+                let targetSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingTarget.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
+                let inputSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
@@ -86,6 +93,10 @@ module CudaTemplates =
                 let dOutputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
                 let errorSignals = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
                 
+                let paddedTargetDimension = trainingSet.[0].TrainingTarget.Dimension + 1 |> nextMultipleOf blockSize
+                let paddedInputDimension = trainingSet.[0].TrainingInput.Dimension + 1 |> nextMultipleOf blockSize
+                let copyTargetLp = createSimpleVectorOperationLp blockSize paddedTargetDimension
+                let copyInputLp = createSimpleVectorOperationLp blockSize paddedInputDimension
                 let inputs = inputs0 :: outputs
                 let N = weights.Length - 1
                 let epochs = match network.Parameters.Epochs with Epochs n -> n
@@ -93,7 +104,7 @@ module CudaTemplates =
                 let momentum = match network.Parameters.Momentum with Momentum m -> m
                 for i in 0..(trainingSet.Length * epochs) - 1 do
                     let index = rnd.Next trainingSet.Length
-                    inputs0.Scatter(trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize)
+                    copyKernel.Launch copyInputLp inputs0.Ptr inputSignals.Ptr (index * paddedInputDimension)
 
                     for j in 0..N do
                         let lastOutput = if j = 0 then inputs0 else outputs.[j - 1]
@@ -109,7 +120,7 @@ module CudaTemplates =
 
                     coerceKernel.Launch (coerceLp 1) outputs.[N].Ptr 0 0 1.0f
 
-                    errorSignals.[N].Scatter (trainingSet.[index].TrainingTarget.PrependForBias.PadToMultipleOf blockSize)
+                    copyKernel.Launch copyTargetLp errorSignals.[N].Ptr targetSignals.Ptr (index * paddedTargetDimension)
                     subtractVectorKernel.Launch outputLp.[N] errorSignals.[N].Ptr errorSignals.[N].Ptr outputs.[N].Ptr
 
                     for j in N..(-1)..0 do
@@ -118,6 +129,9 @@ module CudaTemplates =
 
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr errorSignals.[j].Ptr
                         outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr paddedWeights.[j].Width
+                        if i % sampleFrequency = 0 then
+                            let errorSignalsSample = errorSignals.[j].Gather() |> Vector
+                            writeErrorReport i j errorSignalsSample
 
                     for j in N..(-1)..0 do
                         let wW = paddedWeights.[j].Width

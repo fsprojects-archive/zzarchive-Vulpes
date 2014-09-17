@@ -4,6 +4,8 @@ module NeuralNet =
         
     type LayerSizes = LayerSizes of int list
 
+    and SampleFrequency = SampleFrequency of int
+
     and ScaledLearningRate = ScaledLearningRate of float32
 
     and LearningRate = LearningRate of float32 with

@@ -93,6 +93,12 @@ module Kernels =
             result.[i] <- (%operation) lhs.[i] rhs.[i]
         @>
 
+    let copyKernel (blockSize : int) =
+        <@ fun (dest : deviceptr<float32>) (src : deviceptr<float32>) (baseIndex : int) ->
+            let i = blockIdx.x * blockSize + threadIdx.x;
+            dest.[i] <- src.[baseIndex + i]
+        @>
+
     let multiplyByTransposeStrategy blockSize =
         let aIteration = 
             <@ fun height width blockIndex ->

@@ -49,7 +49,7 @@ module CudaTemplates =
 
     let writeErrorReport (errorReport : ErrorReport) =
         let diff = errorReport.C1 - errorReport.C2
-        Console.WriteLine("Layer {0}, Epoch {1}, Batch {2}, Error {3}", errorReport.Epoch.Layer, errorReport.Epoch.Epoch, errorReport.BatchIndex, diff.SumOfSquares / (float32 diff.Width))
+        Console.WriteLine("Layer {0}, Epoch {1}, Batch {2}, Relative Update {3}", errorReport.Epoch.Layer, errorReport.Epoch.Epoch, errorReport.BatchIndex, diff.SumOfSquares / errorReport.WeightsAndBiases.SumOfSquares)
 
     let createActivateFirstRowLp blockSize hM wM =
         let threads = dim3(blockSize)
@@ -248,12 +248,14 @@ module CudaTemplates =
                     if i % epochParameters.SampleEvery = 0 then
                         let c1Sample = (c1.Gather() |> (Matrix.FromRowMajorFormat weightsAndBiasesWidth))
                         let c2Sample = (c2.Gather() |> (Matrix.FromRowMajorFormat weightsAndBiasesWidth))
+                        let weightsAndBiasesSample = (weightsAndBiases.Gather() |> (Matrix.FromRowMajorFormat weightsAndBiasesWidth))
                         let errorReport = 
                             {
                                 Epoch = epochParameters
                                 BatchIndex = i
-                                C1 = c1Sample
-                                C2 = c2Sample
+                                C1 = weightedLearningRate * c1Sample
+                                C2 = weightedLearningRate * c2Sample
+                                WeightsAndBiases = weightsAndBiasesSample
                             }
                         writeErrorReport errorReport
 

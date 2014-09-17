@@ -21,7 +21,7 @@ module Main =
             LearningRate = LearningRate 0.8f
             Momentum = Momentum 0.1f
             BatchSize = BatchSize 100
-            Epochs = Epochs 10
+            Epochs = Epochs 1
         }
 
     // Fine tuning parameters
@@ -29,7 +29,7 @@ module Main =
         {
             BackPropagationParameters.LearningRate = ScaledLearningRate 0.8f
             Momentum = Momentum 0.25f
-            Epochs = Epochs 10
+            Epochs = Epochs 1
         }
 
     [<EntryPoint>]
@@ -45,7 +45,7 @@ module Main =
         let trainedDbn = dbn.TrainGpu rnd trainingSet (SampleFrequency 10)
 
         let backPropagationNetwork = trainedDbn.ToBackPropagationNetwork backPropagationParameters
-        let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet
+        let trainedBackPropagationNetwork = backPropagationNetwork.TrainGpu rnd trainingSet (SampleFrequency 100)
         let backPropagationResults = trainedBackPropagationNetwork.ReadTestSetGpu mnistTestData.ToTestSet
         
         let floatingPointOutput (TestOutput testOutput) =

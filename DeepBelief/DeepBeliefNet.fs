@@ -51,6 +51,7 @@ module DeepBeliefNet =
         BatchIndex : int
         C1 : Matrix
         C2 : Matrix
+        WeightsAndBiases : Matrix
     }
 
     type WeightsAndBiases with
@@ -119,8 +120,6 @@ module DeepBeliefNet =
     let activate (rnd : RandomSingle) (FloatingPointFunction activation) x =
         let exceedsActivationThreshold threshold (Range value) = value > threshold
         x |> Domain |> activation |> exceedsActivationThreshold rnd.NextSingle |> Convert.ToInt32 |> float32
-
-    type SampleFrequency = SampleFrequency of int
 
     type LayerIndex = LayerIndex of int
 
