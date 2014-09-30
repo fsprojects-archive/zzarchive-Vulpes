@@ -65,13 +65,6 @@
     <None Include="packages.config" />
     <None Include="app.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DeepLearning\DeepLearning.fsproj">
-      <Name>DeepLearning</Name>
-      <Project>{bb445a07-904b-4a98-9d1d-df20ea5fdcb4}</Project>
-      <Private>True</Private>
-    </ProjectReference>
-  </ItemGroup>
   <PropertyGroup>
     <MinimumVisualStudioVersion Condition="'$(MinimumVisualStudioVersion)' == ''">11</MinimumVisualStudioVersion>
   </PropertyGroup>

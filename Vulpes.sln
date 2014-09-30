@@ -1,17 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.30501.0
+VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepBelief", "DeepBelief\DeepBelief.fsproj", "{F223EBC5-05A0-40FE-8559-3DC79BC6DD0D}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepBelief.Tests", "DeepBelief.Tests\DeepBelief.Tests.fsproj", "{DD787FE8-4BF7-4564-B20D-3AEF8B73F2F1}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MnistClassification", "MnistClassification\MnistClassification.fsproj", "{F4F50893-A044-490F-BD48-B06FA62C323B}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepLearning", "DeepLearning\DeepLearning.fsproj", "{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}"
-EndProject
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "DeepLearning.Tests", "DeepLearning.Tests\DeepLearning.Tests.fsproj", "{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}"
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "MnistClassification.Web", "MnistClassification.Web\MnistClassification.Web.fsproj", "{F155F5AE-AEB3-42A8-9CB4-76452AFC327C}"
 EndProject
@@ -74,26 +70,6 @@ Global
 		{F4F50893-A044-490F-BD48-B06FA62C323B}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{F4F50893-A044-490F-BD48-B06FA62C323B}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{F4F50893-A044-490F-BD48-B06FA62C323B}.Release|x86.ActiveCfg = Release|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{BB445A07-904B-4A98-9D1D-DF20EA5FDCB4}.Release|x86.ActiveCfg = Release|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Release|Any CPU.Build.0 = Release|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{68D537F9-2BDA-4DA9-BF77-9E0034EE3B90}.Release|x86.ActiveCfg = Release|Any CPU
 		{F155F5AE-AEB3-42A8-9CB4-76452AFC327C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F155F5AE-AEB3-42A8-9CB4-76452AFC327C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F155F5AE-AEB3-42A8-9CB4-76452AFC327C}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU

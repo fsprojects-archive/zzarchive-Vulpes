@@ -82,8 +82,8 @@ module CudaTemplates =
                 let outerProductLp = paddedWeights |> List.map (fun w -> createOuterProductLp blockSize w.Height w.Width)
 
                 use inputs0 = worker.Malloc<float32>(paddedWeights.[0].Width)
-                let targetSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingTarget.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
-                let inputSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
+                use targetSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingTarget.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
+                use inputSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)

@@ -21,7 +21,7 @@ module Main =
             LearningRate = LearningRate 0.8f
             Momentum = Momentum 0.1f
             BatchSize = BatchSize 100
-            Epochs = Epochs 1
+            Epochs = Epochs 4
         }
 
     // Fine tuning parameters
