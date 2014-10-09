@@ -344,6 +344,7 @@ module Kernels =
                     value <- value + (if row < hA && m * blockSize + k < wA then A.[row * wA + m * blockSize + k] * Xds.[k] else 0.0f)
                 __syncthreads()
 
-            y1.[row] <- (%transformationFunction1) value
-            y2.[row] <- (%transformationFunction2) y1.[row] value
+            let y = (%transformationFunction1) value
+            y1.[row] <- y
+            y2.[row] <- (%transformationFunction2) y value
             __syncthreads() @>

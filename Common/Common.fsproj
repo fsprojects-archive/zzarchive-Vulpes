@@ -54,7 +54,7 @@
     <None Include="Script.fsx" />
     <Compile Include="Utils.fs" />
     <Compile Include="Kernels.fs" />
-    <Compile Include="CudaTemplates.fs" />
+    <Compile Include="CommonCudaTemplates.fs" />
     <None Include="packages.config" />
   </ItemGroup>
   <PropertyGroup>

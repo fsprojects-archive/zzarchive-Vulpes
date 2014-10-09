@@ -21,7 +21,7 @@ module Main =
             LearningRate = LearningRate 0.8f
             Momentum = Momentum 0.1f
             BatchSize = BatchSize 100
-            Epochs = Epochs 4
+            Epochs = Epochs 2
         }
 
     // Fine tuning parameters
@@ -68,13 +68,13 @@ module Main =
         let addError E (x, t) = 
             let En = error x t
             E + En
-        let fpTestError = 
-            List.zip targets (floatingPointOutput backPropagationResults)
-            |> List.fold addError 0.0f
-        let intTestError = 
-            List.zip targets (intOutput backPropagationResults)
-            |> List.fold addError 0.0f
-
-        printfn "%A" (fpTestError / float32 targets.Length)
-        printfn "%A" (intTestError / float32 targets.Length)
+//        let fpTestError = 
+//            List.zip targets (floatingPointOutput backPropagationResults)
+//            |> List.fold addError 0.0f
+//        let intTestError = 
+//            List.zip targets (intOutput backPropagationResults)
+//            |> List.fold addError 0.0f
+//
+//        printfn "%A" (fpTestError / float32 targets.Length)
+//        printfn "%A" (intTestError / float32 targets.Length)
         0

@@ -39,8 +39,8 @@ module CudaTemplates =
         member this.Height = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Height
         member this.Width = match this with WeightsAndBiases weightsAndBiases -> weightsAndBiases.Width
 
-    let writeErrorReport i j (errorSignalsSample : Vector) =
-        Console.WriteLine("Iteration {0}, Layer {1}, Batch {2}, Error {3}", i, j + 1, errorSignalsSample.SumOfSquares)
+    let writeErrorReport i j total (errorSignalsSample : Vector) =
+        Console.WriteLine("Iteration {0} of {1}, Layer {2}, Error {3}", i, total, j + 1, errorSignalsSample.SumOfSquares)
 
     let runTrainNeuralNetEpochTemplate (blockSize : int) = cuda {
         let! multiplyVectorByMatrixAndTransformKernel = multiplyVectorByMatrixAndTransformKernel blockSize <@ sigmoid @> |> Compiler.DefineKernel
@@ -83,7 +83,8 @@ module CudaTemplates =
 
                 use inputs0 = worker.Malloc<float32>(paddedWeights.[0].Width)
                 use targetSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingTarget.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
-                use inputSignals = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize) |> Array.concat |> worker.Malloc
+                let x = [|0..trainingSet.Length - 1|] |> Array.map (fun index -> trainingSet.[index].TrainingInput.PrependForBias.PadToMultipleOf blockSize) |> Array.concat
+                use inputSignals = x |> worker.Malloc
 
                 // The contents of these lists will need to be disposed at the end of the run.
                 let outputs = paddedWeights |> List.map (fun w -> worker.Malloc<float32> w.Height)
@@ -102,7 +103,8 @@ module CudaTemplates =
                 let epochs = match network.Parameters.Epochs with Epochs n -> n
                 let learningRate = match network.Parameters.LearningRate with ScaledLearningRate lr -> lr
                 let momentum = match network.Parameters.Momentum with Momentum m -> m
-                for i in 0..(trainingSet.Length * epochs) - 1 do
+                let total = trainingSet.Length * epochs
+                for i in 0..total - 1 do
                     let index = rnd.Next trainingSet.Length
                     copyKernel.Launch copyInputLp inputs0.Ptr inputSignals.Ptr (index * paddedInputDimension)
 
@@ -129,9 +131,13 @@ module CudaTemplates =
 
                         pointwiseMultiplyVectorKernel.Launch outputLp.[j] errorSignals.[j].Ptr dOutputs.[j].Ptr errorSignals.[j].Ptr
                         outerProductKernel.Launch outerProductLp.[j] grads.[j].Ptr errorSignals.[j].Ptr inputs.[j].Ptr paddedWeights.[j].Width
-                        if i % sampleFrequency = 0 then
+                        if i % sampleFrequency >= 0 then
                             let errorSignalsSample = errorSignals.[j].Gather() |> Vector
-                            writeErrorReport i j errorSignalsSample
+                            let temp1 = inputs0.Gather() |> Vector
+                            let temp2 = outputs.[N].Gather() |> Vector
+                            let temp3 = outputs.[j].Gather() |> Vector
+                            let temp4 = weights.[j].Gather() |> Matrix.FromRowMajorFormat paddedWeights.[j].Width
+                            writeErrorReport i j total errorSignalsSample
 
                     for j in N..(-1)..0 do
                         let wW = paddedWeights.[j].Width

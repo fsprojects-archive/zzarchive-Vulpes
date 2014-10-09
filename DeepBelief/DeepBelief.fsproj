@@ -62,7 +62,7 @@
     <Compile Include="Utils.fs" />
     <Compile Include="Kernels.fs" />
     <Compile Include="DeepBeliefNet.fs" />
-    <Compile Include="CudaTemplates.fs" />
+    <Compile Include="DeepBeliefCudaTemplates.fs" />
     <Compile Include="CudaDeepBeliefNet.fs" />
     <Compile Include="ImageClassification.fs" />
     <None Include="Regression.fsx" />
