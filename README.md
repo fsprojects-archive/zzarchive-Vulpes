@@ -52,4 +52,9 @@ There are several avenues for further development of Vulpes.  To contribute as a
 
 There is a [list of milestones] (https://github.com/SpiegelSoft/Vulpes/issues/milestones?with_issues=no) and an [issues database] (https://github.com/SpiegelSoft/Vulpes/issues) in this repository.
 
+## Maintainer(s)
+
+- [@SpiegelSoft](https://github.com/SpiegelSoft)
+
+The default maintainer account for projects under "fsprojects" is [@fsgit](https://github.com/fsgit) - F# Community Project Incubation Space (repo management)
 
