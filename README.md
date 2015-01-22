@@ -1,3 +1,6 @@
+[![Issue Stats](http://issuestats.com/github/fsprojects/Vulpes/badge/issue)](http://issuestats.com/github/fsprojects/Vulpes)
+[![Issue Stats](http://issuestats.com/github/fsprojects/Vulpes/badge/pr)](http://issuestats.com/github/fsprojects/Vulpes)
+
 # Vulpes
 
 Vulpes is an implementation of [deep belief] (http://www.cs.toronto.edu/~hinton/absps/fastnc.pdf)  and [deep learning] (http://www.cs.nyu.edu/~yann/research/deep/), written in F# and using [Alea.cuBase] (https://www.quantalea.net/products/introduction/) to connect to your PC's GPU device.
